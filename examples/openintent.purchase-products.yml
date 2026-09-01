@@ -1,0 +1,36 @@
+protocol: openintent
+version: 1.0.0
+intent:
+  canonical_label: Commerce.PurchaseProducts
+  version: 1.0.0
+  input:
+    schema: schema://commerce/purchase-products/input/1
+  output:
+    schema: schema://commerce/purchase-products/output/1
+  participants:
+    - role: requesting_human
+      entity_kinds: [Human]
+    - role: commerce_executor
+      entity_kinds: [Agent, Service]
+    - role: supplier
+      entity_kinds: [Organization, Business]
+    - role: receiving_human
+      entity_kinds: [Human]
+  authority:
+    required_scopes:
+      - commerce.purchase.create
+  channels:
+    mode: request_reply
+    acceptable:
+      - h2a2h.channel.in-memory.v1
+      - h2a2h.channel.nats.v1
+      - h2a2h.channel.grpc.v1
+    fallback: allowed
+  idempotency:
+    mode: required
+  preconditions:
+    - rule: delegation.active
+    - rule: supplier.resolved
+  postconditions:
+    - rule: purchase.recorded
+    - rule: human_return.proven
