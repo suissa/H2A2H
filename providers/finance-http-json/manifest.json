@@ -1,0 +1,30 @@
+{
+  "canonical_label": "ProviderPack.Finance.HttpJson",
+  "version": "0.1.0",
+  "domain": "finance",
+  "provider_kind": "http-json",
+  "capabilities": [
+    "finance.erp.read",
+    "finance.erp.write",
+    "finance.ledger.query",
+    "finance.report.generate",
+    "finance.approval.request"
+  ],
+  "config_schema": {
+    "type": "object",
+    "required": ["base_url"],
+    "properties": {
+      "base_url": { "type": "string" },
+      "tenant_id": { "type": "string" },
+      "timeout_ms": { "type": "number" }
+    },
+    "additionalProperties": false
+  },
+  "secrets": [
+    { "name": "api_token", "required": true }
+  ],
+  "runtime": {
+    "network": true,
+    "protocols": ["HTTP+JSON"]
+  }
+}

@@ -15,3 +15,4 @@ export * from './employee-registry.js';
 export * from './employee-tool-registry.js';
 export * from './employee-tool-binding.js';
 export * from './employee-provider-pack.js';
+export * from './provider-packs/finance-http-json.js';
