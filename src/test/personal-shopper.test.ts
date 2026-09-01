@@ -38,12 +38,15 @@ function toolExecutors(): Record<string, EmployeeToolExecutor> {
 function options(): EmployeeAgentRuntimeOptions {
   return {
     toolExecutors: toolExecutors(),
-    validateDelegation: async (context) => ({
-      valid: context.input.delegation_ref === 'delegation:valid',
-      delegation_id: context.input.delegation_ref,
-      evidence: ['delegation-proof:1'],
-      ...(context.input.delegation_ref === 'delegation:valid' ? {} : { reason: 'delegation.invalid' }),
-    }),
+    validateDelegation: async (context) => {
+      const valid = context.input.delegation_ref === 'delegation:valid';
+      return {
+        valid,
+        evidence: ['delegation-proof:1'],
+        ...(context.input.delegation_ref ? { delegation_id: context.input.delegation_ref } : {}),
+        ...(valid ? {} : { reason: 'delegation.invalid' }),
+      };
+    },
     resolveParticipants: async () => ({
       sender: human,
       receiver: agent,
