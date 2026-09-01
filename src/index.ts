@@ -6,3 +6,4 @@ export * from './healing.js';
 export * from './audit.js';
 export * from './registry.js';
 export * from './sdk.js';
+export * from './channels.js';
