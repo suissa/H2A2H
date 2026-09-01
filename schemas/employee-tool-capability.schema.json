@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://h2a2h.dev/schemas/employee-tool-capability.schema.json",
+  "title": "H2A2H Employee Tool Capability Catalog",
+  "type": "object",
+  "required": ["protocol", "version", "defaults", "departments", "internal"],
+  "properties": {
+    "protocol": { "const": "h2a2h.employee-tools" },
+    "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "defaults": {
+      "type": "object",
+      "required": ["delegation_required", "provider_required", "provider_bindings", "events"],
+      "properties": {
+        "delegation_required": { "type": "boolean" },
+        "provider_required": { "type": "boolean" },
+        "provider_bindings": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "enum": ["in-memory", "http-json", "mcp", "injected", "internal"] }
+        },
+        "events": {
+          "type": "object",
+          "required": ["success", "failure"],
+          "properties": {
+            "success": { "const": "Ok" },
+            "failure": { "const": "Error" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "departments": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "required": ["tools", "side_effects"],
+        "properties": {
+          "tools": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": { "type": "string", "pattern": "^[a-z0-9-]+(?:\\.[a-z0-9-]+)+$" }
+          },
+          "side_effects": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": { "type": "string", "pattern": "^[a-z0-9-]+(?:\\.[a-z0-9-]+)+$" }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "internal": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["canonical_label", "side_effect", "delegation_required"],
+        "properties": {
+          "canonical_label": { "type": "string", "pattern": "^h2a2h\\.[a-z0-9-]+(?:\\.[a-z0-9-]+)+$" },
+          "side_effect": { "type": "boolean" },
+          "delegation_required": { "type": "boolean" }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}
