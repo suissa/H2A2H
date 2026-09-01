@@ -27,6 +27,9 @@ jobs:
       - name: Validate normative schema JSON
         run: node -e "JSON.parse(require('node:fs').readFileSync('schemas/h2a2h-v1.schema.json','utf8')); console.log('schema JSON valid')"
 
+      - name: Release artifact gate
+        run: npm run release:gate
+
       - name: Typecheck
         run: npm run typecheck
 
