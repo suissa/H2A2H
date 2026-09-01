@@ -1,0 +1,67 @@
+{
+  "name": "Operations Manager Agent",
+  "description": "H2A2H enterprise employee agent implementing the Operations Manager role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/operations-manager/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/operations-manager/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/operations-manager",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "operations-manager.analyze",
+      "name": "Analyze as Operations Manager",
+      "description": "Analyze information relevant to the Operations Manager role and produce evidence-backed findings.",
+      "tags": [
+        "operations-programs",
+        "operations-manager",
+        "analysis"
+      ]
+    },
+    {
+      "id": "operations-manager.execute",
+      "name": "Execute Operations Manager work",
+      "description": "Execute delegated Operations Manager work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "operations-programs",
+        "operations-manager",
+        "execution"
+      ]
+    },
+    {
+      "id": "operations-manager.report",
+      "name": "Report Operations Manager outcome",
+      "description": "Return a structured Operations Manager result with provenance, audit references and Human-return status.",
+      "tags": [
+        "operations-programs",
+        "operations-manager",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

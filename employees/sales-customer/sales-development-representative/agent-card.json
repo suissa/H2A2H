@@ -1,0 +1,67 @@
+{
+  "name": "Sales Development Representative Agent",
+  "description": "H2A2H enterprise employee agent implementing the Sales Development Representative role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/sales-development-representative/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/sales-development-representative/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/sales-development-representative",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "sales-development-representative.analyze",
+      "name": "Analyze as Sales Development Representative",
+      "description": "Analyze information relevant to the Sales Development Representative role and produce evidence-backed findings.",
+      "tags": [
+        "sales-customer",
+        "sales-development-representative",
+        "analysis"
+      ]
+    },
+    {
+      "id": "sales-development-representative.execute",
+      "name": "Execute Sales Development Representative work",
+      "description": "Execute delegated Sales Development Representative work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "sales-customer",
+        "sales-development-representative",
+        "execution"
+      ]
+    },
+    {
+      "id": "sales-development-representative.report",
+      "name": "Report Sales Development Representative outcome",
+      "description": "Return a structured Sales Development Representative result with provenance, audit references and Human-return status.",
+      "tags": [
+        "sales-customer",
+        "sales-development-representative",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

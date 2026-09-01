@@ -1,0 +1,67 @@
+{
+  "name": "Machine Learning Engineer Agent",
+  "description": "H2A2H enterprise employee agent implementing the Machine Learning Engineer role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/machine-learning-engineer/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/machine-learning-engineer/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/machine-learning-engineer",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "machine-learning-engineer.analyze",
+      "name": "Analyze as Machine Learning Engineer",
+      "description": "Analyze information relevant to the Machine Learning Engineer role and produce evidence-backed findings.",
+      "tags": [
+        "engineering-it",
+        "machine-learning-engineer",
+        "analysis"
+      ]
+    },
+    {
+      "id": "machine-learning-engineer.execute",
+      "name": "Execute Machine Learning Engineer work",
+      "description": "Execute delegated Machine Learning Engineer work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "engineering-it",
+        "machine-learning-engineer",
+        "execution"
+      ]
+    },
+    {
+      "id": "machine-learning-engineer.report",
+      "name": "Report Machine Learning Engineer outcome",
+      "description": "Return a structured Machine Learning Engineer result with provenance, audit references and Human-return status.",
+      "tags": [
+        "engineering-it",
+        "machine-learning-engineer",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

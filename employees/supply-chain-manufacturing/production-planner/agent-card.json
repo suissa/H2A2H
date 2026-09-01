@@ -1,0 +1,67 @@
+{
+  "name": "Production Planner Agent",
+  "description": "H2A2H enterprise employee agent implementing the Production Planner role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/production-planner/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/production-planner/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/production-planner",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "production-planner.analyze",
+      "name": "Analyze as Production Planner",
+      "description": "Analyze information relevant to the Production Planner role and produce evidence-backed findings.",
+      "tags": [
+        "supply-chain-manufacturing",
+        "production-planner",
+        "analysis"
+      ]
+    },
+    {
+      "id": "production-planner.execute",
+      "name": "Execute Production Planner work",
+      "description": "Execute delegated Production Planner work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "supply-chain-manufacturing",
+        "production-planner",
+        "execution"
+      ]
+    },
+    {
+      "id": "production-planner.report",
+      "name": "Report Production Planner outcome",
+      "description": "Return a structured Production Planner result with provenance, audit references and Human-return status.",
+      "tags": [
+        "supply-chain-manufacturing",
+        "production-planner",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

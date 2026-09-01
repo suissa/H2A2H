@@ -1,0 +1,67 @@
+{
+  "name": "Product Marketing Manager Agent",
+  "description": "H2A2H enterprise employee agent implementing the Product Marketing Manager role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/product-marketing-manager/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/product-marketing-manager/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/product-marketing-manager",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "product-marketing-manager.analyze",
+      "name": "Analyze as Product Marketing Manager",
+      "description": "Analyze information relevant to the Product Marketing Manager role and produce evidence-backed findings.",
+      "tags": [
+        "marketing-communications",
+        "product-marketing-manager",
+        "analysis"
+      ]
+    },
+    {
+      "id": "product-marketing-manager.execute",
+      "name": "Execute Product Marketing Manager work",
+      "description": "Execute delegated Product Marketing Manager work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "marketing-communications",
+        "product-marketing-manager",
+        "execution"
+      ]
+    },
+    {
+      "id": "product-marketing-manager.report",
+      "name": "Report Product Marketing Manager outcome",
+      "description": "Return a structured Product Marketing Manager result with provenance, audit references and Human-return status.",
+      "tags": [
+        "marketing-communications",
+        "product-marketing-manager",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

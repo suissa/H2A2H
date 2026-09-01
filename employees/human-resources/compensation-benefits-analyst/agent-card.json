@@ -1,0 +1,67 @@
+{
+  "name": "Compensation & Benefits Analyst Agent",
+  "description": "H2A2H enterprise employee agent implementing the Compensation & Benefits Analyst role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/compensation-benefits-analyst/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/compensation-benefits-analyst/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/compensation-benefits-analyst",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "compensation-benefits-analyst.analyze",
+      "name": "Analyze as Compensation & Benefits Analyst",
+      "description": "Analyze information relevant to the Compensation & Benefits Analyst role and produce evidence-backed findings.",
+      "tags": [
+        "human-resources",
+        "compensation-benefits-analyst",
+        "analysis"
+      ]
+    },
+    {
+      "id": "compensation-benefits-analyst.execute",
+      "name": "Execute Compensation & Benefits Analyst work",
+      "description": "Execute delegated Compensation & Benefits Analyst work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "human-resources",
+        "compensation-benefits-analyst",
+        "execution"
+      ]
+    },
+    {
+      "id": "compensation-benefits-analyst.report",
+      "name": "Report Compensation & Benefits Analyst outcome",
+      "description": "Return a structured Compensation & Benefits Analyst result with provenance, audit references and Human-return status.",
+      "tags": [
+        "human-resources",
+        "compensation-benefits-analyst",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

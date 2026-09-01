@@ -1,0 +1,67 @@
+{
+  "name": "Chief Financial Officer Agent",
+  "description": "H2A2H enterprise employee agent implementing the Chief Financial Officer role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/chief-financial-officer/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/chief-financial-officer/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/chief-financial-officer",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "chief-financial-officer.analyze",
+      "name": "Analyze as Chief Financial Officer",
+      "description": "Analyze information relevant to the Chief Financial Officer role and produce evidence-backed findings.",
+      "tags": [
+        "executive",
+        "chief-financial-officer",
+        "analysis"
+      ]
+    },
+    {
+      "id": "chief-financial-officer.execute",
+      "name": "Execute Chief Financial Officer work",
+      "description": "Execute delegated Chief Financial Officer work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "executive",
+        "chief-financial-officer",
+        "execution"
+      ]
+    },
+    {
+      "id": "chief-financial-officer.report",
+      "name": "Report Chief Financial Officer outcome",
+      "description": "Return a structured Chief Financial Officer result with provenance, audit references and Human-return status.",
+      "tags": [
+        "executive",
+        "chief-financial-officer",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

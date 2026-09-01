@@ -1,0 +1,67 @@
+{
+  "name": "Personal Shopper Agent",
+  "description": "H2A2H enterprise employee agent implementing the Personal Shopper role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/personal-shopper/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/personal-shopper/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/personal-shopper",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "personal-shopper.analyze",
+      "name": "Analyze as Personal Shopper",
+      "description": "Analyze information relevant to the Personal Shopper role and produce evidence-backed findings.",
+      "tags": [
+        "personal-services",
+        "personal-shopper",
+        "analysis"
+      ]
+    },
+    {
+      "id": "personal-shopper.execute",
+      "name": "Execute Personal Shopper work",
+      "description": "Execute delegated Personal Shopper work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "personal-services",
+        "personal-shopper",
+        "execution"
+      ]
+    },
+    {
+      "id": "personal-shopper.report",
+      "name": "Report Personal Shopper outcome",
+      "description": "Return a structured Personal Shopper result with provenance, audit references and Human-return status.",
+      "tags": [
+        "personal-services",
+        "personal-shopper",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

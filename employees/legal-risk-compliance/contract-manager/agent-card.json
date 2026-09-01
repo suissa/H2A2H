@@ -1,0 +1,67 @@
+{
+  "name": "Contract Manager Agent",
+  "description": "H2A2H enterprise employee agent implementing the Contract Manager role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/contract-manager/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/contract-manager/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/contract-manager",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "contract-manager.analyze",
+      "name": "Analyze as Contract Manager",
+      "description": "Analyze information relevant to the Contract Manager role and produce evidence-backed findings.",
+      "tags": [
+        "legal-risk-compliance",
+        "contract-manager",
+        "analysis"
+      ]
+    },
+    {
+      "id": "contract-manager.execute",
+      "name": "Execute Contract Manager work",
+      "description": "Execute delegated Contract Manager work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "legal-risk-compliance",
+        "contract-manager",
+        "execution"
+      ]
+    },
+    {
+      "id": "contract-manager.report",
+      "name": "Report Contract Manager outcome",
+      "description": "Return a structured Contract Manager result with provenance, audit references and Human-return status.",
+      "tags": [
+        "legal-risk-compliance",
+        "contract-manager",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

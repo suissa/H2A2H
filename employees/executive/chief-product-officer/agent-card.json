@@ -1,0 +1,67 @@
+{
+  "name": "Chief Product Officer Agent",
+  "description": "H2A2H enterprise employee agent implementing the Chief Product Officer role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/chief-product-officer/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/chief-product-officer/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/chief-product-officer",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "chief-product-officer.analyze",
+      "name": "Analyze as Chief Product Officer",
+      "description": "Analyze information relevant to the Chief Product Officer role and produce evidence-backed findings.",
+      "tags": [
+        "executive",
+        "chief-product-officer",
+        "analysis"
+      ]
+    },
+    {
+      "id": "chief-product-officer.execute",
+      "name": "Execute Chief Product Officer work",
+      "description": "Execute delegated Chief Product Officer work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "executive",
+        "chief-product-officer",
+        "execution"
+      ]
+    },
+    {
+      "id": "chief-product-officer.report",
+      "name": "Report Chief Product Officer outcome",
+      "description": "Return a structured Chief Product Officer result with provenance, audit references and Human-return status.",
+      "tags": [
+        "executive",
+        "chief-product-officer",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

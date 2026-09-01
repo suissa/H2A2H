@@ -1,0 +1,67 @@
+{
+  "name": "Procurement Specialist Agent",
+  "description": "H2A2H enterprise employee agent implementing the Procurement Specialist role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/procurement-specialist/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/procurement-specialist/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/procurement-specialist",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "procurement-specialist.analyze",
+      "name": "Analyze as Procurement Specialist",
+      "description": "Analyze information relevant to the Procurement Specialist role and produce evidence-backed findings.",
+      "tags": [
+        "supply-chain-manufacturing",
+        "procurement-specialist",
+        "analysis"
+      ]
+    },
+    {
+      "id": "procurement-specialist.execute",
+      "name": "Execute Procurement Specialist work",
+      "description": "Execute delegated Procurement Specialist work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "supply-chain-manufacturing",
+        "procurement-specialist",
+        "execution"
+      ]
+    },
+    {
+      "id": "procurement-specialist.report",
+      "name": "Report Procurement Specialist outcome",
+      "description": "Return a structured Procurement Specialist result with provenance, audit references and Human-return status.",
+      "tags": [
+        "supply-chain-manufacturing",
+        "procurement-specialist",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

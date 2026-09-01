@@ -1,0 +1,67 @@
+{
+  "name": "Customer Success Manager Agent",
+  "description": "H2A2H enterprise employee agent implementing the Customer Success Manager role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/customer-success-manager/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/customer-success-manager/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/customer-success-manager",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "customer-success-manager.analyze",
+      "name": "Analyze as Customer Success Manager",
+      "description": "Analyze information relevant to the Customer Success Manager role and produce evidence-backed findings.",
+      "tags": [
+        "sales-customer",
+        "customer-success-manager",
+        "analysis"
+      ]
+    },
+    {
+      "id": "customer-success-manager.execute",
+      "name": "Execute Customer Success Manager work",
+      "description": "Execute delegated Customer Success Manager work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "sales-customer",
+        "customer-success-manager",
+        "execution"
+      ]
+    },
+    {
+      "id": "customer-success-manager.report",
+      "name": "Report Customer Success Manager outcome",
+      "description": "Return a structured Customer Success Manager result with provenance, audit references and Human-return status.",
+      "tags": [
+        "sales-customer",
+        "customer-success-manager",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

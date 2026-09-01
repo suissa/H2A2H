@@ -1,0 +1,67 @@
+{
+  "name": "UX Researcher Agent",
+  "description": "H2A2H enterprise employee agent implementing the UX Researcher role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/ux-researcher/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/ux-researcher/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/ux-researcher",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "ux-researcher.analyze",
+      "name": "Analyze as UX Researcher",
+      "description": "Analyze information relevant to the UX Researcher role and produce evidence-backed findings.",
+      "tags": [
+        "product-design",
+        "ux-researcher",
+        "analysis"
+      ]
+    },
+    {
+      "id": "ux-researcher.execute",
+      "name": "Execute UX Researcher work",
+      "description": "Execute delegated UX Researcher work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "product-design",
+        "ux-researcher",
+        "execution"
+      ]
+    },
+    {
+      "id": "ux-researcher.report",
+      "name": "Report UX Researcher outcome",
+      "description": "Return a structured UX Researcher result with provenance, audit references and Human-return status.",
+      "tags": [
+        "product-design",
+        "ux-researcher",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

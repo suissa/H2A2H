@@ -1,0 +1,67 @@
+{
+  "name": "Quality Inspector Agent",
+  "description": "H2A2H enterprise employee agent implementing the Quality Inspector role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/quality-inspector/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/quality-inspector/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/quality-inspector",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "quality-inspector.analyze",
+      "name": "Analyze as Quality Inspector",
+      "description": "Analyze information relevant to the Quality Inspector role and produce evidence-backed findings.",
+      "tags": [
+        "supply-chain-manufacturing",
+        "quality-inspector",
+        "analysis"
+      ]
+    },
+    {
+      "id": "quality-inspector.execute",
+      "name": "Execute Quality Inspector work",
+      "description": "Execute delegated Quality Inspector work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "supply-chain-manufacturing",
+        "quality-inspector",
+        "execution"
+      ]
+    },
+    {
+      "id": "quality-inspector.report",
+      "name": "Report Quality Inspector outcome",
+      "description": "Return a structured Quality Inspector result with provenance, audit references and Human-return status.",
+      "tags": [
+        "supply-chain-manufacturing",
+        "quality-inspector",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "name": "Frontend Engineer Agent",
+  "description": "H2A2H enterprise employee agent implementing the Frontend Engineer role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/frontend-engineer/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/frontend-engineer/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/frontend-engineer",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "frontend-engineer.analyze",
+      "name": "Analyze as Frontend Engineer",
+      "description": "Analyze information relevant to the Frontend Engineer role and produce evidence-backed findings.",
+      "tags": [
+        "engineering-it",
+        "frontend-engineer",
+        "analysis"
+      ]
+    },
+    {
+      "id": "frontend-engineer.execute",
+      "name": "Execute Frontend Engineer work",
+      "description": "Execute delegated Frontend Engineer work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "engineering-it",
+        "frontend-engineer",
+        "execution"
+      ]
+    },
+    {
+      "id": "frontend-engineer.report",
+      "name": "Report Frontend Engineer outcome",
+      "description": "Return a structured Frontend Engineer result with provenance, audit references and Human-return status.",
+      "tags": [
+        "engineering-it",
+        "frontend-engineer",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

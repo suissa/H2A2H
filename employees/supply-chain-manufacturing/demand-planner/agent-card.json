@@ -1,0 +1,67 @@
+{
+  "name": "Demand Planner Agent",
+  "description": "H2A2H enterprise employee agent implementing the Demand Planner role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/demand-planner/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/demand-planner/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/demand-planner",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "demand-planner.analyze",
+      "name": "Analyze as Demand Planner",
+      "description": "Analyze information relevant to the Demand Planner role and produce evidence-backed findings.",
+      "tags": [
+        "supply-chain-manufacturing",
+        "demand-planner",
+        "analysis"
+      ]
+    },
+    {
+      "id": "demand-planner.execute",
+      "name": "Execute Demand Planner work",
+      "description": "Execute delegated Demand Planner work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "supply-chain-manufacturing",
+        "demand-planner",
+        "execution"
+      ]
+    },
+    {
+      "id": "demand-planner.report",
+      "name": "Report Demand Planner outcome",
+      "description": "Return a structured Demand Planner result with provenance, audit references and Human-return status.",
+      "tags": [
+        "supply-chain-manufacturing",
+        "demand-planner",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

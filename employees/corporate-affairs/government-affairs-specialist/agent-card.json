@@ -1,0 +1,67 @@
+{
+  "name": "Government Affairs Specialist Agent",
+  "description": "H2A2H enterprise employee agent implementing the Government Affairs Specialist role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/government-affairs-specialist/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/government-affairs-specialist/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/government-affairs-specialist",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "government-affairs-specialist.analyze",
+      "name": "Analyze as Government Affairs Specialist",
+      "description": "Analyze information relevant to the Government Affairs Specialist role and produce evidence-backed findings.",
+      "tags": [
+        "corporate-affairs",
+        "government-affairs-specialist",
+        "analysis"
+      ]
+    },
+    {
+      "id": "government-affairs-specialist.execute",
+      "name": "Execute Government Affairs Specialist work",
+      "description": "Execute delegated Government Affairs Specialist work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "corporate-affairs",
+        "government-affairs-specialist",
+        "execution"
+      ]
+    },
+    {
+      "id": "government-affairs-specialist.report",
+      "name": "Report Government Affairs Specialist outcome",
+      "description": "Return a structured Government Affairs Specialist result with provenance, audit references and Human-return status.",
+      "tags": [
+        "corporate-affairs",
+        "government-affairs-specialist",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

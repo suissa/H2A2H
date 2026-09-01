@@ -1,0 +1,67 @@
+{
+  "name": "Enterprise Risk Manager Agent",
+  "description": "H2A2H enterprise employee agent implementing the Enterprise Risk Manager role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/enterprise-risk-manager/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/enterprise-risk-manager/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/enterprise-risk-manager",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "enterprise-risk-manager.analyze",
+      "name": "Analyze as Enterprise Risk Manager",
+      "description": "Analyze information relevant to the Enterprise Risk Manager role and produce evidence-backed findings.",
+      "tags": [
+        "legal-risk-compliance",
+        "enterprise-risk-manager",
+        "analysis"
+      ]
+    },
+    {
+      "id": "enterprise-risk-manager.execute",
+      "name": "Execute Enterprise Risk Manager work",
+      "description": "Execute delegated Enterprise Risk Manager work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "legal-risk-compliance",
+        "enterprise-risk-manager",
+        "execution"
+      ]
+    },
+    {
+      "id": "enterprise-risk-manager.report",
+      "name": "Report Enterprise Risk Manager outcome",
+      "description": "Return a structured Enterprise Risk Manager result with provenance, audit references and Human-return status.",
+      "tags": [
+        "legal-risk-compliance",
+        "enterprise-risk-manager",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

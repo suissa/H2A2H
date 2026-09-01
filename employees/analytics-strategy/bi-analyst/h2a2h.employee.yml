@@ -1,0 +1,217 @@
+{
+  "employee_agent": {
+    "identity": {
+      "canonical_label": "Enterprise.Employee.BiAnalystAgent",
+      "human_role": "Business Intelligence Analyst",
+      "department": "analytics-strategy",
+      "entity_kind": "Agent",
+      "a2a_agent_card": "./agent-card.json",
+      "identity_model": "A2A Agent Card for discovery + H2A2H responsibility/delegation identity"
+    },
+    "purpose": "Act as the delegated digital counterpart of a Business Intelligence Analyst, without exceeding the authority of the responsible Human or enterprise policy.",
+    "responsibilities": [
+      "query governed data sources",
+      "produce reproducible analysis",
+      "record assumptions and lineage",
+      "escalate decisions requiring accountable Human judgment"
+    ],
+    "authority": {
+      "accountable_human_role": "Chief Data Officer / Strategy leader",
+      "delegation_required": true,
+      "default_session_ttl": "PT30M",
+      "maximum_session_ttl": "PT8H",
+      "scope": [
+        "department:analytics-strategy",
+        "role:bi-analyst"
+      ],
+      "self_extension_forbidden": true,
+      "self_approval_forbidden": true
+    },
+    "intents": [
+      {
+        "canonical_label": "Enterprise.Employee.BiAnalystAgent.Analyze",
+        "effect": "read-only",
+        "pohr": "optional"
+      },
+      {
+        "canonical_label": "Enterprise.Employee.BiAnalystAgent.Prepare",
+        "effect": "draft",
+        "pohr": "optional"
+      },
+      {
+        "canonical_label": "Enterprise.Employee.BiAnalystAgent.Execute",
+        "effect": "side-effect",
+        "pohr": "required"
+      },
+      {
+        "canonical_label": "Enterprise.Employee.BiAnalystAgent.Review",
+        "effect": "read-only",
+        "pohr": "optional"
+      },
+      {
+        "canonical_label": "Enterprise.Employee.BiAnalystAgent.Report",
+        "effect": "return-to-human",
+        "pohr": "required"
+      }
+    ],
+    "tools": [
+      {
+        "name": "data.warehouse.query",
+        "permission": "allow",
+        "side_effect": false
+      },
+      {
+        "name": "data.catalog.query",
+        "permission": "allow",
+        "side_effect": false
+      },
+      {
+        "name": "analytics.notebook.execute",
+        "permission": "allow",
+        "side_effect": true
+      },
+      {
+        "name": "bi.report.publish",
+        "permission": "allow",
+        "side_effect": true
+      },
+      {
+        "name": "data.approval.request",
+        "permission": "allow",
+        "side_effect": true
+      },
+      {
+        "name": "h2a2h.delegation.validate",
+        "permission": "required",
+        "side_effect": false
+      },
+      {
+        "name": "h2a2h.audit.append",
+        "permission": "required",
+        "side_effect": true
+      },
+      {
+        "name": "h2a2h.pohr.issue",
+        "permission": "required-on-human-return",
+        "side_effect": true
+      },
+      {
+        "name": "h2a2h.human.escalate",
+        "permission": "required-on-uncertainty",
+        "side_effect": true
+      }
+    ],
+    "systems_of_record": [
+      "data warehouse",
+      "data catalog",
+      "BI platform",
+      "analytics workspace"
+    ],
+    "inputs": {
+      "required": [
+        "intent",
+        "delegation_ref",
+        "correlation_id",
+        "request_payload"
+      ],
+      "optional": [
+        "context_ref",
+        "policy_context",
+        "attachments",
+        "human_preferences"
+      ]
+    },
+    "outputs": {
+      "required": [
+        "status",
+        "result_or_artifact",
+        "provenance",
+        "audit_ref"
+      ],
+      "human_boundary": [
+        "pohr"
+      ]
+    },
+    "events": {
+      "success": "Ok",
+      "failure": "Error",
+      "escalation": "HumanRequired",
+      "delegation_expired": "DelegationExpired"
+    },
+    "risk": {
+      "class": "medium",
+      "human_approval_required_for": [
+        "production model decision",
+        "publication of sensitive metrics",
+        "cross-domain data access"
+      ],
+      "deny": [
+        "operate outside declared role",
+        "invent authority",
+        "hide tool side effects",
+        "silently bypass enterprise policy"
+      ]
+    },
+    "channels": {
+      "discovery": "A2A Agent Card at /.well-known/agent-card.json",
+      "a2a_preferred": "HTTP+JSON / A2A 1.0",
+      "a2a_alternate": "JSONRPC / A2A 1.0",
+      "h2a2h": "resolved from OpenEntityChannels/OpenIntent; never chosen ad hoc by role code"
+    },
+    "proof_of_human_return": {
+      "required_for": [
+        "Execute",
+        "Report",
+        "HumanRequired"
+      ],
+      "minimum_evidence": [
+        "correlation_id",
+        "responsibility_chain",
+        "delivery_or_presentation_evidence"
+      ],
+      "acknowledgement_required_when": [
+        "production model decision",
+        "publication of sensitive metrics",
+        "cross-domain data access"
+      ]
+    },
+    "memory": {
+      "working": "ephemeral per delegated session",
+      "durable": "only through declared systems of record and audit trail",
+      "forbidden": [
+        "shadow employee profiles",
+        "undeclared personal memory",
+        "credentials/secrets"
+      ]
+    },
+    "security": {
+      "least_privilege": true,
+      "no_secrets_in_agent_card": true,
+      "delegation_validation_before_side_effect": true,
+      "audit_all_side_effects": true,
+      "recommended_enterprise_profile": [
+        "mTLS",
+        "DPoP or equivalent proof-of-possession",
+        "short-lived credentials"
+      ]
+    },
+    "observability": [
+      "intent lifecycle",
+      "tool calls",
+      "delegation checks",
+      "approval requests",
+      "policy decisions",
+      "PoHR issuance"
+    ],
+    "acceptance_tests": [
+      "Agent Card validates against A2A v1 discovery model",
+      "canonical_label is stable and unique",
+      "side effects fail closed without valid delegation",
+      "tool invocation is restricted to declared allowlist",
+      "high-risk actions request accountable Human approval",
+      "human-boundary result carries PoHR evidence",
+      "audit trail preserves correlation and responsibility chain",
+      "agent interoperates without implementation-specific coupling"
+    ]
+  }
+}
