@@ -18,3 +18,4 @@ export * from './employee-provider-pack.js';
 export * from './provider-packs/finance-http-json.js';
 export * from './provider-packs/http-json-domain.js';
 export * from './provider-packs/engineering-http-json.js';
+export * from './provider-packs/hr-http-json.js';
