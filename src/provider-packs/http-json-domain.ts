@@ -4,7 +4,10 @@ import {
   type EmployeeToolProvider,
   type ToolProviderInvocationContext,
 } from '../employee-tool-registry.js';
-import type { EmployeeProviderPackFactory } from '../employee-provider-pack.js';
+import type {
+  EmployeeProviderPackFactory,
+  EmployeeProviderPackManifest,
+} from '../employee-provider-pack.js';
 
 export interface HttpJsonDomainPackDefinition {
   id: string;
@@ -121,6 +124,48 @@ export class HttpJsonDomainProvider implements EmployeeToolProvider {
   }
 }
 
+export function providerPackHttpRoutes(manifest: EmployeeProviderPackManifest): Readonly<Record<string, string>> {
+  if (manifest.provider_kind !== 'http-json' || !manifest.binding) {
+    return fail(
+      'http_domain_provider.binding.missing',
+      `${manifest.canonical_label} has no declarative HTTP binding`,
+    );
+  }
+  return manifest.binding.routes;
+}
+
+export function createDeclarativeHttpJsonProviderPackFactory(
+  fetchImpl: typeof fetch = fetch,
+): EmployeeProviderPackFactory {
+  return ({ manifest, config, secrets }) => {
+    if (manifest.provider_kind !== 'http-json' || !manifest.binding) {
+      return fail(
+        'http_domain_provider.binding.missing',
+        `${manifest.canonical_label} has no declarative HTTP binding`,
+      );
+    }
+    const binding = manifest.binding;
+    const definition: HttpJsonDomainPackDefinition = {
+      id: `provider-pack:${manifest.canonical_label}`,
+      paths: binding.routes,
+      token_secret: binding.authorization.secret,
+      ...(binding.config_headers ? { config_headers: binding.config_headers } : {}),
+    };
+    return {
+      defaultProvider: new HttpJsonDomainProvider(
+        definition,
+        config,
+        secrets[binding.authorization.secret] ?? '',
+        fetchImpl,
+      ),
+    };
+  };
+}
+
+/**
+ * Low-level programmatic factory retained for SDK compatibility.
+ * New Provider Packs should use createDeclarativeHttpJsonProviderPackFactory().
+ */
 export function createHttpJsonDomainProviderPackFactory(
   definition: HttpJsonDomainPackDefinition,
   fetchImpl: typeof fetch = fetch,
