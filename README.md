@@ -2,6 +2,8 @@
 
 **Human-to-Agent-to-Human** is a protocol model for digital interactions in which agents do not exist in isolation: every delegated action remains inside an explicit chain of authority, responsibility, provenance and eventual Human return.
 
+**Stable release:** [v1.0.0](https://github.com/suissa/H2A2H/releases/tag/v1.0.0) · [Release status and evidence](./release/STATUS.md)
+
 H2A2H v1.0 separates semantic intent, delegated authority, transport declaration and Human-return proof so an Agent can participate without embedding hidden transport or authorization logic in domain behavior.
 
 ## v1.0 normative artifacts
@@ -71,7 +73,7 @@ npm run release:gate
 - protocol-version negotiation;
 - independent Reference A↔B interoperability.
 
-After the H2A2H Conformance CI succeeds on `main`, the release workflow checks whether the package version already has an immutable Git tag. For a new version it reruns the release gate, typecheck, build, conformance suite and dependency audit, creates `v<version>` at the validated commit, generates a machine-readable conformance report and publishes the GitHub Release with that report attached.
+After the H2A2H Conformance CI succeeds on `main`, the release workflow checks whether the package version already has an immutable Git tag. For a new version it reruns the release gate, typecheck, build, conformance suite and dependency audit, creates `v<version>` at the validated commit, generates a machine-readable conformance report and publishes the GitHub Release with that report attached. If that version is already published at another commit, the workflow preserves the existing tag and does not overwrite its release evidence.
 
 ## Examples
 
