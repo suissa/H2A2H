@@ -3,7 +3,10 @@ import { createServer } from 'node:http';
 import test from 'node:test';
 import { H2A2HSDK } from '../sdk.js';
 import { EmployeeAgentRegistry } from '../employee-registry.js';
-import { createCapabilityBackedOptionsFactory } from '../employee-tool-binding.js';
+import {
+  createCapabilityBackedOptionsFactory,
+  type EmployeeLifecycleBindings,
+} from '../employee-tool-binding.js';
 import {
   EmployeeToolCapabilityError,
   EmployeeToolRegistry,
@@ -20,38 +23,14 @@ const human: EntityRef = {
   canonical_label: 'Human.EmployeeOwner',
 };
 
-function lifecycleFactory() {
-  return async (employee: EmployeeAgentDefinition) => {
-    const agent: EntityRef = {
-      entity_id: `agent:${employee.contract.identity.canonical_label}`,
-      kind: 'Agent',
-      canonical_label: employee.contract.identity.canonical_label,
-    };
-    return {
-      validateDelegation: async (context: Parameters<NonNullable<ReturnType<typeof lifecycleFactory>> extends (...args: never[]) => never ? never : never>[0]) => context,
-      resolveParticipants: async () => ({
-        sender: human,
-        receiver: agent,
-        receiving_human: human,
-        responsibility_chain_ref: 'responsibility:employee-owner',
-      }),
-      resolveChannel: async () => ({ profile: 'memory' }),
-      returnToHuman: async (context: { interaction_id: string }) => ({
-        proof_ref: `pohr:${context.interaction_id}`,
-        return_state: 'human_presented' as const,
-      }),
-    };
-  };
-}
-
-function lifecycleOptions(employee: EmployeeAgentDefinition) {
+function lifecycleOptions(employee: EmployeeAgentDefinition): EmployeeLifecycleBindings {
   const agent: EntityRef = {
     entity_id: `agent:${employee.contract.identity.canonical_label}`,
     kind: 'Agent',
     canonical_label: employee.contract.identity.canonical_label,
   };
   return {
-    validateDelegation: async (context: { input: { delegation_ref?: string } }) => ({
+    validateDelegation: async (context) => ({
       valid: context.input.delegation_ref === 'delegation:valid',
       ...(context.input.delegation_ref ? { delegation_id: context.input.delegation_ref } : {}),
       ...(context.input.delegation_ref === 'delegation:valid' ? {} : { reason: 'delegation.invalid' }),
@@ -63,9 +42,9 @@ function lifecycleOptions(employee: EmployeeAgentDefinition) {
       responsibility_chain_ref: 'responsibility:employee-owner',
     }),
     resolveChannel: async () => ({ profile: 'memory' }),
-    returnToHuman: async (context: { interaction_id: string }) => ({
+    returnToHuman: async (context) => ({
       proof_ref: `pohr:${context.interaction_id}`,
-      return_state: 'human_presented' as const,
+      return_state: 'human_presented',
     }),
   };
 }
