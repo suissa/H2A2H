@@ -1,0 +1,35 @@
+name: Normalize Employee Tool Effects
+
+on:
+  push:
+    branches: [employee-tool-capabilities]
+    paths:
+      - 'scripts/normalize-employee-tool-effects.mjs'
+      - '.github/workflows/employee-tool-normalize.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  normalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: employee-tool-capabilities
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Normalize semantic tool effects
+        run: node scripts/normalize-employee-tool-effects.mjs
+      - name: Commit normalized Employee contracts
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add employees
+          if git diff --cached --quiet; then
+            echo "Employee Tool effects already normalized"
+          else
+            git commit -m "employees: correct semantic tool side-effect flags"
+            git push origin HEAD:employee-tool-capabilities
+          fi
