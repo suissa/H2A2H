@@ -1,0 +1,67 @@
+{
+  "name": "Chief Revenue Officer Agent",
+  "description": "H2A2H enterprise employee agent implementing the Chief Revenue Officer role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/chief-revenue-officer/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/chief-revenue-officer/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/chief-revenue-officer",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "chief-revenue-officer.analyze",
+      "name": "Analyze as Chief Revenue Officer",
+      "description": "Analyze information relevant to the Chief Revenue Officer role and produce evidence-backed findings.",
+      "tags": [
+        "executive",
+        "chief-revenue-officer",
+        "analysis"
+      ]
+    },
+    {
+      "id": "chief-revenue-officer.execute",
+      "name": "Execute Chief Revenue Officer work",
+      "description": "Execute delegated Chief Revenue Officer work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "executive",
+        "chief-revenue-officer",
+        "execution"
+      ]
+    },
+    {
+      "id": "chief-revenue-officer.report",
+      "name": "Report Chief Revenue Officer outcome",
+      "description": "Return a structured Chief Revenue Officer result with provenance, audit references and Human-return status.",
+      "tags": [
+        "executive",
+        "chief-revenue-officer",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

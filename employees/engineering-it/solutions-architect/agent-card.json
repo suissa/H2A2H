@@ -1,0 +1,67 @@
+{
+  "name": "Solutions Architect Agent",
+  "description": "H2A2H enterprise employee agent implementing the Solutions Architect role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/solutions-architect/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/solutions-architect/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/solutions-architect",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "solutions-architect.analyze",
+      "name": "Analyze as Solutions Architect",
+      "description": "Analyze information relevant to the Solutions Architect role and produce evidence-backed findings.",
+      "tags": [
+        "engineering-it",
+        "solutions-architect",
+        "analysis"
+      ]
+    },
+    {
+      "id": "solutions-architect.execute",
+      "name": "Execute Solutions Architect work",
+      "description": "Execute delegated Solutions Architect work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "engineering-it",
+        "solutions-architect",
+        "execution"
+      ]
+    },
+    {
+      "id": "solutions-architect.report",
+      "name": "Report Solutions Architect outcome",
+      "description": "Return a structured Solutions Architect result with provenance, audit references and Human-return status.",
+      "tags": [
+        "engineering-it",
+        "solutions-architect",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

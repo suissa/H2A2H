@@ -1,0 +1,67 @@
+{
+  "name": "Controller Agent",
+  "description": "H2A2H enterprise employee agent implementing the Controller role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/controller/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/controller/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/controller",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "controller.analyze",
+      "name": "Analyze as Controller",
+      "description": "Analyze information relevant to the Controller role and produce evidence-backed findings.",
+      "tags": [
+        "finance",
+        "controller",
+        "analysis"
+      ]
+    },
+    {
+      "id": "controller.execute",
+      "name": "Execute Controller work",
+      "description": "Execute delegated Controller work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "finance",
+        "controller",
+        "execution"
+      ]
+    },
+    {
+      "id": "controller.report",
+      "name": "Report Controller outcome",
+      "description": "Return a structured Controller result with provenance, audit references and Human-return status.",
+      "tags": [
+        "finance",
+        "controller",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

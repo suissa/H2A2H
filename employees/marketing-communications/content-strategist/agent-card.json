@@ -1,0 +1,67 @@
+{
+  "name": "Content Strategist Agent",
+  "description": "H2A2H enterprise employee agent implementing the Content Strategist role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/content-strategist/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/content-strategist/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/content-strategist",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "content-strategist.analyze",
+      "name": "Analyze as Content Strategist",
+      "description": "Analyze information relevant to the Content Strategist role and produce evidence-backed findings.",
+      "tags": [
+        "marketing-communications",
+        "content-strategist",
+        "analysis"
+      ]
+    },
+    {
+      "id": "content-strategist.execute",
+      "name": "Execute Content Strategist work",
+      "description": "Execute delegated Content Strategist work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "marketing-communications",
+        "content-strategist",
+        "execution"
+      ]
+    },
+    {
+      "id": "content-strategist.report",
+      "name": "Report Content Strategist outcome",
+      "description": "Return a structured Content Strategist result with provenance, audit references and Human-return status.",
+      "tags": [
+        "marketing-communications",
+        "content-strategist",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

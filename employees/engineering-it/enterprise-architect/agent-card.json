@@ -1,0 +1,67 @@
+{
+  "name": "Enterprise Architect Agent",
+  "description": "H2A2H enterprise employee agent implementing the Enterprise Architect role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/enterprise-architect/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/enterprise-architect/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/enterprise-architect",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "enterprise-architect.analyze",
+      "name": "Analyze as Enterprise Architect",
+      "description": "Analyze information relevant to the Enterprise Architect role and produce evidence-backed findings.",
+      "tags": [
+        "engineering-it",
+        "enterprise-architect",
+        "analysis"
+      ]
+    },
+    {
+      "id": "enterprise-architect.execute",
+      "name": "Execute Enterprise Architect work",
+      "description": "Execute delegated Enterprise Architect work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "engineering-it",
+        "enterprise-architect",
+        "execution"
+      ]
+    },
+    {
+      "id": "enterprise-architect.report",
+      "name": "Report Enterprise Architect outcome",
+      "description": "Return a structured Enterprise Architect result with provenance, audit references and Human-return status.",
+      "tags": [
+        "engineering-it",
+        "enterprise-architect",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

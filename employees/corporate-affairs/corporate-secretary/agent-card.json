@@ -1,0 +1,67 @@
+{
+  "name": "Corporate Secretary Agent",
+  "description": "H2A2H enterprise employee agent implementing the Corporate Secretary role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/corporate-secretary/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/corporate-secretary/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/corporate-secretary",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "corporate-secretary.analyze",
+      "name": "Analyze as Corporate Secretary",
+      "description": "Analyze information relevant to the Corporate Secretary role and produce evidence-backed findings.",
+      "tags": [
+        "corporate-affairs",
+        "corporate-secretary",
+        "analysis"
+      ]
+    },
+    {
+      "id": "corporate-secretary.execute",
+      "name": "Execute Corporate Secretary work",
+      "description": "Execute delegated Corporate Secretary work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "corporate-affairs",
+        "corporate-secretary",
+        "execution"
+      ]
+    },
+    {
+      "id": "corporate-secretary.report",
+      "name": "Report Corporate Secretary outcome",
+      "description": "Return a structured Corporate Secretary result with provenance, audit references and Human-return status.",
+      "tags": [
+        "corporate-affairs",
+        "corporate-secretary",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

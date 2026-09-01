@@ -1,0 +1,67 @@
+{
+  "name": "Key Account Manager Agent",
+  "description": "H2A2H enterprise employee agent implementing the Key Account Manager role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/key-account-manager/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/key-account-manager/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/key-account-manager",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "key-account-manager.analyze",
+      "name": "Analyze as Key Account Manager",
+      "description": "Analyze information relevant to the Key Account Manager role and produce evidence-backed findings.",
+      "tags": [
+        "sales-customer",
+        "key-account-manager",
+        "analysis"
+      ]
+    },
+    {
+      "id": "key-account-manager.execute",
+      "name": "Execute Key Account Manager work",
+      "description": "Execute delegated Key Account Manager work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "sales-customer",
+        "key-account-manager",
+        "execution"
+      ]
+    },
+    {
+      "id": "key-account-manager.report",
+      "name": "Report Key Account Manager outcome",
+      "description": "Return a structured Key Account Manager result with provenance, audit references and Human-return status.",
+      "tags": [
+        "sales-customer",
+        "key-account-manager",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

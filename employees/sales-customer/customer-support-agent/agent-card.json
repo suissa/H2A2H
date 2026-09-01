@@ -1,0 +1,67 @@
+{
+  "name": "Customer Support Agent",
+  "description": "H2A2H enterprise employee agent implementing the Customer Support Agent role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/customer-support-agent/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/customer-support-agent/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/customer-support-agent",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "customer-support-agent.analyze",
+      "name": "Analyze as Customer Support Agent",
+      "description": "Analyze information relevant to the Customer Support Agent role and produce evidence-backed findings.",
+      "tags": [
+        "sales-customer",
+        "customer-support-agent",
+        "analysis"
+      ]
+    },
+    {
+      "id": "customer-support-agent.execute",
+      "name": "Execute Customer Support Agent work",
+      "description": "Execute delegated Customer Support Agent work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "sales-customer",
+        "customer-support-agent",
+        "execution"
+      ]
+    },
+    {
+      "id": "customer-support-agent.report",
+      "name": "Report Customer Support Agent outcome",
+      "description": "Return a structured Customer Support Agent result with provenance, audit references and Human-return status.",
+      "tags": [
+        "sales-customer",
+        "customer-support-agent",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

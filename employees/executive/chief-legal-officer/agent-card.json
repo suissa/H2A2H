@@ -1,0 +1,67 @@
+{
+  "name": "Chief Legal Officer Agent",
+  "description": "H2A2H enterprise employee agent implementing the Chief Legal Officer role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/chief-legal-officer/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/chief-legal-officer/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/chief-legal-officer",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "chief-legal-officer.analyze",
+      "name": "Analyze as Chief Legal Officer",
+      "description": "Analyze information relevant to the Chief Legal Officer role and produce evidence-backed findings.",
+      "tags": [
+        "executive",
+        "chief-legal-officer",
+        "analysis"
+      ]
+    },
+    {
+      "id": "chief-legal-officer.execute",
+      "name": "Execute Chief Legal Officer work",
+      "description": "Execute delegated Chief Legal Officer work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "executive",
+        "chief-legal-officer",
+        "execution"
+      ]
+    },
+    {
+      "id": "chief-legal-officer.report",
+      "name": "Report Chief Legal Officer outcome",
+      "description": "Return a structured Chief Legal Officer result with provenance, audit references and Human-return status.",
+      "tags": [
+        "executive",
+        "chief-legal-officer",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

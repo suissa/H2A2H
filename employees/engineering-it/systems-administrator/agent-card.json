@@ -1,0 +1,67 @@
+{
+  "name": "Systems Administrator Agent",
+  "description": "H2A2H enterprise employee agent implementing the Systems Administrator role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/systems-administrator/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/systems-administrator/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/systems-administrator",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "systems-administrator.analyze",
+      "name": "Analyze as Systems Administrator",
+      "description": "Analyze information relevant to the Systems Administrator role and produce evidence-backed findings.",
+      "tags": [
+        "engineering-it",
+        "systems-administrator",
+        "analysis"
+      ]
+    },
+    {
+      "id": "systems-administrator.execute",
+      "name": "Execute Systems Administrator work",
+      "description": "Execute delegated Systems Administrator work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "engineering-it",
+        "systems-administrator",
+        "execution"
+      ]
+    },
+    {
+      "id": "systems-administrator.report",
+      "name": "Report Systems Administrator outcome",
+      "description": "Return a structured Systems Administrator result with provenance, audit references and Human-return status.",
+      "tags": [
+        "engineering-it",
+        "systems-administrator",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

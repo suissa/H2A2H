@@ -1,0 +1,67 @@
+{
+  "name": "HR Business Partner Agent",
+  "description": "H2A2H enterprise employee agent implementing the HR Business Partner role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/hr-business-partner/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/hr-business-partner/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/hr-business-partner",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "hr-business-partner.analyze",
+      "name": "Analyze as HR Business Partner",
+      "description": "Analyze information relevant to the HR Business Partner role and produce evidence-backed findings.",
+      "tags": [
+        "human-resources",
+        "hr-business-partner",
+        "analysis"
+      ]
+    },
+    {
+      "id": "hr-business-partner.execute",
+      "name": "Execute HR Business Partner work",
+      "description": "Execute delegated HR Business Partner work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "human-resources",
+        "hr-business-partner",
+        "execution"
+      ]
+    },
+    {
+      "id": "hr-business-partner.report",
+      "name": "Report HR Business Partner outcome",
+      "description": "Return a structured HR Business Partner result with provenance, audit references and Human-return status.",
+      "tags": [
+        "human-resources",
+        "hr-business-partner",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

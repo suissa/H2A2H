@@ -1,0 +1,67 @@
+{
+  "name": "Receptionist Agent",
+  "description": "H2A2H enterprise employee agent implementing the Receptionist role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/receptionist/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/receptionist/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/receptionist",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "receptionist.analyze",
+      "name": "Analyze as Receptionist",
+      "description": "Analyze information relevant to the Receptionist role and produce evidence-backed findings.",
+      "tags": [
+        "operations-programs",
+        "receptionist",
+        "analysis"
+      ]
+    },
+    {
+      "id": "receptionist.execute",
+      "name": "Execute Receptionist work",
+      "description": "Execute delegated Receptionist work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "operations-programs",
+        "receptionist",
+        "execution"
+      ]
+    },
+    {
+      "id": "receptionist.report",
+      "name": "Report Receptionist outcome",
+      "description": "Return a structured Receptionist result with provenance, audit references and Human-return status.",
+      "tags": [
+        "operations-programs",
+        "receptionist",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

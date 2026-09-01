@@ -1,0 +1,67 @@
+{
+  "name": "Accounts Receivable Specialist Agent",
+  "description": "H2A2H enterprise employee agent implementing the Accounts Receivable Specialist role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/accounts-receivable-specialist/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/accounts-receivable-specialist/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/accounts-receivable-specialist",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "accounts-receivable-specialist.analyze",
+      "name": "Analyze as Accounts Receivable Specialist",
+      "description": "Analyze information relevant to the Accounts Receivable Specialist role and produce evidence-backed findings.",
+      "tags": [
+        "finance",
+        "accounts-receivable-specialist",
+        "analysis"
+      ]
+    },
+    {
+      "id": "accounts-receivable-specialist.execute",
+      "name": "Execute Accounts Receivable Specialist work",
+      "description": "Execute delegated Accounts Receivable Specialist work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "finance",
+        "accounts-receivable-specialist",
+        "execution"
+      ]
+    },
+    {
+      "id": "accounts-receivable-specialist.report",
+      "name": "Report Accounts Receivable Specialist outcome",
+      "description": "Return a structured Accounts Receivable Specialist result with provenance, audit references and Human-return status.",
+      "tags": [
+        "finance",
+        "accounts-receivable-specialist",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "name": "Treasury Analyst Agent",
+  "description": "H2A2H enterprise employee agent implementing the Treasury Analyst role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/treasury-analyst/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/treasury-analyst/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/treasury-analyst",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "treasury-analyst.analyze",
+      "name": "Analyze as Treasury Analyst",
+      "description": "Analyze information relevant to the Treasury Analyst role and produce evidence-backed findings.",
+      "tags": [
+        "finance",
+        "treasury-analyst",
+        "analysis"
+      ]
+    },
+    {
+      "id": "treasury-analyst.execute",
+      "name": "Execute Treasury Analyst work",
+      "description": "Execute delegated Treasury Analyst work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "finance",
+        "treasury-analyst",
+        "execution"
+      ]
+    },
+    {
+      "id": "treasury-analyst.report",
+      "name": "Report Treasury Analyst outcome",
+      "description": "Return a structured Treasury Analyst result with provenance, audit references and Human-return status.",
+      "tags": [
+        "finance",
+        "treasury-analyst",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

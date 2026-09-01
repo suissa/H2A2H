@@ -1,0 +1,67 @@
+{
+  "name": "Buyer Agent",
+  "description": "H2A2H enterprise employee agent implementing the Buyer role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/buyer/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/buyer/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/buyer",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "buyer.analyze",
+      "name": "Analyze as Buyer",
+      "description": "Analyze information relevant to the Buyer role and produce evidence-backed findings.",
+      "tags": [
+        "supply-chain-manufacturing",
+        "buyer",
+        "analysis"
+      ]
+    },
+    {
+      "id": "buyer.execute",
+      "name": "Execute Buyer work",
+      "description": "Execute delegated Buyer work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "supply-chain-manufacturing",
+        "buyer",
+        "execution"
+      ]
+    },
+    {
+      "id": "buyer.report",
+      "name": "Report Buyer outcome",
+      "description": "Return a structured Buyer result with provenance, audit references and Human-return status.",
+      "tags": [
+        "supply-chain-manufacturing",
+        "buyer",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

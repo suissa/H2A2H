@@ -1,0 +1,67 @@
+{
+  "name": "Sustainability Manager Agent",
+  "description": "H2A2H enterprise employee agent implementing the Sustainability Manager role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/sustainability-manager/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/sustainability-manager/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/sustainability-manager",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "sustainability-manager.analyze",
+      "name": "Analyze as Sustainability Manager",
+      "description": "Analyze information relevant to the Sustainability Manager role and produce evidence-backed findings.",
+      "tags": [
+        "corporate-affairs",
+        "sustainability-manager",
+        "analysis"
+      ]
+    },
+    {
+      "id": "sustainability-manager.execute",
+      "name": "Execute Sustainability Manager work",
+      "description": "Execute delegated Sustainability Manager work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "corporate-affairs",
+        "sustainability-manager",
+        "execution"
+      ]
+    },
+    {
+      "id": "sustainability-manager.report",
+      "name": "Report Sustainability Manager outcome",
+      "description": "Return a structured Sustainability Manager result with provenance, audit references and Human-return status.",
+      "tags": [
+        "corporate-affairs",
+        "sustainability-manager",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

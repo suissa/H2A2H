@@ -1,0 +1,67 @@
+{
+  "name": "Program Manager Agent",
+  "description": "H2A2H enterprise employee agent implementing the Program Manager role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/program-manager/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/program-manager/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/program-manager",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "program-manager.analyze",
+      "name": "Analyze as Program Manager",
+      "description": "Analyze information relevant to the Program Manager role and produce evidence-backed findings.",
+      "tags": [
+        "operations-programs",
+        "program-manager",
+        "analysis"
+      ]
+    },
+    {
+      "id": "program-manager.execute",
+      "name": "Execute Program Manager work",
+      "description": "Execute delegated Program Manager work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "operations-programs",
+        "program-manager",
+        "execution"
+      ]
+    },
+    {
+      "id": "program-manager.report",
+      "name": "Report Program Manager outcome",
+      "description": "Return a structured Program Manager result with provenance, audit references and Human-return status.",
+      "tags": [
+        "operations-programs",
+        "program-manager",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

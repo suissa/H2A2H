@@ -1,0 +1,67 @@
+{
+  "name": "Paid Media Specialist Agent",
+  "description": "H2A2H enterprise employee agent implementing the Paid Media Specialist role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/paid-media-specialist/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/paid-media-specialist/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/paid-media-specialist",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "paid-media-specialist.analyze",
+      "name": "Analyze as Paid Media Specialist",
+      "description": "Analyze information relevant to the Paid Media Specialist role and produce evidence-backed findings.",
+      "tags": [
+        "marketing-communications",
+        "paid-media-specialist",
+        "analysis"
+      ]
+    },
+    {
+      "id": "paid-media-specialist.execute",
+      "name": "Execute Paid Media Specialist work",
+      "description": "Execute delegated Paid Media Specialist work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "marketing-communications",
+        "paid-media-specialist",
+        "execution"
+      ]
+    },
+    {
+      "id": "paid-media-specialist.report",
+      "name": "Report Paid Media Specialist outcome",
+      "description": "Return a structured Paid Media Specialist result with provenance, audit references and Human-return status.",
+      "tags": [
+        "marketing-communications",
+        "paid-media-specialist",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

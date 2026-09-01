@@ -1,0 +1,67 @@
+{
+  "name": "Growth Marketer Agent",
+  "description": "H2A2H enterprise employee agent implementing the Growth Marketer role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/growth-marketer/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/growth-marketer/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/growth-marketer",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "growth-marketer.analyze",
+      "name": "Analyze as Growth Marketer",
+      "description": "Analyze information relevant to the Growth Marketer role and produce evidence-backed findings.",
+      "tags": [
+        "marketing-communications",
+        "growth-marketer",
+        "analysis"
+      ]
+    },
+    {
+      "id": "growth-marketer.execute",
+      "name": "Execute Growth Marketer work",
+      "description": "Execute delegated Growth Marketer work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "marketing-communications",
+        "growth-marketer",
+        "execution"
+      ]
+    },
+    {
+      "id": "growth-marketer.report",
+      "name": "Report Growth Marketer outcome",
+      "description": "Return a structured Growth Marketer result with provenance, audit references and Human-return status.",
+      "tags": [
+        "marketing-communications",
+        "growth-marketer",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

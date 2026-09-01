@@ -1,0 +1,67 @@
+{
+  "name": "Chief Human Resources Officer Agent",
+  "description": "H2A2H enterprise employee agent implementing the Chief Human Resources Officer role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/chief-human-resources-officer/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/chief-human-resources-officer/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/chief-human-resources-officer",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "chief-human-resources-officer.analyze",
+      "name": "Analyze as Chief Human Resources Officer",
+      "description": "Analyze information relevant to the Chief Human Resources Officer role and produce evidence-backed findings.",
+      "tags": [
+        "executive",
+        "chief-human-resources-officer",
+        "analysis"
+      ]
+    },
+    {
+      "id": "chief-human-resources-officer.execute",
+      "name": "Execute Chief Human Resources Officer work",
+      "description": "Execute delegated Chief Human Resources Officer work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "executive",
+        "chief-human-resources-officer",
+        "execution"
+      ]
+    },
+    {
+      "id": "chief-human-resources-officer.report",
+      "name": "Report Chief Human Resources Officer outcome",
+      "description": "Return a structured Chief Human Resources Officer result with provenance, audit references and Human-return status.",
+      "tags": [
+        "executive",
+        "chief-human-resources-officer",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

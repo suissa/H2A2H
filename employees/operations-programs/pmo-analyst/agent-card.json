@@ -1,0 +1,67 @@
+{
+  "name": "PMO Analyst Agent",
+  "description": "H2A2H enterprise employee agent implementing the PMO Analyst role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/pmo-analyst/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/pmo-analyst/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/pmo-analyst",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "pmo-analyst.analyze",
+      "name": "Analyze as PMO Analyst",
+      "description": "Analyze information relevant to the PMO Analyst role and produce evidence-backed findings.",
+      "tags": [
+        "operations-programs",
+        "pmo-analyst",
+        "analysis"
+      ]
+    },
+    {
+      "id": "pmo-analyst.execute",
+      "name": "Execute PMO Analyst work",
+      "description": "Execute delegated PMO Analyst work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "operations-programs",
+        "pmo-analyst",
+        "execution"
+      ]
+    },
+    {
+      "id": "pmo-analyst.report",
+      "name": "Report PMO Analyst outcome",
+      "description": "Return a structured PMO Analyst result with provenance, audit references and Human-return status.",
+      "tags": [
+        "operations-programs",
+        "pmo-analyst",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

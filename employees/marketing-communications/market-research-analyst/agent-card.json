@@ -1,0 +1,67 @@
+{
+  "name": "Market Research Analyst Agent",
+  "description": "H2A2H enterprise employee agent implementing the Market Research Analyst role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/market-research-analyst/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/market-research-analyst/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/market-research-analyst",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "market-research-analyst.analyze",
+      "name": "Analyze as Market Research Analyst",
+      "description": "Analyze information relevant to the Market Research Analyst role and produce evidence-backed findings.",
+      "tags": [
+        "marketing-communications",
+        "market-research-analyst",
+        "analysis"
+      ]
+    },
+    {
+      "id": "market-research-analyst.execute",
+      "name": "Execute Market Research Analyst work",
+      "description": "Execute delegated Market Research Analyst work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "marketing-communications",
+        "market-research-analyst",
+        "execution"
+      ]
+    },
+    {
+      "id": "market-research-analyst.report",
+      "name": "Report Market Research Analyst outcome",
+      "description": "Return a structured Market Research Analyst result with provenance, audit references and Human-return status.",
+      "tags": [
+        "marketing-communications",
+        "market-research-analyst",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

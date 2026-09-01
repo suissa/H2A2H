@@ -1,0 +1,67 @@
+{
+  "name": "Social Media Manager Agent",
+  "description": "H2A2H enterprise employee agent implementing the Social Media Manager role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/social-media-manager/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/social-media-manager/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/social-media-manager",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "social-media-manager.analyze",
+      "name": "Analyze as Social Media Manager",
+      "description": "Analyze information relevant to the Social Media Manager role and produce evidence-backed findings.",
+      "tags": [
+        "marketing-communications",
+        "social-media-manager",
+        "analysis"
+      ]
+    },
+    {
+      "id": "social-media-manager.execute",
+      "name": "Execute Social Media Manager work",
+      "description": "Execute delegated Social Media Manager work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "marketing-communications",
+        "social-media-manager",
+        "execution"
+      ]
+    },
+    {
+      "id": "social-media-manager.report",
+      "name": "Report Social Media Manager outcome",
+      "description": "Return a structured Social Media Manager result with provenance, audit references and Human-return status.",
+      "tags": [
+        "marketing-communications",
+        "social-media-manager",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

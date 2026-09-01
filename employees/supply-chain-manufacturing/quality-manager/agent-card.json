@@ -1,0 +1,67 @@
+{
+  "name": "Quality Manager Agent",
+  "description": "H2A2H enterprise employee agent implementing the Quality Manager role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/quality-manager/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/quality-manager/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/quality-manager",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "quality-manager.analyze",
+      "name": "Analyze as Quality Manager",
+      "description": "Analyze information relevant to the Quality Manager role and produce evidence-backed findings.",
+      "tags": [
+        "supply-chain-manufacturing",
+        "quality-manager",
+        "analysis"
+      ]
+    },
+    {
+      "id": "quality-manager.execute",
+      "name": "Execute Quality Manager work",
+      "description": "Execute delegated Quality Manager work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "supply-chain-manufacturing",
+        "quality-manager",
+        "execution"
+      ]
+    },
+    {
+      "id": "quality-manager.report",
+      "name": "Report Quality Manager outcome",
+      "description": "Return a structured Quality Manager result with provenance, audit references and Human-return status.",
+      "tags": [
+        "supply-chain-manufacturing",
+        "quality-manager",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

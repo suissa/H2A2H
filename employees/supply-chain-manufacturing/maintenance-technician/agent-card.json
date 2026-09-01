@@ -1,0 +1,67 @@
+{
+  "name": "Maintenance Technician Agent",
+  "description": "H2A2H enterprise employee agent implementing the Maintenance Technician role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/maintenance-technician/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/maintenance-technician/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/maintenance-technician",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "maintenance-technician.analyze",
+      "name": "Analyze as Maintenance Technician",
+      "description": "Analyze information relevant to the Maintenance Technician role and produce evidence-backed findings.",
+      "tags": [
+        "supply-chain-manufacturing",
+        "maintenance-technician",
+        "analysis"
+      ]
+    },
+    {
+      "id": "maintenance-technician.execute",
+      "name": "Execute Maintenance Technician work",
+      "description": "Execute delegated Maintenance Technician work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "supply-chain-manufacturing",
+        "maintenance-technician",
+        "execution"
+      ]
+    },
+    {
+      "id": "maintenance-technician.report",
+      "name": "Report Maintenance Technician outcome",
+      "description": "Return a structured Maintenance Technician result with provenance, audit references and Human-return status.",
+      "tags": [
+        "supply-chain-manufacturing",
+        "maintenance-technician",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

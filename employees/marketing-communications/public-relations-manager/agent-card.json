@@ -1,0 +1,67 @@
+{
+  "name": "Public Relations Manager Agent",
+  "description": "H2A2H enterprise employee agent implementing the Public Relations Manager role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/public-relations-manager/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/public-relations-manager/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/public-relations-manager",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "public-relations-manager.analyze",
+      "name": "Analyze as Public Relations Manager",
+      "description": "Analyze information relevant to the Public Relations Manager role and produce evidence-backed findings.",
+      "tags": [
+        "marketing-communications",
+        "public-relations-manager",
+        "analysis"
+      ]
+    },
+    {
+      "id": "public-relations-manager.execute",
+      "name": "Execute Public Relations Manager work",
+      "description": "Execute delegated Public Relations Manager work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "marketing-communications",
+        "public-relations-manager",
+        "execution"
+      ]
+    },
+    {
+      "id": "public-relations-manager.report",
+      "name": "Report Public Relations Manager outcome",
+      "description": "Return a structured Public Relations Manager result with provenance, audit references and Human-return status.",
+      "tags": [
+        "marketing-communications",
+        "public-relations-manager",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

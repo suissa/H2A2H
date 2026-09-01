@@ -1,0 +1,67 @@
+{
+  "name": "IT Support Specialist Agent",
+  "description": "H2A2H enterprise employee agent implementing the IT Support Specialist role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/it-support-specialist/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/it-support-specialist/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/it-support-specialist",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "it-support-specialist.analyze",
+      "name": "Analyze as IT Support Specialist",
+      "description": "Analyze information relevant to the IT Support Specialist role and produce evidence-backed findings.",
+      "tags": [
+        "engineering-it",
+        "it-support-specialist",
+        "analysis"
+      ]
+    },
+    {
+      "id": "it-support-specialist.execute",
+      "name": "Execute IT Support Specialist work",
+      "description": "Execute delegated IT Support Specialist work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "engineering-it",
+        "it-support-specialist",
+        "execution"
+      ]
+    },
+    {
+      "id": "it-support-specialist.report",
+      "name": "Report IT Support Specialist outcome",
+      "description": "Return a structured IT Support Specialist result with provenance, audit references and Human-return status.",
+      "tags": [
+        "engineering-it",
+        "it-support-specialist",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

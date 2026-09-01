@@ -1,0 +1,67 @@
+{
+  "name": "Business Intelligence Analyst Agent",
+  "description": "H2A2H enterprise employee agent implementing the Business Intelligence Analyst role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/bi-analyst/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/bi-analyst/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/bi-analyst",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "bi-analyst.analyze",
+      "name": "Analyze as Business Intelligence Analyst",
+      "description": "Analyze information relevant to the Business Intelligence Analyst role and produce evidence-backed findings.",
+      "tags": [
+        "analytics-strategy",
+        "bi-analyst",
+        "analysis"
+      ]
+    },
+    {
+      "id": "bi-analyst.execute",
+      "name": "Execute Business Intelligence Analyst work",
+      "description": "Execute delegated Business Intelligence Analyst work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "analytics-strategy",
+        "bi-analyst",
+        "execution"
+      ]
+    },
+    {
+      "id": "bi-analyst.report",
+      "name": "Report Business Intelligence Analyst outcome",
+      "description": "Return a structured Business Intelligence Analyst result with provenance, audit references and Human-return status.",
+      "tags": [
+        "analytics-strategy",
+        "bi-analyst",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "name": "Supply Chain Planner Agent",
+  "description": "H2A2H enterprise employee agent implementing the Supply Chain Planner role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/supply-chain-planner/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/supply-chain-planner/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/supply-chain-planner",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "supply-chain-planner.analyze",
+      "name": "Analyze as Supply Chain Planner",
+      "description": "Analyze information relevant to the Supply Chain Planner role and produce evidence-backed findings.",
+      "tags": [
+        "supply-chain-manufacturing",
+        "supply-chain-planner",
+        "analysis"
+      ]
+    },
+    {
+      "id": "supply-chain-planner.execute",
+      "name": "Execute Supply Chain Planner work",
+      "description": "Execute delegated Supply Chain Planner work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "supply-chain-manufacturing",
+        "supply-chain-planner",
+        "execution"
+      ]
+    },
+    {
+      "id": "supply-chain-planner.report",
+      "name": "Report Supply Chain Planner outcome",
+      "description": "Return a structured Supply Chain Planner result with provenance, audit references and Human-return status.",
+      "tags": [
+        "supply-chain-manufacturing",
+        "supply-chain-planner",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

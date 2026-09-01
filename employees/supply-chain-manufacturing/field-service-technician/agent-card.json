@@ -1,0 +1,67 @@
+{
+  "name": "Field Service Technician Agent",
+  "description": "H2A2H enterprise employee agent implementing the Field Service Technician role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/field-service-technician/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/field-service-technician/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/field-service-technician",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "field-service-technician.analyze",
+      "name": "Analyze as Field Service Technician",
+      "description": "Analyze information relevant to the Field Service Technician role and produce evidence-backed findings.",
+      "tags": [
+        "supply-chain-manufacturing",
+        "field-service-technician",
+        "analysis"
+      ]
+    },
+    {
+      "id": "field-service-technician.execute",
+      "name": "Execute Field Service Technician work",
+      "description": "Execute delegated Field Service Technician work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "supply-chain-manufacturing",
+        "field-service-technician",
+        "execution"
+      ]
+    },
+    {
+      "id": "field-service-technician.report",
+      "name": "Report Field Service Technician outcome",
+      "description": "Return a structured Field Service Technician result with provenance, audit references and Human-return status.",
+      "tags": [
+        "supply-chain-manufacturing",
+        "field-service-technician",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

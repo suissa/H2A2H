@@ -1,0 +1,737 @@
+[
+  {
+    "department": "executive",
+    "slug": "chief-executive-officer",
+    "name": "Chief Executive Officer",
+    "path": "employees/executive/chief-executive-officer",
+    "canonical_label": "Enterprise.Employee.ChiefExecutiveOfficerAgent"
+  },
+  {
+    "department": "executive",
+    "slug": "chief-operating-officer",
+    "name": "Chief Operating Officer",
+    "path": "employees/executive/chief-operating-officer",
+    "canonical_label": "Enterprise.Employee.ChiefOperatingOfficerAgent"
+  },
+  {
+    "department": "executive",
+    "slug": "chief-financial-officer",
+    "name": "Chief Financial Officer",
+    "path": "employees/executive/chief-financial-officer",
+    "canonical_label": "Enterprise.Employee.ChiefFinancialOfficerAgent"
+  },
+  {
+    "department": "executive",
+    "slug": "chief-technology-officer",
+    "name": "Chief Technology Officer",
+    "path": "employees/executive/chief-technology-officer",
+    "canonical_label": "Enterprise.Employee.ChiefTechnologyOfficerAgent"
+  },
+  {
+    "department": "executive",
+    "slug": "chief-information-officer",
+    "name": "Chief Information Officer",
+    "path": "employees/executive/chief-information-officer",
+    "canonical_label": "Enterprise.Employee.ChiefInformationOfficerAgent"
+  },
+  {
+    "department": "executive",
+    "slug": "chief-information-security-officer",
+    "name": "Chief Information Security Officer",
+    "path": "employees/executive/chief-information-security-officer",
+    "canonical_label": "Enterprise.Employee.ChiefInformationSecurityOfficerAgent"
+  },
+  {
+    "department": "executive",
+    "slug": "chief-human-resources-officer",
+    "name": "Chief Human Resources Officer",
+    "path": "employees/executive/chief-human-resources-officer",
+    "canonical_label": "Enterprise.Employee.ChiefHumanResourcesOfficerAgent"
+  },
+  {
+    "department": "executive",
+    "slug": "chief-marketing-officer",
+    "name": "Chief Marketing Officer",
+    "path": "employees/executive/chief-marketing-officer",
+    "canonical_label": "Enterprise.Employee.ChiefMarketingOfficerAgent"
+  },
+  {
+    "department": "executive",
+    "slug": "chief-legal-officer",
+    "name": "Chief Legal Officer",
+    "path": "employees/executive/chief-legal-officer",
+    "canonical_label": "Enterprise.Employee.ChiefLegalOfficerAgent"
+  },
+  {
+    "department": "executive",
+    "slug": "chief-product-officer",
+    "name": "Chief Product Officer",
+    "path": "employees/executive/chief-product-officer",
+    "canonical_label": "Enterprise.Employee.ChiefProductOfficerAgent"
+  },
+  {
+    "department": "executive",
+    "slug": "chief-data-officer",
+    "name": "Chief Data Officer",
+    "path": "employees/executive/chief-data-officer",
+    "canonical_label": "Enterprise.Employee.ChiefDataOfficerAgent"
+  },
+  {
+    "department": "executive",
+    "slug": "chief-revenue-officer",
+    "name": "Chief Revenue Officer",
+    "path": "employees/executive/chief-revenue-officer",
+    "canonical_label": "Enterprise.Employee.ChiefRevenueOfficerAgent"
+  },
+  {
+    "department": "finance",
+    "slug": "controller",
+    "name": "Controller",
+    "path": "employees/finance/controller",
+    "canonical_label": "Enterprise.Employee.ControllerAgent"
+  },
+  {
+    "department": "finance",
+    "slug": "fp-and-a-analyst",
+    "name": "FP&A Analyst",
+    "path": "employees/finance/fp-and-a-analyst",
+    "canonical_label": "Enterprise.Employee.FpAndAAnalystAgent"
+  },
+  {
+    "department": "finance",
+    "slug": "accountant",
+    "name": "Accountant",
+    "path": "employees/finance/accountant",
+    "canonical_label": "Enterprise.Employee.AccountantAgent"
+  },
+  {
+    "department": "finance",
+    "slug": "accounts-payable-specialist",
+    "name": "Accounts Payable Specialist",
+    "path": "employees/finance/accounts-payable-specialist",
+    "canonical_label": "Enterprise.Employee.AccountsPayableSpecialistAgent"
+  },
+  {
+    "department": "finance",
+    "slug": "accounts-receivable-specialist",
+    "name": "Accounts Receivable Specialist",
+    "path": "employees/finance/accounts-receivable-specialist",
+    "canonical_label": "Enterprise.Employee.AccountsReceivableSpecialistAgent"
+  },
+  {
+    "department": "finance",
+    "slug": "treasury-analyst",
+    "name": "Treasury Analyst",
+    "path": "employees/finance/treasury-analyst",
+    "canonical_label": "Enterprise.Employee.TreasuryAnalystAgent"
+  },
+  {
+    "department": "finance",
+    "slug": "tax-specialist",
+    "name": "Tax Specialist",
+    "path": "employees/finance/tax-specialist",
+    "canonical_label": "Enterprise.Employee.TaxSpecialistAgent"
+  },
+  {
+    "department": "finance",
+    "slug": "internal-auditor",
+    "name": "Internal Auditor",
+    "path": "employees/finance/internal-auditor",
+    "canonical_label": "Enterprise.Employee.InternalAuditorAgent"
+  },
+  {
+    "department": "finance",
+    "slug": "payroll-specialist",
+    "name": "Payroll Specialist",
+    "path": "employees/finance/payroll-specialist",
+    "canonical_label": "Enterprise.Employee.PayrollSpecialistAgent"
+  },
+  {
+    "department": "human-resources",
+    "slug": "hr-business-partner",
+    "name": "HR Business Partner",
+    "path": "employees/human-resources/hr-business-partner",
+    "canonical_label": "Enterprise.Employee.HrBusinessPartnerAgent"
+  },
+  {
+    "department": "human-resources",
+    "slug": "recruiter",
+    "name": "Recruiter",
+    "path": "employees/human-resources/recruiter",
+    "canonical_label": "Enterprise.Employee.RecruiterAgent"
+  },
+  {
+    "department": "human-resources",
+    "slug": "people-operations-specialist",
+    "name": "People Operations Specialist",
+    "path": "employees/human-resources/people-operations-specialist",
+    "canonical_label": "Enterprise.Employee.PeopleOperationsSpecialistAgent"
+  },
+  {
+    "department": "human-resources",
+    "slug": "learning-development-specialist",
+    "name": "Learning & Development Specialist",
+    "path": "employees/human-resources/learning-development-specialist",
+    "canonical_label": "Enterprise.Employee.LearningDevelopmentSpecialistAgent"
+  },
+  {
+    "department": "human-resources",
+    "slug": "compensation-benefits-analyst",
+    "name": "Compensation & Benefits Analyst",
+    "path": "employees/human-resources/compensation-benefits-analyst",
+    "canonical_label": "Enterprise.Employee.CompensationBenefitsAnalystAgent"
+  },
+  {
+    "department": "human-resources",
+    "slug": "employee-relations-specialist",
+    "name": "Employee Relations Specialist",
+    "path": "employees/human-resources/employee-relations-specialist",
+    "canonical_label": "Enterprise.Employee.EmployeeRelationsSpecialistAgent"
+  },
+  {
+    "department": "legal-risk-compliance",
+    "slug": "corporate-counsel",
+    "name": "Corporate Counsel",
+    "path": "employees/legal-risk-compliance/corporate-counsel",
+    "canonical_label": "Enterprise.Employee.CorporateCounselAgent"
+  },
+  {
+    "department": "legal-risk-compliance",
+    "slug": "contract-manager",
+    "name": "Contract Manager",
+    "path": "employees/legal-risk-compliance/contract-manager",
+    "canonical_label": "Enterprise.Employee.ContractManagerAgent"
+  },
+  {
+    "department": "legal-risk-compliance",
+    "slug": "compliance-officer",
+    "name": "Compliance Officer",
+    "path": "employees/legal-risk-compliance/compliance-officer",
+    "canonical_label": "Enterprise.Employee.ComplianceOfficerAgent"
+  },
+  {
+    "department": "legal-risk-compliance",
+    "slug": "privacy-officer",
+    "name": "Privacy Officer",
+    "path": "employees/legal-risk-compliance/privacy-officer",
+    "canonical_label": "Enterprise.Employee.PrivacyOfficerAgent"
+  },
+  {
+    "department": "legal-risk-compliance",
+    "slug": "enterprise-risk-manager",
+    "name": "Enterprise Risk Manager",
+    "path": "employees/legal-risk-compliance/enterprise-risk-manager",
+    "canonical_label": "Enterprise.Employee.EnterpriseRiskManagerAgent"
+  },
+  {
+    "department": "sales-customer",
+    "slug": "sales-development-representative",
+    "name": "Sales Development Representative",
+    "path": "employees/sales-customer/sales-development-representative",
+    "canonical_label": "Enterprise.Employee.SalesDevelopmentRepresentativeAgent"
+  },
+  {
+    "department": "sales-customer",
+    "slug": "account-executive",
+    "name": "Account Executive",
+    "path": "employees/sales-customer/account-executive",
+    "canonical_label": "Enterprise.Employee.AccountExecutiveAgent"
+  },
+  {
+    "department": "sales-customer",
+    "slug": "key-account-manager",
+    "name": "Key Account Manager",
+    "path": "employees/sales-customer/key-account-manager",
+    "canonical_label": "Enterprise.Employee.KeyAccountManagerAgent"
+  },
+  {
+    "department": "sales-customer",
+    "slug": "sales-operations-analyst",
+    "name": "Sales Operations Analyst",
+    "path": "employees/sales-customer/sales-operations-analyst",
+    "canonical_label": "Enterprise.Employee.SalesOperationsAnalystAgent"
+  },
+  {
+    "department": "sales-customer",
+    "slug": "customer-success-manager",
+    "name": "Customer Success Manager",
+    "path": "employees/sales-customer/customer-success-manager",
+    "canonical_label": "Enterprise.Employee.CustomerSuccessManagerAgent"
+  },
+  {
+    "department": "sales-customer",
+    "slug": "customer-support-agent",
+    "name": "Customer Support Agent",
+    "path": "employees/sales-customer/customer-support-agent",
+    "canonical_label": "Enterprise.Employee.CustomerSupportAgent"
+  },
+  {
+    "department": "sales-customer",
+    "slug": "technical-support-specialist",
+    "name": "Technical Support Specialist",
+    "path": "employees/sales-customer/technical-support-specialist",
+    "canonical_label": "Enterprise.Employee.TechnicalSupportSpecialistAgent"
+  },
+  {
+    "department": "marketing-communications",
+    "slug": "product-marketing-manager",
+    "name": "Product Marketing Manager",
+    "path": "employees/marketing-communications/product-marketing-manager",
+    "canonical_label": "Enterprise.Employee.ProductMarketingManagerAgent"
+  },
+  {
+    "department": "marketing-communications",
+    "slug": "growth-marketer",
+    "name": "Growth Marketer",
+    "path": "employees/marketing-communications/growth-marketer",
+    "canonical_label": "Enterprise.Employee.GrowthMarketerAgent"
+  },
+  {
+    "department": "marketing-communications",
+    "slug": "content-strategist",
+    "name": "Content Strategist",
+    "path": "employees/marketing-communications/content-strategist",
+    "canonical_label": "Enterprise.Employee.ContentStrategistAgent"
+  },
+  {
+    "department": "marketing-communications",
+    "slug": "social-media-manager",
+    "name": "Social Media Manager",
+    "path": "employees/marketing-communications/social-media-manager",
+    "canonical_label": "Enterprise.Employee.SocialMediaManagerAgent"
+  },
+  {
+    "department": "marketing-communications",
+    "slug": "seo-specialist",
+    "name": "SEO Specialist",
+    "path": "employees/marketing-communications/seo-specialist",
+    "canonical_label": "Enterprise.Employee.SeoSpecialistAgent"
+  },
+  {
+    "department": "marketing-communications",
+    "slug": "paid-media-specialist",
+    "name": "Paid Media Specialist",
+    "path": "employees/marketing-communications/paid-media-specialist",
+    "canonical_label": "Enterprise.Employee.PaidMediaSpecialistAgent"
+  },
+  {
+    "department": "marketing-communications",
+    "slug": "market-research-analyst",
+    "name": "Market Research Analyst",
+    "path": "employees/marketing-communications/market-research-analyst",
+    "canonical_label": "Enterprise.Employee.MarketResearchAnalystAgent"
+  },
+  {
+    "department": "marketing-communications",
+    "slug": "public-relations-manager",
+    "name": "Public Relations Manager",
+    "path": "employees/marketing-communications/public-relations-manager",
+    "canonical_label": "Enterprise.Employee.PublicRelationsManagerAgent"
+  },
+  {
+    "department": "marketing-communications",
+    "slug": "internal-communications-specialist",
+    "name": "Internal Communications Specialist",
+    "path": "employees/marketing-communications/internal-communications-specialist",
+    "canonical_label": "Enterprise.Employee.InternalCommunicationsSpecialistAgent"
+  },
+  {
+    "department": "product-design",
+    "slug": "product-manager",
+    "name": "Product Manager",
+    "path": "employees/product-design/product-manager",
+    "canonical_label": "Enterprise.Employee.ProductManagerAgent"
+  },
+  {
+    "department": "product-design",
+    "slug": "product-owner",
+    "name": "Product Owner",
+    "path": "employees/product-design/product-owner",
+    "canonical_label": "Enterprise.Employee.ProductOwnerAgent"
+  },
+  {
+    "department": "product-design",
+    "slug": "ux-researcher",
+    "name": "UX Researcher",
+    "path": "employees/product-design/ux-researcher",
+    "canonical_label": "Enterprise.Employee.UxResearcherAgent"
+  },
+  {
+    "department": "product-design",
+    "slug": "ux-ui-designer",
+    "name": "UX/UI Designer",
+    "path": "employees/product-design/ux-ui-designer",
+    "canonical_label": "Enterprise.Employee.UxUiDesignerAgent"
+  },
+  {
+    "department": "product-design",
+    "slug": "service-designer",
+    "name": "Service Designer",
+    "path": "employees/product-design/service-designer",
+    "canonical_label": "Enterprise.Employee.ServiceDesignerAgent"
+  },
+  {
+    "department": "product-design",
+    "slug": "technical-writer",
+    "name": "Technical Writer",
+    "path": "employees/product-design/technical-writer",
+    "canonical_label": "Enterprise.Employee.TechnicalWriterAgent"
+  },
+  {
+    "department": "engineering-it",
+    "slug": "software-engineer",
+    "name": "Software Engineer",
+    "path": "employees/engineering-it/software-engineer",
+    "canonical_label": "Enterprise.Employee.SoftwareEngineerAgent"
+  },
+  {
+    "department": "engineering-it",
+    "slug": "frontend-engineer",
+    "name": "Frontend Engineer",
+    "path": "employees/engineering-it/frontend-engineer",
+    "canonical_label": "Enterprise.Employee.FrontendEngineerAgent"
+  },
+  {
+    "department": "engineering-it",
+    "slug": "backend-engineer",
+    "name": "Backend Engineer",
+    "path": "employees/engineering-it/backend-engineer",
+    "canonical_label": "Enterprise.Employee.BackendEngineerAgent"
+  },
+  {
+    "department": "engineering-it",
+    "slug": "mobile-engineer",
+    "name": "Mobile Engineer",
+    "path": "employees/engineering-it/mobile-engineer",
+    "canonical_label": "Enterprise.Employee.MobileEngineerAgent"
+  },
+  {
+    "department": "engineering-it",
+    "slug": "devops-sre",
+    "name": "DevOps / SRE",
+    "path": "employees/engineering-it/devops-sre",
+    "canonical_label": "Enterprise.Employee.DevopsSreAgent"
+  },
+  {
+    "department": "engineering-it",
+    "slug": "qa-engineer",
+    "name": "QA Engineer",
+    "path": "employees/engineering-it/qa-engineer",
+    "canonical_label": "Enterprise.Employee.QaEngineerAgent"
+  },
+  {
+    "department": "engineering-it",
+    "slug": "security-engineer",
+    "name": "Security Engineer",
+    "path": "employees/engineering-it/security-engineer",
+    "canonical_label": "Enterprise.Employee.SecurityEngineerAgent"
+  },
+  {
+    "department": "engineering-it",
+    "slug": "data-engineer",
+    "name": "Data Engineer",
+    "path": "employees/engineering-it/data-engineer",
+    "canonical_label": "Enterprise.Employee.DataEngineerAgent"
+  },
+  {
+    "department": "engineering-it",
+    "slug": "data-scientist",
+    "name": "Data Scientist",
+    "path": "employees/engineering-it/data-scientist",
+    "canonical_label": "Enterprise.Employee.DataScientistAgent"
+  },
+  {
+    "department": "engineering-it",
+    "slug": "machine-learning-engineer",
+    "name": "Machine Learning Engineer",
+    "path": "employees/engineering-it/machine-learning-engineer",
+    "canonical_label": "Enterprise.Employee.MachineLearningEngineerAgent"
+  },
+  {
+    "department": "engineering-it",
+    "slug": "database-administrator",
+    "name": "Database Administrator",
+    "path": "employees/engineering-it/database-administrator",
+    "canonical_label": "Enterprise.Employee.DatabaseAdministratorAgent"
+  },
+  {
+    "department": "engineering-it",
+    "slug": "solutions-architect",
+    "name": "Solutions Architect",
+    "path": "employees/engineering-it/solutions-architect",
+    "canonical_label": "Enterprise.Employee.SolutionsArchitectAgent"
+  },
+  {
+    "department": "engineering-it",
+    "slug": "enterprise-architect",
+    "name": "Enterprise Architect",
+    "path": "employees/engineering-it/enterprise-architect",
+    "canonical_label": "Enterprise.Employee.EnterpriseArchitectAgent"
+  },
+  {
+    "department": "engineering-it",
+    "slug": "it-support-specialist",
+    "name": "IT Support Specialist",
+    "path": "employees/engineering-it/it-support-specialist",
+    "canonical_label": "Enterprise.Employee.ItSupportSpecialistAgent"
+  },
+  {
+    "department": "engineering-it",
+    "slug": "network-engineer",
+    "name": "Network Engineer",
+    "path": "employees/engineering-it/network-engineer",
+    "canonical_label": "Enterprise.Employee.NetworkEngineerAgent"
+  },
+  {
+    "department": "engineering-it",
+    "slug": "cloud-engineer",
+    "name": "Cloud Engineer",
+    "path": "employees/engineering-it/cloud-engineer",
+    "canonical_label": "Enterprise.Employee.CloudEngineerAgent"
+  },
+  {
+    "department": "engineering-it",
+    "slug": "systems-administrator",
+    "name": "Systems Administrator",
+    "path": "employees/engineering-it/systems-administrator",
+    "canonical_label": "Enterprise.Employee.SystemsAdministratorAgent"
+  },
+  {
+    "department": "operations-programs",
+    "slug": "operations-manager",
+    "name": "Operations Manager",
+    "path": "employees/operations-programs/operations-manager",
+    "canonical_label": "Enterprise.Employee.OperationsManagerAgent"
+  },
+  {
+    "department": "operations-programs",
+    "slug": "business-process-analyst",
+    "name": "Business Process Analyst",
+    "path": "employees/operations-programs/business-process-analyst",
+    "canonical_label": "Enterprise.Employee.BusinessProcessAnalystAgent"
+  },
+  {
+    "department": "operations-programs",
+    "slug": "project-manager",
+    "name": "Project Manager",
+    "path": "employees/operations-programs/project-manager",
+    "canonical_label": "Enterprise.Employee.ProjectManagerAgent"
+  },
+  {
+    "department": "operations-programs",
+    "slug": "program-manager",
+    "name": "Program Manager",
+    "path": "employees/operations-programs/program-manager",
+    "canonical_label": "Enterprise.Employee.ProgramManagerAgent"
+  },
+  {
+    "department": "operations-programs",
+    "slug": "pmo-analyst",
+    "name": "PMO Analyst",
+    "path": "employees/operations-programs/pmo-analyst",
+    "canonical_label": "Enterprise.Employee.PmoAnalystAgent"
+  },
+  {
+    "department": "operations-programs",
+    "slug": "facilities-manager",
+    "name": "Facilities Manager",
+    "path": "employees/operations-programs/facilities-manager",
+    "canonical_label": "Enterprise.Employee.FacilitiesManagerAgent"
+  },
+  {
+    "department": "operations-programs",
+    "slug": "office-manager",
+    "name": "Office Manager",
+    "path": "employees/operations-programs/office-manager",
+    "canonical_label": "Enterprise.Employee.OfficeManagerAgent"
+  },
+  {
+    "department": "operations-programs",
+    "slug": "executive-assistant",
+    "name": "Executive Assistant",
+    "path": "employees/operations-programs/executive-assistant",
+    "canonical_label": "Enterprise.Employee.ExecutiveAssistantAgent"
+  },
+  {
+    "department": "operations-programs",
+    "slug": "receptionist",
+    "name": "Receptionist",
+    "path": "employees/operations-programs/receptionist",
+    "canonical_label": "Enterprise.Employee.ReceptionistAgent"
+  },
+  {
+    "department": "operations-programs",
+    "slug": "security-guard-supervisor",
+    "name": "Security Guard Supervisor",
+    "path": "employees/operations-programs/security-guard-supervisor",
+    "canonical_label": "Enterprise.Employee.SecurityGuardSupervisorAgent"
+  },
+  {
+    "department": "supply-chain-manufacturing",
+    "slug": "procurement-specialist",
+    "name": "Procurement Specialist",
+    "path": "employees/supply-chain-manufacturing/procurement-specialist",
+    "canonical_label": "Enterprise.Employee.ProcurementSpecialistAgent"
+  },
+  {
+    "department": "supply-chain-manufacturing",
+    "slug": "buyer",
+    "name": "Buyer",
+    "path": "employees/supply-chain-manufacturing/buyer",
+    "canonical_label": "Enterprise.Employee.BuyerAgent"
+  },
+  {
+    "department": "supply-chain-manufacturing",
+    "slug": "supply-chain-planner",
+    "name": "Supply Chain Planner",
+    "path": "employees/supply-chain-manufacturing/supply-chain-planner",
+    "canonical_label": "Enterprise.Employee.SupplyChainPlannerAgent"
+  },
+  {
+    "department": "supply-chain-manufacturing",
+    "slug": "demand-planner",
+    "name": "Demand Planner",
+    "path": "employees/supply-chain-manufacturing/demand-planner",
+    "canonical_label": "Enterprise.Employee.DemandPlannerAgent"
+  },
+  {
+    "department": "supply-chain-manufacturing",
+    "slug": "inventory-analyst",
+    "name": "Inventory Analyst",
+    "path": "employees/supply-chain-manufacturing/inventory-analyst",
+    "canonical_label": "Enterprise.Employee.InventoryAnalystAgent"
+  },
+  {
+    "department": "supply-chain-manufacturing",
+    "slug": "warehouse-manager",
+    "name": "Warehouse Manager",
+    "path": "employees/supply-chain-manufacturing/warehouse-manager",
+    "canonical_label": "Enterprise.Employee.WarehouseManagerAgent"
+  },
+  {
+    "department": "supply-chain-manufacturing",
+    "slug": "logistics-coordinator",
+    "name": "Logistics Coordinator",
+    "path": "employees/supply-chain-manufacturing/logistics-coordinator",
+    "canonical_label": "Enterprise.Employee.LogisticsCoordinatorAgent"
+  },
+  {
+    "department": "supply-chain-manufacturing",
+    "slug": "transportation-manager",
+    "name": "Transportation Manager",
+    "path": "employees/supply-chain-manufacturing/transportation-manager",
+    "canonical_label": "Enterprise.Employee.TransportationManagerAgent"
+  },
+  {
+    "department": "supply-chain-manufacturing",
+    "slug": "vendor-manager",
+    "name": "Vendor Manager",
+    "path": "employees/supply-chain-manufacturing/vendor-manager",
+    "canonical_label": "Enterprise.Employee.VendorManagerAgent"
+  },
+  {
+    "department": "supply-chain-manufacturing",
+    "slug": "quality-manager",
+    "name": "Quality Manager",
+    "path": "employees/supply-chain-manufacturing/quality-manager",
+    "canonical_label": "Enterprise.Employee.QualityManagerAgent"
+  },
+  {
+    "department": "supply-chain-manufacturing",
+    "slug": "production-planner",
+    "name": "Production Planner",
+    "path": "employees/supply-chain-manufacturing/production-planner",
+    "canonical_label": "Enterprise.Employee.ProductionPlannerAgent"
+  },
+  {
+    "department": "supply-chain-manufacturing",
+    "slug": "production-supervisor",
+    "name": "Production Supervisor",
+    "path": "employees/supply-chain-manufacturing/production-supervisor",
+    "canonical_label": "Enterprise.Employee.ProductionSupervisorAgent"
+  },
+  {
+    "department": "supply-chain-manufacturing",
+    "slug": "machine-operator",
+    "name": "Machine Operator",
+    "path": "employees/supply-chain-manufacturing/machine-operator",
+    "canonical_label": "Enterprise.Employee.MachineOperatorAgent"
+  },
+  {
+    "department": "supply-chain-manufacturing",
+    "slug": "quality-inspector",
+    "name": "Quality Inspector",
+    "path": "employees/supply-chain-manufacturing/quality-inspector",
+    "canonical_label": "Enterprise.Employee.QualityInspectorAgent"
+  },
+  {
+    "department": "supply-chain-manufacturing",
+    "slug": "maintenance-technician",
+    "name": "Maintenance Technician",
+    "path": "employees/supply-chain-manufacturing/maintenance-technician",
+    "canonical_label": "Enterprise.Employee.MaintenanceTechnicianAgent"
+  },
+  {
+    "department": "supply-chain-manufacturing",
+    "slug": "field-service-technician",
+    "name": "Field Service Technician",
+    "path": "employees/supply-chain-manufacturing/field-service-technician",
+    "canonical_label": "Enterprise.Employee.FieldServiceTechnicianAgent"
+  },
+  {
+    "department": "analytics-strategy",
+    "slug": "business-analyst",
+    "name": "Business Analyst",
+    "path": "employees/analytics-strategy/business-analyst",
+    "canonical_label": "Enterprise.Employee.BusinessAnalystAgent"
+  },
+  {
+    "department": "analytics-strategy",
+    "slug": "bi-analyst",
+    "name": "Business Intelligence Analyst",
+    "path": "employees/analytics-strategy/bi-analyst",
+    "canonical_label": "Enterprise.Employee.BiAnalystAgent"
+  },
+  {
+    "department": "analytics-strategy",
+    "slug": "strategy-analyst",
+    "name": "Strategy Analyst",
+    "path": "employees/analytics-strategy/strategy-analyst",
+    "canonical_label": "Enterprise.Employee.StrategyAnalystAgent"
+  },
+  {
+    "department": "corporate-affairs",
+    "slug": "government-affairs-specialist",
+    "name": "Government Affairs Specialist",
+    "path": "employees/corporate-affairs/government-affairs-specialist",
+    "canonical_label": "Enterprise.Employee.GovernmentAffairsSpecialistAgent"
+  },
+  {
+    "department": "corporate-affairs",
+    "slug": "investor-relations-manager",
+    "name": "Investor Relations Manager",
+    "path": "employees/corporate-affairs/investor-relations-manager",
+    "canonical_label": "Enterprise.Employee.InvestorRelationsManagerAgent"
+  },
+  {
+    "department": "corporate-affairs",
+    "slug": "sustainability-manager",
+    "name": "Sustainability Manager",
+    "path": "employees/corporate-affairs/sustainability-manager",
+    "canonical_label": "Enterprise.Employee.SustainabilityManagerAgent"
+  },
+  {
+    "department": "corporate-affairs",
+    "slug": "corporate-secretary",
+    "name": "Corporate Secretary",
+    "path": "employees/corporate-affairs/corporate-secretary",
+    "canonical_label": "Enterprise.Employee.CorporateSecretaryAgent"
+  },
+  {
+    "department": "personal-services",
+    "slug": "personal-shopper",
+    "name": "Personal Shopper",
+    "path": "employees/personal-services/personal-shopper",
+    "canonical_label": "Enterprise.Employee.PersonalShopperAgent"
+  }
+]

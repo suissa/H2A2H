@@ -1,0 +1,67 @@
+{
+  "name": "People Operations Specialist Agent",
+  "description": "H2A2H enterprise employee agent implementing the People Operations Specialist role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/people-operations-specialist/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/people-operations-specialist/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/people-operations-specialist",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "people-operations-specialist.analyze",
+      "name": "Analyze as People Operations Specialist",
+      "description": "Analyze information relevant to the People Operations Specialist role and produce evidence-backed findings.",
+      "tags": [
+        "human-resources",
+        "people-operations-specialist",
+        "analysis"
+      ]
+    },
+    {
+      "id": "people-operations-specialist.execute",
+      "name": "Execute People Operations Specialist work",
+      "description": "Execute delegated People Operations Specialist work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "human-resources",
+        "people-operations-specialist",
+        "execution"
+      ]
+    },
+    {
+      "id": "people-operations-specialist.report",
+      "name": "Report People Operations Specialist outcome",
+      "description": "Return a structured People Operations Specialist result with provenance, audit references and Human-return status.",
+      "tags": [
+        "human-resources",
+        "people-operations-specialist",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

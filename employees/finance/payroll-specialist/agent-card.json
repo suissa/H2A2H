@@ -1,0 +1,67 @@
+{
+  "name": "Payroll Specialist Agent",
+  "description": "H2A2H enterprise employee agent implementing the Payroll Specialist role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/payroll-specialist/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/payroll-specialist/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/payroll-specialist",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "payroll-specialist.analyze",
+      "name": "Analyze as Payroll Specialist",
+      "description": "Analyze information relevant to the Payroll Specialist role and produce evidence-backed findings.",
+      "tags": [
+        "finance",
+        "payroll-specialist",
+        "analysis"
+      ]
+    },
+    {
+      "id": "payroll-specialist.execute",
+      "name": "Execute Payroll Specialist work",
+      "description": "Execute delegated Payroll Specialist work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "finance",
+        "payroll-specialist",
+        "execution"
+      ]
+    },
+    {
+      "id": "payroll-specialist.report",
+      "name": "Report Payroll Specialist outcome",
+      "description": "Return a structured Payroll Specialist result with provenance, audit references and Human-return status.",
+      "tags": [
+        "finance",
+        "payroll-specialist",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

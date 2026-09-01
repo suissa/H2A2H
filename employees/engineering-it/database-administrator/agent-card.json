@@ -1,0 +1,67 @@
+{
+  "name": "Database Administrator Agent",
+  "description": "H2A2H enterprise employee agent implementing the Database Administrator role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/database-administrator/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/database-administrator/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/database-administrator",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "database-administrator.analyze",
+      "name": "Analyze as Database Administrator",
+      "description": "Analyze information relevant to the Database Administrator role and produce evidence-backed findings.",
+      "tags": [
+        "engineering-it",
+        "database-administrator",
+        "analysis"
+      ]
+    },
+    {
+      "id": "database-administrator.execute",
+      "name": "Execute Database Administrator work",
+      "description": "Execute delegated Database Administrator work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "engineering-it",
+        "database-administrator",
+        "execution"
+      ]
+    },
+    {
+      "id": "database-administrator.report",
+      "name": "Report Database Administrator outcome",
+      "description": "Return a structured Database Administrator result with provenance, audit references and Human-return status.",
+      "tags": [
+        "engineering-it",
+        "database-administrator",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

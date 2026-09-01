@@ -1,0 +1,67 @@
+{
+  "name": "Chief Information Security Officer Agent",
+  "description": "H2A2H enterprise employee agent implementing the Chief Information Security Officer role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/chief-information-security-officer/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/chief-information-security-officer/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/chief-information-security-officer",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "chief-information-security-officer.analyze",
+      "name": "Analyze as Chief Information Security Officer",
+      "description": "Analyze information relevant to the Chief Information Security Officer role and produce evidence-backed findings.",
+      "tags": [
+        "executive",
+        "chief-information-security-officer",
+        "analysis"
+      ]
+    },
+    {
+      "id": "chief-information-security-officer.execute",
+      "name": "Execute Chief Information Security Officer work",
+      "description": "Execute delegated Chief Information Security Officer work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "executive",
+        "chief-information-security-officer",
+        "execution"
+      ]
+    },
+    {
+      "id": "chief-information-security-officer.report",
+      "name": "Report Chief Information Security Officer outcome",
+      "description": "Return a structured Chief Information Security Officer result with provenance, audit references and Human-return status.",
+      "tags": [
+        "executive",
+        "chief-information-security-officer",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,219 @@
+{
+  "employee_agent": {
+    "identity": {
+      "canonical_label": "Enterprise.Employee.ComplianceOfficerAgent",
+      "human_role": "Compliance Officer",
+      "department": "legal-risk-compliance",
+      "entity_kind": "Agent",
+      "a2a_agent_card": "./agent-card.json",
+      "identity_model": "A2A Agent Card for discovery + H2A2H responsibility/delegation identity"
+    },
+    "purpose": "Act as the delegated digital counterpart of a Compliance Officer, without exceeding the authority of the responsible Human or enterprise policy.",
+    "responsibilities": [
+      "interpret contracts, policy and regulatory constraints",
+      "prepare controlled legal/risk actions",
+      "preserve privilege and provenance",
+      "escalate binding or exception decisions"
+    ],
+    "authority": {
+      "accountable_human_role": "Chief Legal Officer / Compliance leader",
+      "delegation_required": true,
+      "default_session_ttl": "PT30M",
+      "maximum_session_ttl": "PT8H",
+      "scope": [
+        "department:legal-risk-compliance",
+        "role:compliance-officer"
+      ],
+      "self_extension_forbidden": true,
+      "self_approval_forbidden": true
+    },
+    "intents": [
+      {
+        "canonical_label": "Enterprise.Employee.ComplianceOfficerAgent.Analyze",
+        "effect": "read-only",
+        "pohr": "optional"
+      },
+      {
+        "canonical_label": "Enterprise.Employee.ComplianceOfficerAgent.Prepare",
+        "effect": "draft",
+        "pohr": "optional"
+      },
+      {
+        "canonical_label": "Enterprise.Employee.ComplianceOfficerAgent.Execute",
+        "effect": "side-effect",
+        "pohr": "required"
+      },
+      {
+        "canonical_label": "Enterprise.Employee.ComplianceOfficerAgent.Review",
+        "effect": "read-only",
+        "pohr": "optional"
+      },
+      {
+        "canonical_label": "Enterprise.Employee.ComplianceOfficerAgent.Report",
+        "effect": "return-to-human",
+        "pohr": "required"
+      }
+    ],
+    "tools": [
+      {
+        "name": "legal.clm.read",
+        "permission": "allow",
+        "side_effect": false
+      },
+      {
+        "name": "legal.clm.write",
+        "permission": "allow",
+        "side_effect": true
+      },
+      {
+        "name": "legal.policy.query",
+        "permission": "allow",
+        "side_effect": false
+      },
+      {
+        "name": "risk.register.read",
+        "permission": "allow",
+        "side_effect": false
+      },
+      {
+        "name": "legal.approval.request",
+        "permission": "allow",
+        "side_effect": true
+      },
+      {
+        "name": "h2a2h.delegation.validate",
+        "permission": "required",
+        "side_effect": false
+      },
+      {
+        "name": "h2a2h.audit.append",
+        "permission": "required",
+        "side_effect": true
+      },
+      {
+        "name": "h2a2h.pohr.issue",
+        "permission": "required-on-human-return",
+        "side_effect": true
+      },
+      {
+        "name": "h2a2h.human.escalate",
+        "permission": "required-on-uncertainty",
+        "side_effect": true
+      }
+    ],
+    "systems_of_record": [
+      "contract lifecycle management",
+      "legal matter management",
+      "policy registry",
+      "risk register"
+    ],
+    "inputs": {
+      "required": [
+        "intent",
+        "delegation_ref",
+        "correlation_id",
+        "request_payload"
+      ],
+      "optional": [
+        "context_ref",
+        "policy_context",
+        "attachments",
+        "human_preferences"
+      ]
+    },
+    "outputs": {
+      "required": [
+        "status",
+        "result_or_artifact",
+        "provenance",
+        "audit_ref"
+      ],
+      "human_boundary": [
+        "pohr"
+      ]
+    },
+    "events": {
+      "success": "Ok",
+      "failure": "Error",
+      "escalation": "HumanRequired",
+      "delegation_expired": "DelegationExpired"
+    },
+    "risk": {
+      "class": "critical",
+      "human_approval_required_for": [
+        "binding legal commitment",
+        "regulatory filing",
+        "waiver or exception",
+        "privileged disclosure"
+      ],
+      "deny": [
+        "operate outside declared role",
+        "invent authority",
+        "hide tool side effects",
+        "silently bypass enterprise policy"
+      ]
+    },
+    "channels": {
+      "discovery": "A2A Agent Card at /.well-known/agent-card.json",
+      "a2a_preferred": "HTTP+JSON / A2A 1.0",
+      "a2a_alternate": "JSONRPC / A2A 1.0",
+      "h2a2h": "resolved from OpenEntityChannels/OpenIntent; never chosen ad hoc by role code"
+    },
+    "proof_of_human_return": {
+      "required_for": [
+        "Execute",
+        "Report",
+        "HumanRequired"
+      ],
+      "minimum_evidence": [
+        "correlation_id",
+        "responsibility_chain",
+        "delivery_or_presentation_evidence"
+      ],
+      "acknowledgement_required_when": [
+        "binding legal commitment",
+        "regulatory filing",
+        "waiver or exception",
+        "privileged disclosure"
+      ]
+    },
+    "memory": {
+      "working": "ephemeral per delegated session",
+      "durable": "only through declared systems of record and audit trail",
+      "forbidden": [
+        "shadow employee profiles",
+        "undeclared personal memory",
+        "credentials/secrets"
+      ]
+    },
+    "security": {
+      "least_privilege": true,
+      "no_secrets_in_agent_card": true,
+      "delegation_validation_before_side_effect": true,
+      "audit_all_side_effects": true,
+      "recommended_enterprise_profile": [
+        "mTLS",
+        "DPoP or equivalent proof-of-possession",
+        "short-lived credentials"
+      ]
+    },
+    "observability": [
+      "intent lifecycle",
+      "tool calls",
+      "delegation checks",
+      "approval requests",
+      "policy decisions",
+      "PoHR issuance"
+    ],
+    "acceptance_tests": [
+      "Agent Card validates against A2A v1 discovery model",
+      "canonical_label is stable and unique",
+      "side effects fail closed without valid delegation",
+      "tool invocation is restricted to declared allowlist",
+      "high-risk actions request accountable Human approval",
+      "human-boundary result carries PoHR evidence",
+      "audit trail preserves correlation and responsibility chain",
+      "agent interoperates without implementation-specific coupling"
+    ]
+  }
+}

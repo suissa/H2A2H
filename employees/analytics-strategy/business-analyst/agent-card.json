@@ -1,0 +1,67 @@
+{
+  "name": "Business Analyst Agent",
+  "description": "H2A2H enterprise employee agent implementing the Business Analyst role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agents.example.com/business-analyst/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    },
+    {
+      "url": "https://agents.example.com/business-analyst/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "provider": {
+    "organization": "Example Enterprise",
+    "url": "https://enterprise.example.com"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://enterprise.example.com/agents/business-analyst",
+  "capabilities": {
+    "streaming": true,
+    "extendedAgentCard": true
+  },
+  "defaultInputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "business-analyst.analyze",
+      "name": "Analyze as Business Analyst",
+      "description": "Analyze information relevant to the Business Analyst role and produce evidence-backed findings.",
+      "tags": [
+        "analytics-strategy",
+        "business-analyst",
+        "analysis"
+      ]
+    },
+    {
+      "id": "business-analyst.execute",
+      "name": "Execute Business Analyst work",
+      "description": "Execute delegated Business Analyst work using only the declared tool allowlist and approval policy.",
+      "tags": [
+        "analytics-strategy",
+        "business-analyst",
+        "execution"
+      ]
+    },
+    {
+      "id": "business-analyst.report",
+      "name": "Report Business Analyst outcome",
+      "description": "Return a structured Business Analyst result with provenance, audit references and Human-return status.",
+      "tags": [
+        "analytics-strategy",
+        "business-analyst",
+        "reporting",
+        "pohr"
+      ]
+    }
+  ]
+}
