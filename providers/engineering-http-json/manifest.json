@@ -1,0 +1,30 @@
+{
+  "canonical_label": "ProviderPack.Engineering.HttpJson",
+  "version": "0.1.0",
+  "domain": "engineering",
+  "provider_kind": "http-json",
+  "capabilities": [
+    "engineering.scm.read",
+    "engineering.scm.write",
+    "engineering.ci.execute",
+    "observability.query",
+    "engineering.change.request"
+  ],
+  "config_schema": {
+    "type": "object",
+    "required": ["base_url"],
+    "properties": {
+      "base_url": { "type": "string" },
+      "workspace": { "type": "string" },
+      "timeout_ms": { "type": "number" }
+    },
+    "additionalProperties": false
+  },
+  "secrets": [
+    { "name": "access_token", "required": true }
+  ],
+  "runtime": {
+    "network": true,
+    "protocols": ["HTTP+JSON"]
+  }
+}
