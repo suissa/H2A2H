@@ -24,17 +24,20 @@ Each pack exposes a machine-readable `manifest.json` with:
 
 - `canonical_label`: stable Provider Pack identity;
 - `version`: semantic version;
-- `domain`: capability domain such as `finance`, `engineering`, or `commerce`;
+- `domain`: the pack's organizational/integration domain, such as `finance`, `engineering-it`, or `commerce`;
+- `capability_domains`: optional explicit semantic namespaces implemented by a cross-domain pack. When omitted, it defaults to `[domain]`;
 - `provider_kind`: `in-memory`, `http-json`, `mcp`, or `injected`;
 - `capabilities`: exact canonical capability identities implemented by the pack;
 - `config_schema`: non-secret runtime configuration contract;
 - `secrets`: declared secret names and whether each is required;
 - `runtime`: network and protocol requirements.
 
+The distinction between `domain` and `capability_domains` is intentional. A real organizational integration may span multiple truthful semantic namespaces. For example, the Engineering/IT pack owns the organizational domain `engineering-it` while implementing both `engineering.*` and `observability.*`. The protocol does not rename `observability.query` merely to fit the integration boundary.
+
 ## Runtime invariants
 
 1. Every capability in a pack must already exist in `EmployeeToolRegistry`.
-2. Every capability must belong to the pack's declared domain.
+2. Every capability must belong to one of the pack's declared `capability_domains` (or `domain` when the list is omitted).
 3. The capability must permit the pack's provider kind.
 4. Configuration and secrets fail closed when missing, undeclared, or incorrectly typed.
 5. Only one active pack may own a capability at a time unless an explicit future routing policy defines otherwise.
