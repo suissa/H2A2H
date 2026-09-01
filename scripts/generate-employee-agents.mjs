@@ -97,6 +97,8 @@ const departments = {
   }
 };
 
+const sideEffectOperations = new Set(['write', 'execute', 'manage', 'request', 'publish', 'record', 'prepare']);
+
 function pascal(slug) {
   const parts = slug.split('-').filter(Boolean).map(x => x[0].toUpperCase() + x.slice(1));
   const joined = parts.join('');
@@ -104,7 +106,7 @@ function pascal(slug) {
 }
 
 function canonical(slug) { return `Enterprise.Employee.${pascal(slug)}`; }
-function hasSideEffect(name) { return /(write|execute|manage|request|publish|record|prepare)/.test(name); }
+function hasSideEffect(name) { return sideEffectOperations.has(name.split('.').at(-1)); }
 
 function agentCard(e) {
   return {

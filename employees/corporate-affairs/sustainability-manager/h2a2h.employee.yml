@@ -58,7 +58,7 @@
       {
         "name": "corp.records.read",
         "permission": "allow",
-        "side_effect": true
+        "side_effect": false
       },
       {
         "name": "corp.filings.prepare",
