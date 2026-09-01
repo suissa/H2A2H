@@ -1,0 +1,19 @@
+{
+  "name": "h2a2h-reference-b",
+  "version": "1.0.0",
+  "implementation": "independent",
+  "runtime": "node-esm",
+  "shared_runtime_code": false,
+  "normative_schema": "../../schemas/h2a2h-v1.schema.json",
+  "channels": [
+    "h2a2h.channel.direct-json.v1",
+    "h2a2h.channel.http.v1"
+  ],
+  "capabilities": [
+    "envelope",
+    "delegation-validation",
+    "responsibility-chain",
+    "proof-of-human-return",
+    "http-request-reply"
+  ]
+}
