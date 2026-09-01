@@ -268,7 +268,7 @@ export class EmployeeAgentRuntime {
       resolveChannel: (context) => this.options.resolveChannel(context, this.employee),
       execute: (context) => this.execute(context),
       returnToHuman: (context) => this.options.returnToHuman(context, this.employee),
-      onTransition: this.options.onTransition,
+      ...(this.options.onTransition ? { onTransition: this.options.onTransition } : {}),
     };
   }
 
