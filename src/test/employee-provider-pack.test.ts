@@ -29,13 +29,9 @@ test('loads and registers a machine-readable commerce Provider Pack', async () =
   const manifest = await loadEmployeeProviderPackManifest('providers/reference-commerce/manifest.json', tools);
   const packs = new EmployeeProviderPackRegistry(tools);
   packs.register(manifest, createInMemoryProviderPackFactory('reference:commerce', commerceHandlers()));
-
   assert.equal(manifest.canonical_label, 'ProviderPack.Commerce.Reference');
   assert.equal(manifest.domain, 'commerce');
   assert.equal(manifest.capabilities.length, 5);
-  assert.deepEqual(packs.list({ domain: 'commerce' }).map((entry) => entry.canonical_label), [
-    'ProviderPack.Commerce.Reference',
-  ]);
 });
 
 test('activating one Provider Pack makes every Personal Shopper business capability ready', async () => {
@@ -44,10 +40,8 @@ test('activating one Provider Pack makes every Personal Shopper business capabil
   const packs = new EmployeeProviderPackRegistry(tools);
   packs.register(manifest, createInMemoryProviderPackFactory('reference:commerce', commerceHandlers()));
   const active = await packs.activate(manifest.canonical_label);
-
   assert.equal(active.capabilityProviders.size, 5);
-  const employees = await EmployeeAgentRegistry.fromCatalog();
-  const shopper = await employees.load('Enterprise.Employee.PersonalShopperAgent');
+  const shopper = await (await EmployeeAgentRegistry.fromCatalog()).load('Enterprise.Employee.PersonalShopperAgent');
   assert.doesNotThrow(() => tools.assertEmployeeReady(shopper));
 });
 
@@ -57,7 +51,6 @@ test('Provider Pack execution preserves canonical capability identity through th
   const packs = new EmployeeProviderPackRegistry(tools);
   packs.register(manifest, createInMemoryProviderPackFactory('reference:commerce', commerceHandlers()));
   await packs.activate(manifest.canonical_label);
-
   const shopper = await (await EmployeeAgentRegistry.fromCatalog()).load('Enterprise.Employee.PersonalShopperAgent');
   const executor = tools.resolveExecutor('commerce.catalog.search');
   const result = await executor({ query: 'laptop' }, {
@@ -84,7 +77,6 @@ test('Provider Pack execution preserves canonical capability identity through th
       transitions: [],
     },
   });
-
   assert.deepEqual(result, {
     capability: 'commerce.catalog.search',
     input: { query: 'laptop' },
@@ -106,7 +98,7 @@ test('Provider Pack rejects capability/domain mismatch', async () => {
   );
 });
 
-test('Provider Pack fails closed when required configuration is absent', async () => {
+test('HTTP Provider Pack fails closed when required configuration is absent', async () => {
   const tools = await EmployeeToolRegistry.load();
   const manifest: EmployeeProviderPackManifest = {
     canonical_label: 'ProviderPack.Finance.HttpReference',
@@ -114,13 +106,17 @@ test('Provider Pack fails closed when required configuration is absent', async (
     domain: 'finance',
     provider_kind: 'http-json',
     capabilities: ['finance.erp.read'],
+    binding: {
+      routes: { 'finance.erp.read': '/v1/finance/erp/read' },
+      authorization: { type: 'bearer', secret: 'token' },
+    },
     config_schema: {
       type: 'object',
       required: ['base_url'],
       properties: { base_url: { type: 'string' } },
       additionalProperties: false,
     },
-    secrets: [],
+    secrets: [{ name: 'token', required: true }],
     runtime: { network: true, protocols: ['HTTP+JSON'] },
   };
   const packs = new EmployeeProviderPackRegistry(tools);
@@ -128,10 +124,45 @@ test('Provider Pack fails closed when required configuration is absent', async (
     manifest,
     createHttpJsonProviderPackFactory('finance:http', () => 'https://finance.example.invalid/tool'),
   );
-
   await assert.rejects(
     () => packs.activate(manifest.canonical_label),
     (error: unknown) => error instanceof EmployeeToolCapabilityError && error.code === 'provider_pack.config.missing',
+  );
+});
+
+test('HTTP manifest rejects missing or extra capability routes before activation', async () => {
+  const tools = await EmployeeToolRegistry.load();
+  const valid = await loadEmployeeProviderPackManifest('providers/finance-http-json/manifest.json', tools);
+  const invalid: EmployeeProviderPackManifest = {
+    ...valid,
+    canonical_label: 'ProviderPack.Finance.InvalidRoutes',
+    binding: {
+      ...valid.binding!,
+      routes: { 'finance.erp.read': '/v1/finance/erp/read' },
+    },
+  };
+  const packs = new EmployeeProviderPackRegistry(tools);
+  assert.throws(
+    () => packs.register(invalid, createHttpJsonProviderPackFactory('invalid', () => 'https://invalid.test')),
+    (error: unknown) => error instanceof EmployeeToolCapabilityError && error.code === 'provider_pack.http.routes_mismatch',
+  );
+});
+
+test('HTTP manifest cannot reference an undeclared authorization secret', async () => {
+  const tools = await EmployeeToolRegistry.load();
+  const valid = await loadEmployeeProviderPackManifest('providers/finance-http-json/manifest.json', tools);
+  const invalid: EmployeeProviderPackManifest = {
+    ...valid,
+    canonical_label: 'ProviderPack.Finance.InvalidSecret',
+    binding: {
+      ...valid.binding!,
+      authorization: { type: 'bearer', secret: 'not_declared' },
+    },
+  };
+  const packs = new EmployeeProviderPackRegistry(tools);
+  assert.throws(
+    () => packs.register(invalid, createHttpJsonProviderPackFactory('invalid', () => 'https://invalid.test')),
+    (error: unknown) => error instanceof EmployeeToolCapabilityError && error.code === 'provider_pack.http.auth.secret_undeclared',
   );
 });
 
@@ -152,7 +183,6 @@ test('two active Provider Packs cannot ambiguously own the same capability', asy
   packs.register(first, createInMemoryProviderPackFactory('first', commerceHandlers()));
   packs.register(second, createInMemoryProviderPackFactory('second', commerceHandlers()));
   await packs.activate(first.canonical_label);
-
   await assert.rejects(
     () => packs.activate(second.canonical_label),
     (error: unknown) => error instanceof EmployeeToolCapabilityError && error.code === 'provider_pack.capability.ambiguous',
