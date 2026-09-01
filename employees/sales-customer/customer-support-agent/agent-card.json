@@ -1,5 +1,5 @@
 {
-  "name": "Customer Support Agent Agent",
+  "name": "Customer Support Agent",
   "description": "H2A2H enterprise employee agent implementing the Customer Support Agent role. The A2A Agent Card provides discovery identity; H2A2H adds delegation, Human responsibility, policy, provenance and Proof-of-Human-Return.",
   "supportedInterfaces": [
     {
