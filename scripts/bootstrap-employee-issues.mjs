@@ -13,6 +13,19 @@ const headers = {
   'X-GitHub-Api-Version': '2022-11-28'
 };
 
+function agentName(roleName) {
+  return roleName.endsWith('Agent') ? roleName : `${roleName} Agent`;
+}
+
+function pascal(slug) {
+  const value = slug.split('-').filter(Boolean).map(x => x[0].toUpperCase() + x.slice(1)).join('');
+  return value.endsWith('Agent') ? value : `${value}Agent`;
+}
+
+function canonical(slug) {
+  return `Enterprise.Employee.${pascal(slug)}`;
+}
+
 async function request(path, init = {}) {
   const res = await fetch(`${api}${path}`, { ...init, headers: { ...headers, ...(init.headers ?? {}) } });
   if (!res.ok) throw new Error(`${init.method ?? 'GET'} ${path}: ${res.status} ${await res.text()}`);
@@ -23,23 +36,23 @@ const existing = new Set();
 for (let page = 1; ; page++) {
   const items = await request(`/repos/${owner}/${name}/issues?state=all&per_page=100&page=${page}`);
   if (!items.length) break;
-  for (const item of items) {
-    if (!item.pull_request) existing.add(item.title);
-  }
+  for (const item of items) if (!item.pull_request) existing.add(item.title);
 }
 
 let created = 0;
 for (const employee of catalog) {
-  const title = `[EMPLOYEE] Implement ${employee.name} Agent`;
+  const displayName = agentName(employee.name);
+  const identity = canonical(employee.slug);
+  const title = `[EMPLOYEE] Implement ${displayName}`;
   if (existing.has(title)) {
     console.log(`exists: ${title}`);
     continue;
   }
 
   const body = [
-    `Implement the H2A2H **${employee.name} Agent** from \`${employee.path}/\`.`,
+    `Implement the H2A2H **${displayName}** from \`${employee.path}/\`.`,
     '',
-    `Canonical identity: \`${employee.canonical_label}\``,
+    `Canonical identity: \`${identity}\``,
     '',
     '## Required implementation',
     '',
@@ -61,9 +74,7 @@ for (const employee of catalog) {
   ].join('\n');
 
   await request(`/repos/${owner}/${name}/issues`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ title, body })
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title, body })
   });
   created++;
   console.log(`created: ${title}`);
