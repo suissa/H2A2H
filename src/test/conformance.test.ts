@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import Ajv2020 from 'ajv/dist/2020.js';
+import Ajv2020, { type ErrorObject } from 'ajv/dist/2020.js';
 import addFormats from 'ajv-formats';
 import { parse as parseYaml } from 'yaml';
 import {
@@ -51,7 +51,7 @@ test('invalid delegation without canonical Entity kind is rejected', () => {
     proof: { profile: 'example', value: 'proof' },
   };
   assert.equal(validate(invalid), false);
-  assert.ok(validate.errors?.some((error) => error.instancePath.includes('/delegator')));
+  assert.ok(validate.errors?.some((error: ErrorObject) => error.instancePath.includes('/delegator')));
 });
 
 test('lifecycle rejects semantically invalid transitions', () => {
