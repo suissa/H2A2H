@@ -71,7 +71,7 @@ npm run release:gate
 - protocol-version negotiation;
 - independent Reference A↔B interoperability.
 
-The GitHub Actions release workflow repeats the release gate, typecheck, build, conformance suite and dependency audit for `v*` tags and attaches a machine-readable conformance report to the GitHub Release.
+After the H2A2H Conformance CI succeeds on `main`, the release workflow checks whether the package version already has an immutable Git tag. For a new version it reruns the release gate, typecheck, build, conformance suite and dependency audit, creates `v<version>` at the validated commit, generates a machine-readable conformance report and publishes the GitHub Release with that report attached.
 
 ## Examples
 
