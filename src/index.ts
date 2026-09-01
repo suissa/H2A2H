@@ -11,3 +11,4 @@ export * from './interop.js';
 export * from './versioning.js';
 export * from './employee-agent.js';
 export * from './personal-shopper.js';
+export * from './employee-registry.js';
