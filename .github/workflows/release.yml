@@ -1,0 +1,53 @@
+name: H2A2H Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm install --no-fund --no-audit
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build and conformance
+        run: npm run conformance
+
+      - name: Dependency audit
+        run: npm audit --audit-level=high
+
+      - name: Generate conformance report
+        run: node scripts/conformance-report.mjs
+
+      - name: Upload conformance artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: h2a2h-conformance-${{ github.ref_name }}
+          path: conformance-report.json
+
+      - name: Create or update GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" conformance-report.json --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" conformance-report.json --generate-notes --title "H2A2H $GITHUB_REF_NAME"
+          fi
