@@ -1,0 +1,24 @@
+{
+  "canonical_label": "ProviderPack.Commerce.Reference",
+  "version": "0.1.0",
+  "domain": "commerce",
+  "provider_kind": "in-memory",
+  "capabilities": [
+    "commerce.catalog.search",
+    "commerce.offer.compare",
+    "commerce.cart.prepare",
+    "commerce.order.status",
+    "commerce.purchase.request"
+  ],
+  "config_schema": {
+    "type": "object",
+    "required": [],
+    "properties": {},
+    "additionalProperties": false
+  },
+  "secrets": [],
+  "runtime": {
+    "network": false,
+    "protocols": ["in-memory"]
+  }
+}
