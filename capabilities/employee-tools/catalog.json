@@ -1,0 +1,70 @@
+{
+  "protocol": "h2a2h.employee-tools",
+  "version": "1.0.0",
+  "defaults": {
+    "delegation_required": true,
+    "provider_required": true,
+    "provider_bindings": ["in-memory", "http-json", "mcp", "injected"],
+    "events": { "success": "Ok", "failure": "Error" }
+  },
+  "departments": {
+    "executive": {
+      "tools": ["enterprise.strategy.read", "enterprise.kpi.read", "enterprise.decision.record", "enterprise.communication.publish", "enterprise.approval.request"],
+      "side_effects": ["enterprise.decision.record", "enterprise.communication.publish", "enterprise.approval.request"]
+    },
+    "finance": {
+      "tools": ["finance.erp.read", "finance.erp.write", "finance.ledger.query", "finance.report.generate", "finance.approval.request"],
+      "side_effects": ["finance.erp.write", "finance.approval.request"]
+    },
+    "human-resources": {
+      "tools": ["hr.hris.read", "hr.hris.write", "hr.ats.query", "hr.policy.query", "hr.approval.request"],
+      "side_effects": ["hr.hris.write", "hr.approval.request"]
+    },
+    "legal-risk-compliance": {
+      "tools": ["legal.clm.read", "legal.clm.write", "legal.policy.query", "risk.register.read", "legal.approval.request"],
+      "side_effects": ["legal.clm.write", "legal.approval.request"]
+    },
+    "sales-customer": {
+      "tools": ["sales.crm.read", "sales.crm.write", "sales.quote.generate", "customer.history.query", "sales.approval.request"],
+      "side_effects": ["sales.crm.write", "sales.approval.request"]
+    },
+    "marketing-communications": {
+      "tools": ["marketing.analytics.read", "marketing.cms.write", "marketing.campaign.manage", "brand.policy.query", "marketing.approval.request"],
+      "side_effects": ["marketing.cms.write", "marketing.campaign.manage", "marketing.approval.request"]
+    },
+    "product-design": {
+      "tools": ["product.backlog.read", "product.backlog.write", "research.repository.query", "design.assets.read", "product.approval.request"],
+      "side_effects": ["product.backlog.write", "product.approval.request"]
+    },
+    "engineering-it": {
+      "tools": ["engineering.scm.read", "engineering.scm.write", "engineering.ci.execute", "observability.query", "engineering.change.request"],
+      "side_effects": ["engineering.scm.write", "engineering.ci.execute", "engineering.change.request"]
+    },
+    "operations-programs": {
+      "tools": ["operations.erp.read", "operations.workflow.write", "operations.schedule.manage", "operations.asset.query", "operations.approval.request"],
+      "side_effects": ["operations.workflow.write", "operations.schedule.manage", "operations.approval.request"]
+    },
+    "supply-chain-manufacturing": {
+      "tools": ["supply.erp.read", "supply.erp.write", "supply.wms.query", "supply.tms.query", "supply.approval.request"],
+      "side_effects": ["supply.erp.write", "supply.approval.request"]
+    },
+    "analytics-strategy": {
+      "tools": ["data.warehouse.query", "data.catalog.query", "analytics.notebook.execute", "bi.report.publish", "data.approval.request"],
+      "side_effects": ["analytics.notebook.execute", "bi.report.publish", "data.approval.request"]
+    },
+    "corporate-affairs": {
+      "tools": ["corp.records.read", "corp.filings.prepare", "stakeholder.crm.read", "corp.communication.draft", "corp.approval.request"],
+      "side_effects": ["corp.filings.prepare", "corp.approval.request"]
+    },
+    "personal-services": {
+      "tools": ["commerce.catalog.search", "commerce.offer.compare", "commerce.cart.prepare", "commerce.order.status", "commerce.purchase.request"],
+      "side_effects": ["commerce.cart.prepare", "commerce.purchase.request"]
+    }
+  },
+  "internal": [
+    { "canonical_label": "h2a2h.delegation.validate", "side_effect": false, "delegation_required": false },
+    { "canonical_label": "h2a2h.audit.append", "side_effect": true, "delegation_required": true },
+    { "canonical_label": "h2a2h.pohr.issue", "side_effect": true, "delegation_required": true },
+    { "canonical_label": "h2a2h.human.escalate", "side_effect": true, "delegation_required": true }
+  ]
+}
