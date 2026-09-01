@@ -1,0 +1,31 @@
+{
+  "canonical_label": "ProviderPack.HumanResources.HttpJson",
+  "version": "0.1.0",
+  "domain": "human-resources",
+  "capability_domains": ["hr"],
+  "provider_kind": "http-json",
+  "capabilities": [
+    "hr.hris.read",
+    "hr.hris.write",
+    "hr.ats.query",
+    "hr.policy.query",
+    "hr.approval.request"
+  ],
+  "config_schema": {
+    "type": "object",
+    "required": ["base_url"],
+    "properties": {
+      "base_url": { "type": "string" },
+      "organization_id": { "type": "string" },
+      "timeout_ms": { "type": "number" }
+    },
+    "additionalProperties": false
+  },
+  "secrets": [
+    { "name": "access_token", "required": true }
+  ],
+  "runtime": {
+    "network": true,
+    "protocols": ["HTTP+JSON"]
+  }
+}
