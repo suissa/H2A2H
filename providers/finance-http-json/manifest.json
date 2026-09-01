@@ -10,6 +10,22 @@
     "finance.report.generate",
     "finance.approval.request"
   ],
+  "binding": {
+    "routes": {
+      "finance.erp.read": "/v1/finance/erp/read",
+      "finance.erp.write": "/v1/finance/erp/write",
+      "finance.ledger.query": "/v1/finance/ledger/query",
+      "finance.report.generate": "/v1/finance/report/generate",
+      "finance.approval.request": "/v1/finance/approval/request"
+    },
+    "authorization": {
+      "type": "bearer",
+      "secret": "api_token"
+    },
+    "config_headers": {
+      "tenant_id": "x-h2a2h-tenant-id"
+    }
+  },
   "config_schema": {
     "type": "object",
     "required": ["base_url"],
