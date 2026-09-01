@@ -1,6 +1,6 @@
 # Enterprise Employee Agents
 
-This directory is a reference catalog of H2A2H employee-agent archetypes for a large enterprise, plus a `Personal Shopper` role.
+This directory is a reference catalog of **105 H2A2H employee-agent archetypes** for a large enterprise, including a `Personal Shopper` role.
 
 ## Identity model
 
@@ -36,8 +36,24 @@ An employee Agent MUST NOT encode hidden authority, transport selection, or orga
 7. Material or uncertain actions escalate to the accountable Human.
 8. Results crossing the Human boundary produce Proof-of-Human-Return.
 
+## Contract contents
+
+Every `h2a2h.employee.yml` declares role purpose and responsibilities; accountable Human; delegation scope and TTL; semantic Intents; tool permissions and side-effect classification; systems of record; required inputs and outputs; Ok/Error/escalation events; risk class and approval triggers; A2A/H2A2H channels; PoHR evidence; memory restrictions; security controls; observability; and acceptance tests.
+
+## Generation and validation
+
+`catalog.json` is the machine-readable source index. Generated contracts can be rebuilt and checked deterministically:
+
+```sh
+node scripts/generate-employee-agents.mjs
+node scripts/normalize-employee-agents.mjs
+node scripts/validate-employee-agents.mjs
+```
+
+The validator requires exactly 105 unique archetypes, one A2A Agent Card and one H2A2H employee contract per role, stable canonical labels, valid A2A interface declarations, OpenDelegation, declared tools, external channel resolution and PoHR support.
+
 ## Directory taxonomy
 
-The catalog intentionally models **employee archetypes**, not vendor-specific job-title spelling. A company can specialize an archetype without changing the protocol, for example `Backend Engineer` into `Payments Backend Engineer`.
+The catalog models **employee archetypes**, not every company-specific spelling of a job title. A company can specialize an archetype without changing the protocol, for example `Backend Engineer` into `Payments Backend Engineer` or `Accountant` into `Regional Tax Accountant`.
 
-See [`catalog.json`](./catalog.json) for the machine-readable index.
+See [`catalog.json`](./catalog.json) for the complete index.
