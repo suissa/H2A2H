@@ -10,7 +10,7 @@ H2A2H v1.0 separates semantic intent, delegated authority, transport declaration
 - [Normative JSON Schema bundle](./schemas/h2a2h-v1.schema.json)
 - [Terminology and invariants](./spec/terminology.md)
 - [Canonical lifecycle](./spec/lifecycle.md)
-- [OpenIntent integration](./spec/openintent.md)
+- [OpenIntent integration](./spec/openintent-integration.md)
 - [OpenDelegation Protocol](./spec/opendelegation.md)
 - [OpenEntityChannels](./spec/openentitychannels.md)
 - [Proof-of-Human-Return](./spec/proof-of-human-return.md)
