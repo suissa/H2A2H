@@ -42,6 +42,37 @@
       "uniqueItems": true,
       "items": { "type": "string", "minLength": 3 }
     },
+    "binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["routes", "authorization"],
+      "properties": {
+        "routes": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^/"
+          }
+        },
+        "authorization": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "secret"],
+          "properties": {
+            "type": { "const": "bearer" },
+            "secret": { "type": "string", "minLength": 1 }
+          }
+        },
+        "config_headers": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9-]+$"
+          }
+        }
+      }
+    },
     "config_schema": {
       "type": "object",
       "required": ["type", "properties", "additionalProperties"],
