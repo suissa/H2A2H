@@ -93,6 +93,7 @@ export async function runBasicH2A2HScenario(options: BasicScenarioOptions = {}) 
       metadata: { channel_id: declaration.channel_id },
     }),
     execute: async (context) => {
+      const responsibilityRef = context.participants?.responsibility_chain_ref;
       const envelope = sdk.createEnvelope({
         interaction_id: context.interaction_id,
         correlation_id: context.correlation_id,
@@ -103,7 +104,7 @@ export async function runBasicH2A2HScenario(options: BasicScenarioOptions = {}) 
         schema: context.intent.input_schema,
         value: context.input,
         delegation_id: session.delegation_id,
-        responsibility_chain_ref: context.participants?.responsibility_chain_ref,
+        ...(responsibilityRef ? { responsibility_chain_ref: responsibilityRef } : {}),
         channel_profile: 'h2a2h.channel.in-memory.v1',
       });
       const response = await agentAChannel.request(envelope);
