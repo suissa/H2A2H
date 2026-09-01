@@ -1,7 +1,8 @@
 {
   "canonical_label": "ProviderPack.Engineering.HttpJson",
   "version": "0.1.0",
-  "domain": "engineering",
+  "domain": "engineering-it",
+  "capability_domains": ["engineering", "observability"],
   "provider_kind": "http-json",
   "capabilities": [
     "engineering.scm.read",
