@@ -54,19 +54,17 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 
-          EXISTING_SHA="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$TAG" --jq '.object.sha' 2>/dev/null || true)"
-          if [ -n "$EXISTING_SHA" ] && [ "$EXISTING_SHA" != "$RELEASE_SHA" ]; then
-            echo "Tag $TAG already points to $EXISTING_SHA, expected $RELEASE_SHA" >&2
-            exit 1
-          fi
-
-          if [ -z "$EXISTING_SHA" ]; then
+          if EXISTING_SHA="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$TAG" --jq '.object.sha' 2>/dev/null)"; then
+            if [ "$EXISTING_SHA" != "$RELEASE_SHA" ]; then
+              echo "Tag $TAG already points to $EXISTING_SHA, expected $RELEASE_SHA" >&2
+              exit 1
+            fi
+            echo "$TAG already points to validated commit $RELEASE_SHA"
+          else
             gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" \
               -f ref="refs/tags/$TAG" \
               -f sha="$RELEASE_SHA" >/dev/null
             echo "Created $TAG at $RELEASE_SHA"
-          else
-            echo "$TAG already points to validated commit $RELEASE_SHA"
           fi
 
       - name: Generate conformance report
