@@ -24,6 +24,7 @@ export interface EmployeeProviderPackManifest {
   canonical_label: string;
   version: string;
   domain: string;
+  capability_domains?: string[];
   provider_kind: EmployeeProviderPackKind;
   capabilities: string[];
   config_schema: {
@@ -73,6 +74,10 @@ function valueMatchesType(value: unknown, expected: ProviderPackConfigValueType)
   return typeof value === expected;
 }
 
+export function providerPackCapabilityDomains(manifest: EmployeeProviderPackManifest): string[] {
+  return manifest.capability_domains ?? [manifest.domain];
+}
+
 export function validateEmployeeProviderPackManifest(
   manifest: EmployeeProviderPackManifest,
   tools: EmployeeToolRegistry,
@@ -84,6 +89,13 @@ export function validateEmployeeProviderPackManifest(
   );
   ensure(isVersion(manifest.version), 'provider_pack.version.invalid', `Invalid Provider Pack version ${manifest.version}`);
   ensure(manifest.domain.length > 0, 'provider_pack.domain.missing', 'Provider Pack domain is required');
+  const capabilityDomains = providerPackCapabilityDomains(manifest);
+  ensure(capabilityDomains.length > 0, 'provider_pack.capability_domains.empty', 'Provider Pack capability_domains cannot be empty');
+  ensure(
+    new Set(capabilityDomains).size === capabilityDomains.length,
+    'provider_pack.capability_domains.duplicate',
+    `Provider Pack ${manifest.canonical_label} declares duplicate capability domains`,
+  );
   ensure(
     ['in-memory', 'http-json', 'mcp', 'injected'].includes(manifest.provider_kind),
     'provider_pack.kind.invalid',
@@ -99,9 +111,9 @@ export function validateEmployeeProviderPackManifest(
   for (const label of manifest.capabilities) {
     const capability = tools.get(label);
     ensure(
-      capability.domain === manifest.domain,
+      capabilityDomains.includes(capability.domain),
       'provider_pack.capability.domain_mismatch',
-      `${label} belongs to ${capability.domain}, not ${manifest.domain}`,
+      `${label} belongs to ${capability.domain}, which is not declared by ${manifest.canonical_label}`,
     );
     ensure(capability.provider_required, 'provider_pack.capability.internal', `${label} is not a provider-bound business capability`);
     ensure(
