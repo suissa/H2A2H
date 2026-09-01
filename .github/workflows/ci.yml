@@ -25,7 +25,9 @@ jobs:
         run: npm install --no-fund --no-audit
 
       - name: Validate normative schema JSON
-        run: node -e "JSON.parse(require('node:fs').readFileSync('schemas/h2a2h-v1.schema.json','utf8')); console.log('schema JSON valid')"
+        run: |
+          node -e "JSON.parse(require('node:fs').readFileSync('schemas/h2a2h-v1.schema.json','utf8')); console.log('H2A2H schema JSON valid')"
+          node -e "JSON.parse(require('node:fs').readFileSync('schemas/employee-agent-runtime.schema.json','utf8')); console.log('Employee Agent runtime schema JSON valid')"
 
       - name: Validate employee Agent catalog
         run: node scripts/validate-employee-agents.mjs

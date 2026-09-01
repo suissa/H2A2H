@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://h2a2h.dev/schemas/employee-agent-runtime.schema.json",
+  "title": "H2A2H Employee Agent Runtime",
+  "type": "object",
+  "$defs": {
+    "operation": {
+      "type": "object",
+      "required": ["tool"],
+      "properties": {
+        "tool": { "type": "string", "minLength": 1 },
+        "input": {},
+        "risk_triggers": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "humanApproval": {
+      "type": "object",
+      "required": ["granted"],
+      "properties": {
+        "granted": { "type": "boolean" },
+        "approved_by": { "type": "string", "minLength": 1 },
+        "evidence_ref": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "input": {
+      "type": "object",
+      "required": ["request_payload"],
+      "properties": {
+        "delegation_ref": { "type": "string", "minLength": 1 },
+        "request_payload": {},
+        "operations": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/operation" }
+        },
+        "human_approval": { "$ref": "#/$defs/humanApproval" }
+      },
+      "additionalProperties": false
+    },
+    "toolResult": {
+      "type": "object",
+      "required": ["tool", "result"],
+      "properties": {
+        "tool": { "type": "string", "minLength": 1 },
+        "result": {}
+      },
+      "additionalProperties": false
+    },
+    "output": {
+      "type": "object",
+      "required": ["status", "result_or_artifact", "provenance", "audit_ref", "tool_results"],
+      "properties": {
+        "status": { "const": "Ok" },
+        "result_or_artifact": {},
+        "provenance": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 2
+        },
+        "audit_ref": { "type": "string", "minLength": 1 },
+        "tool_results": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/toolResult" }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "input": { "$ref": "#/$defs/input" },
+    "output": { "$ref": "#/$defs/output" }
+  },
+  "additionalProperties": false
+}
