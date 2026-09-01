@@ -1,0 +1,28 @@
+name: Bootstrap Employee Agent Issues
+
+on:
+  push:
+    branches:
+      - employees-agent-catalog
+    paths:
+      - 'employees/**'
+      - 'scripts/bootstrap-employee-issues.mjs'
+      - '.github/workflows/employees-bootstrap.yml'
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Create missing employee-agent issues
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/bootstrap-employee-issues.mjs
