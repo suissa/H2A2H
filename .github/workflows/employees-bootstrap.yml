@@ -7,6 +7,7 @@ on:
     paths:
       - 'employees/**'
       - 'scripts/generate-employee-agents.mjs'
+      - 'scripts/normalize-employee-agents.mjs'
       - 'scripts/bootstrap-employee-issues.mjs'
       - '.github/workflows/employees-bootstrap.yml'
 
@@ -27,6 +28,8 @@ jobs:
           node-version: '22'
       - name: Generate employee Agent contracts
         run: node scripts/generate-employee-agents.mjs
+      - name: Normalize semantic identities
+        run: node scripts/normalize-employee-agents.mjs
       - name: Commit generated employee folders
         run: |
           git config user.name "github-actions[bot]"
