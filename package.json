@@ -1,6 +1,6 @@
 {
   "name": "@h2a2h/reference",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Reference implementation of the H2A2H protocol",
   "type": "module",
   "main": "dist/index.js",
@@ -17,7 +17,8 @@
     "test:reference": "node --test dist/test/*.test.js",
     "test:interop": "node --test independent/reference-b/interop.test.mjs",
     "test": "npm run test:reference && npm run test:interop",
-    "conformance": "npm run build && npm test"
+    "conformance": "npm run build && npm test",
+    "release:gate": "node scripts/release-gate.mjs"
   },
   "engines": {
     "node": ">=22"
