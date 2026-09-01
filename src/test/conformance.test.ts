@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import Ajv2020, { type ErrorObject } from 'ajv/dist/2020.js';
-import addFormats from 'ajv-formats';
+import Ajv2020Module, { type ErrorObject } from 'ajv/dist/2020.js';
+import addFormatsModule from 'ajv-formats';
 import { parse as parseYaml } from 'yaml';
 import {
   AuditTrail,
@@ -13,11 +13,26 @@ import {
   type H2A2HEnvelope,
 } from '../index.js';
 
+interface ValidationFunction {
+  (data: unknown): boolean;
+  errors?: ErrorObject[] | null;
+}
+
+interface AjvLike {
+  addSchema(schema: unknown): void;
+  compile(schema: unknown): ValidationFunction;
+}
+
+type AjvConstructor = new (options?: Record<string, unknown>) => AjvLike;
+
+const Ajv2020 = Ajv2020Module as unknown as AjvConstructor;
+const addFormats = addFormatsModule as unknown as (ajv: AjvLike) => void;
+
 const schema = JSON.parse(
   readFileSync(new URL('../../schemas/h2a2h-v1.schema.json', import.meta.url), 'utf8'),
 ) as Record<string, unknown>;
 
-function validator(fragment: string) {
+function validator(fragment: string): ValidationFunction {
   const ajv = new Ajv2020({ strict: true, allErrors: true });
   addFormats(ajv);
   ajv.addSchema(schema);
