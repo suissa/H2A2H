@@ -20,6 +20,15 @@ import type { MaybePromise } from './types.js';
 export type EmployeeProviderPackKind = Exclude<EmployeeToolProviderKind, 'internal'>;
 export type ProviderPackConfigValueType = 'string' | 'number' | 'boolean' | 'object' | 'array';
 
+export interface EmployeeProviderPackHttpBinding {
+  routes: Record<string, string>;
+  authorization: {
+    type: 'bearer';
+    secret: string;
+  };
+  config_headers?: Record<string, string>;
+}
+
 export interface EmployeeProviderPackManifest {
   canonical_label: string;
   version: string;
@@ -27,6 +36,7 @@ export interface EmployeeProviderPackManifest {
   capability_domains?: string[];
   provider_kind: EmployeeProviderPackKind;
   capabilities: string[];
+  binding?: EmployeeProviderPackHttpBinding;
   config_schema: {
     type: 'object';
     required?: string[];
@@ -135,6 +145,46 @@ export function validateEmployeeProviderPackManifest(
     'provider_pack.config_schema.required_unknown',
     'Provider Pack config schema requires undeclared properties',
   );
+
+  if (manifest.provider_kind === 'http-json') {
+    const binding = manifest.binding;
+    ensure(binding, 'provider_pack.http.binding_missing', `${manifest.canonical_label} must declare HTTP binding metadata`);
+    const routeLabels = Object.keys(binding.routes);
+    ensure(
+      routeLabels.length === manifest.capabilities.length &&
+        routeLabels.every((label) => manifest.capabilities.includes(label)),
+      'provider_pack.http.routes_mismatch',
+      `${manifest.canonical_label} HTTP routes must exactly match declared capabilities`,
+    );
+    for (const [label, route] of Object.entries(binding.routes)) {
+      ensure(route.startsWith('/'), 'provider_pack.http.route.invalid', `${label} route must start with /`);
+    }
+    ensure(binding.authorization.type === 'bearer', 'provider_pack.http.auth.type', 'Only bearer HTTP authorization is currently supported');
+    ensure(
+      declaredSecrets.includes(binding.authorization.secret),
+      'provider_pack.http.auth.secret_undeclared',
+      `${manifest.canonical_label} HTTP authorization references undeclared secret ${binding.authorization.secret}`,
+    );
+    for (const [configKey, headerName] of Object.entries(binding.config_headers ?? {})) {
+      ensure(
+        configKey in manifest.config_schema.properties,
+        'provider_pack.http.config_header.undeclared_config',
+        `${manifest.canonical_label} header mapping references undeclared config ${configKey}`,
+      );
+      ensure(
+        /^[A-Za-z0-9-]+$/.test(headerName),
+        'provider_pack.http.config_header.invalid',
+        `${manifest.canonical_label} has invalid HTTP header name ${headerName}`,
+      );
+    }
+  } else {
+    ensure(
+      manifest.binding === undefined,
+      'provider_pack.binding.unexpected',
+      `${manifest.canonical_label} declares HTTP binding metadata for non-HTTP provider kind`,
+    );
+  }
+
   return manifest;
 }
 
