@@ -1,11 +1,13 @@
 import assert from 'node:assert/strict';
 import { createServer, type IncomingHttpHeaders } from 'node:http';
 import test from 'node:test';
-import { createCapabilityBackedOptionsFactory } from '../employee-tool-binding.js';
+import {
+  createCapabilityBackedOptionsFactory,
+  type EmployeeLifecycleBindings,
+} from '../employee-tool-binding.js';
 import { EmployeeAgentRegistry } from '../employee-registry.js';
 import type {
   EmployeeAgentDefinition,
-  EmployeeAgentRuntimeOptions,
   EmployeeToolCallContext,
 } from '../employee-agent.js';
 import {
@@ -35,7 +37,7 @@ interface ReceivedRequest {
   body: Record<string, unknown>;
 }
 
-function lifecycleOptions(employee: EmployeeAgentDefinition): EmployeeAgentRuntimeOptions {
+function lifecycleOptions(employee: EmployeeAgentDefinition): EmployeeLifecycleBindings {
   const agent: EntityRef = {
     entity_id: `agent:${employee.contract.identity.canonical_label}`,
     kind: 'Agent',
@@ -221,7 +223,7 @@ test('Finance Provider Pack cannot invoke even a read capability without delegat
   delete context.interaction.input.delegation_ref;
 
   await assert.rejects(
-    () => tools.resolveExecutor('finance.erp.read')({}, context),
+    async () => tools.resolveExecutor('finance.erp.read')({}, context),
     (error: unknown) =>
       error instanceof EmployeeToolCapabilityError &&
       error.code === 'finance_provider.delegation.missing',
