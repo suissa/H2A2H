@@ -1,0 +1,108 @@
+import assert from 'node:assert/strict';
+import { createServer, type IncomingHttpHeaders } from 'node:http';
+import type {
+  EmployeeAgentDefinition,
+  EmployeeToolCallContext,
+} from '../employee-agent.js';
+import type { EmployeeLifecycleBindings } from '../employee-tool-binding.js';
+import type { EmployeeProviderPackManifest } from '../employee-provider-pack.js';
+import type { EntityRef } from '../types.js';
+
+export interface ReceivedProviderRequest {
+  path: string;
+  headers: IncomingHttpHeaders;
+  body: Record<string, unknown>;
+}
+
+export function providerRoutes(manifest: EmployeeProviderPackManifest): Readonly<Record<string, string>> {
+  assert.ok(manifest.binding, `${manifest.canonical_label} must have HTTP binding`);
+  return manifest.binding.routes;
+}
+
+export async function withProviderServer(
+  run: (baseUrl: string, received: ReceivedProviderRequest[]) => Promise<void>,
+): Promise<void> {
+  const received: ReceivedProviderRequest[] = [];
+  const server = createServer((request, response) => {
+    let raw = '';
+    request.setEncoding('utf8');
+    request.on('data', (chunk) => { raw += chunk; });
+    request.on('end', () => {
+      received.push({
+        path: request.url ?? '',
+        headers: request.headers,
+        body: JSON.parse(raw) as Record<string, unknown>,
+      });
+      response.writeHead(200, { 'content-type': 'application/json' });
+      response.end(JSON.stringify({ ok: true, path: request.url }));
+    });
+  });
+  await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+  const address = server.address();
+  assert.ok(address && typeof address === 'object');
+  try {
+    await run(`http://127.0.0.1:${address.port}`, received);
+  } finally {
+    await new Promise<void>((resolve, reject) =>
+      server.close((error) => error ? reject(error) : resolve()),
+    );
+  }
+}
+
+export function testLifecycleOptions(
+  employee: EmployeeAgentDefinition,
+  human: EntityRef,
+  validDelegation: string,
+  responsibilityChainRef: string,
+): EmployeeLifecycleBindings {
+  const agent: EntityRef = {
+    entity_id: `agent:${employee.contract.identity.canonical_label}`,
+    kind: 'Agent',
+    canonical_label: employee.contract.identity.canonical_label,
+  };
+  return {
+    validateDelegation: async (context) => ({
+      valid: context.input.delegation_ref === validDelegation,
+      ...(context.input.delegation_ref ? { delegation_id: context.input.delegation_ref } : {}),
+      ...(context.input.delegation_ref === validDelegation ? {} : { reason: 'delegation.invalid' }),
+    }),
+    resolveParticipants: async () => ({
+      sender: human,
+      receiver: agent,
+      receiving_human: human,
+      responsibility_chain_ref: responsibilityChainRef,
+    }),
+    resolveChannel: async () => ({ profile: 'memory' }),
+    returnToHuman: async (context) => ({
+      proof_ref: `pohr:${context.interaction_id}`,
+      return_state: 'human_presented',
+    }),
+  };
+}
+
+export function directProviderToolContext(
+  employee: EmployeeAgentDefinition,
+  human: EntityRef,
+  intentLabel: string,
+  tool: string,
+  interactionId: string,
+  delegationRef: string,
+): EmployeeToolCallContext {
+  return {
+    employee,
+    operation: { tool, input: { test: true } },
+    interaction: {
+      interaction_id: interactionId,
+      correlation_id: `correlation:${interactionId}`,
+      state: 'EXECUTING',
+      initiating_human: human,
+      intent: {
+        ref: { canonical_label: intentLabel, version: '0.1.0' },
+        input_schema: 'input',
+        output_schema: 'output',
+      },
+      input: { delegation_ref: delegationRef, request_payload: {} },
+      transitions: [],
+    },
+  };
+}
