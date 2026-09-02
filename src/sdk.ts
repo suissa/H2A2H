@@ -8,6 +8,7 @@ import type {
   H2A2HEnvelope,
   InteractionContext,
   IntentRef,
+  ResumeRequest,
   RunRequest,
   RuntimeBindings,
 } from './types.js';
@@ -80,6 +81,13 @@ export class H2A2HSDK<TInput = unknown, TResult = unknown> {
     return this.runtime.run(request);
   }
 
+  resume(
+    context: InteractionContext<TInput, TResult>,
+    request: ResumeRequest<TInput>,
+  ): Promise<InteractionContext<TInput, TResult>> {
+    return this.runtime.resume(context, request);
+  }
+
   createEnvelope<T>(input: CreateEnvelopeInput<T>): H2A2HEnvelope<T> {
     return {
       protocol: 'h2a2h',
@@ -118,7 +126,7 @@ export class H2A2HSDK<TInput = unknown, TResult = unknown> {
       proof_id: `pohr:${randomUUID()}`,
       interaction_id: input.interaction_id,
       target_human: input.target_human,
-      result_digest: { algorithm: 'sha-256', value: sha256(input.result) },
+      result_digest: { algorithm: 'sha-256'; value: sha256(input.result) },
       return_state: input.return_state,
       channel: { profile: input.channel_profile },
       presented_at: now,
