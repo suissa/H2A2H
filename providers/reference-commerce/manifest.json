@@ -10,6 +10,7 @@
     "commerce.order.status",
     "commerce.purchase.request"
   ],
+  "recovery": { "mode": "none" },
   "config_schema": {
     "type": "object",
     "required": [],
