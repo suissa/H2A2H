@@ -93,7 +93,9 @@
             "required": ["mode"]
           },
           "then": {
-            "not": { "required": ["profile"] }
+            "properties": {
+              "profile": false
+            }
           }
         },
         {
@@ -104,6 +106,9 @@
             "required": ["mode"]
           },
           "then": {
+            "properties": {
+              "profile": { "type": "string", "minLength": 1 }
+            },
             "required": ["profile"]
           }
         }
