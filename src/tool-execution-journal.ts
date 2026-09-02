@@ -17,6 +17,10 @@ export interface ToolExecutionExecutingRecord extends ToolExecutionDescriptor {
   state: 'executing';
   claim_id: string;
   claimed_at: string;
+  /** Optional for compatibility with non-recoverable journal stores. */
+  claim_expires_at?: string;
+  /** Monotonic ownership generation. Optional for compatibility with older stores. */
+  fence?: number;
 }
 
 export interface ToolExecutionCompletedRecord<TResult = unknown> extends ToolExecutionDescriptor {
@@ -24,6 +28,8 @@ export interface ToolExecutionCompletedRecord<TResult = unknown> extends ToolExe
   claimed_at: string;
   completed_at: string;
   result: TResult;
+  /** Final fencing generation that committed this result, when supported. */
+  fence?: number;
 }
 
 export type ToolExecutionJournalRecord<TResult = unknown> =
@@ -31,7 +37,7 @@ export type ToolExecutionJournalRecord<TResult = unknown> =
   | ToolExecutionCompletedRecord<TResult>;
 
 export type ToolExecutionClaim<TResult = unknown> =
-  | { status: 'claimed'; record: ToolExecutionExecutingRecord }
+  | { status: 'claimed'; record: ToolExecutionExecutingRecord; recovered?: boolean }
   | { status: 'completed'; record: ToolExecutionCompletedRecord<TResult> }
   | { status: 'conflict' };
 
@@ -40,6 +46,11 @@ export interface ToolExecutionJournalStore<TResult = unknown> {
   completeExecution(executionId: string, claimId: string, result: TResult): MaybePromise<boolean>;
   releaseExecution(executionId: string, claimId: string): MaybePromise<boolean>;
   loadExecution(executionId: string): MaybePromise<ToolExecutionJournalRecord<TResult> | undefined>;
+}
+
+export interface InMemoryToolExecutionJournalOptions {
+  claim_ttl_ms?: number;
+  now?: () => Date;
 }
 
 export class ToolExecutionJournalError extends Error {
@@ -74,10 +85,43 @@ function snapshot<TResult>(record: ToolExecutionJournalRecord<TResult>): ToolExe
  * Map claim/complete/release mutations are synchronous and therefore atomic
  * inside one JavaScript process. Durable implementations must provide the same
  * compare-and-claim semantics transactionally across workers/processes.
+ *
+ * The reference store also models orphan recovery with an expiring claim and a
+ * monotonically increasing fencing generation. Reclaim does not replace the
+ * provider idempotency boundary: remote side effects must continue using the
+ * stable runtime-derived idempotency_key when a recovered owner retries them.
  */
 export class InMemoryToolExecutionJournalStore<TResult = unknown>
 implements ToolExecutionJournalStore<TResult> {
   private readonly records = new Map<string, ToolExecutionJournalRecord<TResult>>();
+  private readonly claimTtlMs: number;
+  private readonly now: () => Date;
+
+  constructor(options: InMemoryToolExecutionJournalOptions = {}) {
+    this.claimTtlMs = options.claim_ttl_ms ?? 300_000;
+    this.now = options.now ?? (() => new Date());
+    if (!Number.isFinite(this.claimTtlMs) || this.claimTtlMs <= 0) {
+      throw new ToolExecutionJournalError(
+        'tool.execution.claim_ttl_invalid',
+        'Tool execution claim TTL must be a positive finite number of milliseconds',
+      );
+    }
+  }
+
+  private createExecutingRecord(
+    descriptor: ToolExecutionDescriptor,
+    fence: number,
+  ): ToolExecutionExecutingRecord {
+    const claimedAt = this.now();
+    return {
+      ...descriptor,
+      state: 'executing',
+      claim_id: `tool-execution-claim:${randomUUID()}`,
+      claimed_at: claimedAt.toISOString(),
+      claim_expires_at: new Date(claimedAt.getTime() + this.claimTtlMs).toISOString(),
+      fence,
+    };
+  }
 
   claimExecution(descriptor: ToolExecutionDescriptor): ToolExecutionClaim<TResult> {
     const existing = this.records.get(descriptor.execution_id);
@@ -91,17 +135,29 @@ implements ToolExecutionJournalStore<TResult> {
       if (existing.state === 'completed') {
         return { status: 'completed', record: snapshot(existing) as ToolExecutionCompletedRecord<TResult> };
       }
-      return { status: 'conflict' };
+
+      const expiry = existing.claim_expires_at ? Date.parse(existing.claim_expires_at) : Number.NaN;
+      if (!Number.isFinite(expiry) || typeof existing.fence !== 'number') {
+        return { status: 'conflict' };
+      }
+      if (expiry > this.now().getTime()) return { status: 'conflict' };
+
+      const recovered = this.createExecutingRecord(descriptor, existing.fence + 1);
+      this.records.set(descriptor.execution_id, recovered as ToolExecutionJournalRecord<TResult>);
+      return {
+        status: 'claimed',
+        record: snapshot(recovered) as ToolExecutionExecutingRecord,
+        recovered: true,
+      };
     }
 
-    const record: ToolExecutionExecutingRecord = {
-      ...descriptor,
-      state: 'executing',
-      claim_id: `tool-execution-claim:${randomUUID()}`,
-      claimed_at: new Date().toISOString(),
-    };
+    const record = this.createExecutingRecord(descriptor, 1);
     this.records.set(descriptor.execution_id, record as ToolExecutionJournalRecord<TResult>);
-    return { status: 'claimed', record: snapshot(record) as ToolExecutionExecutingRecord };
+    return {
+      status: 'claimed',
+      record: snapshot(record) as ToolExecutionExecutingRecord,
+      recovered: false,
+    };
   }
 
   completeExecution(executionId: string, claimId: string, result: TResult): boolean {
@@ -120,8 +176,9 @@ implements ToolExecutionJournalStore<TResult> {
       employee_canonical_label: existing.employee_canonical_label,
       state: 'completed',
       claimed_at: existing.claimed_at,
-      completed_at: new Date().toISOString(),
+      completed_at: this.now().toISOString(),
       result: structuredClone(result),
+      ...(typeof existing.fence === 'number' ? { fence: existing.fence } : {}),
     };
     this.records.set(executionId, completed);
     return true;
