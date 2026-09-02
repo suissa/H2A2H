@@ -73,6 +73,42 @@
         }
       }
     },
+    "recovery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode"],
+      "properties": {
+        "mode": {
+          "enum": ["none", "provider-idempotency", "reconciliation"]
+        },
+        "profile": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "mode": { "const": "none" } },
+            "required": ["mode"]
+          },
+          "then": {
+            "not": { "required": ["profile"] }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "mode": { "enum": ["provider-idempotency", "reconciliation"] }
+            },
+            "required": ["mode"]
+          },
+          "then": {
+            "required": ["profile"]
+          }
+        }
+      ]
+    },
     "config_schema": {
       "type": "object",
       "required": ["type", "properties", "additionalProperties"],
