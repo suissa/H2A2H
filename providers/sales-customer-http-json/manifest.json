@@ -1,0 +1,47 @@
+{
+  "canonical_label": "ProviderPack.SalesCustomer.HttpJson",
+  "version": "0.1.0",
+  "domain": "sales-customer",
+  "capability_domains": ["sales", "customer"],
+  "provider_kind": "http-json",
+  "capabilities": [
+    "sales.crm.read",
+    "sales.crm.write",
+    "sales.quote.generate",
+    "customer.history.query",
+    "sales.approval.request"
+  ],
+  "binding": {
+    "routes": {
+      "sales.crm.read": "/v1/sales/crm/read",
+      "sales.crm.write": "/v1/sales/crm/write",
+      "sales.quote.generate": "/v1/sales/quote/generate",
+      "customer.history.query": "/v1/customer/history/query",
+      "sales.approval.request": "/v1/sales/approval/request"
+    },
+    "authorization": {
+      "type": "bearer",
+      "secret": "access_token"
+    },
+    "config_headers": {
+      "organization_id": "x-h2a2h-organization-id"
+    }
+  },
+  "config_schema": {
+    "type": "object",
+    "required": ["base_url"],
+    "properties": {
+      "base_url": { "type": "string" },
+      "organization_id": { "type": "string" },
+      "timeout_ms": { "type": "number" }
+    },
+    "additionalProperties": false
+  },
+  "secrets": [
+    { "name": "access_token", "required": true }
+  ],
+  "runtime": {
+    "network": true,
+    "protocols": ["HTTP+JSON"]
+  }
+}
