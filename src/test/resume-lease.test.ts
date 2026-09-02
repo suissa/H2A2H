@@ -95,8 +95,9 @@ test('wrong resume lease cannot unlock an active claim', async () => {
   assert.equal(store.releaseResume(escalated.interaction_id, retry.lease.lease_id), true);
 });
 
-test('SDK fails closed when a custom checkpoint store has no atomic resume claim', async () => {
+test('SDK can use a store that supports start admission but not atomic resume claim', async () => {
   const records = new Map<string, InteractionContext<LeaseInput, LeaseOutput>>();
+  const startClaims = new Map<string, string>();
   const legacyStore: InteractionCheckpointStore<LeaseInput, LeaseOutput> = {
     save: (context) => {
       records.set(context.interaction_id, structuredClone(context));
@@ -104,6 +105,18 @@ test('SDK fails closed when a custom checkpoint store has no atomic resume claim
     load: (interactionId) => {
       const context = records.get(interactionId);
       return context ? structuredClone(context) : undefined;
+    },
+    claimStart: (interactionId) => {
+      if (startClaims.has(interactionId)) return { status: 'conflict' };
+      if (records.has(interactionId)) return { status: 'exists' };
+      const claimId = `start-claim:${interactionId}`;
+      startClaims.set(interactionId, claimId);
+      return { status: 'claimed', lease: { interaction_id: interactionId, claim_id: claimId } };
+    },
+    releaseStart: (interactionId, claimId) => {
+      if (startClaims.get(interactionId) !== claimId) return false;
+      startClaims.delete(interactionId);
+      return true;
     },
   };
 
