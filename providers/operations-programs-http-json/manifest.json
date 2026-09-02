@@ -1,0 +1,37 @@
+{
+  "canonical_label": "ProviderPack.OperationsPrograms.HttpJson",
+  "version": "0.1.0",
+  "domain": "operations-programs",
+  "capability_domains": ["operations"],
+  "provider_kind": "http-json",
+  "capabilities": [
+    "operations.erp.read",
+    "operations.workflow.write",
+    "operations.schedule.manage",
+    "operations.asset.query",
+    "operations.approval.request"
+  ],
+  "binding": {
+    "routes": {
+      "operations.erp.read": "/v1/operations/erp/read",
+      "operations.workflow.write": "/v1/operations/workflow/write",
+      "operations.schedule.manage": "/v1/operations/schedule/manage",
+      "operations.asset.query": "/v1/operations/asset/query",
+      "operations.approval.request": "/v1/operations/approval/request"
+    },
+    "authorization": { "type": "bearer", "secret": "access_token" },
+    "config_headers": { "organization_id": "x-h2a2h-organization-id" }
+  },
+  "config_schema": {
+    "type": "object",
+    "required": ["base_url"],
+    "properties": {
+      "base_url": { "type": "string" },
+      "organization_id": { "type": "string" },
+      "timeout_ms": { "type": "number" }
+    },
+    "additionalProperties": false
+  },
+  "secrets": [{ "name": "access_token", "required": true }],
+  "runtime": { "network": true, "protocols": ["HTTP+JSON"] }
+}
