@@ -61,6 +61,16 @@ export function testLifecycleOptions(
     canonical_label: employee.contract.identity.canonical_label,
   };
   return {
+    humanApproval: {
+      resolveRequiredTriggers: async (context) => {
+        const tool = employee.contract.tools.find((candidate) => candidate.name === context.operation.tool);
+        if (!tool?.side_effect) return [];
+        const trigger = employee.contract.risk.human_approval_required_for[0];
+        return trigger ? [trigger] : [];
+      },
+      verifyEvidence: async (binding) =>
+        binding.approved_by === human.entity_id && binding.evidence_ref.startsWith('approval:'),
+    },
     validateDelegation: async (context) => ({
       valid: context.input.delegation_ref === validDelegation,
       ...(context.input.delegation_ref ? { delegation_id: context.input.delegation_ref } : {}),
