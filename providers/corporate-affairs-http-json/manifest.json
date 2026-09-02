@@ -1,0 +1,37 @@
+{
+  "canonical_label": "ProviderPack.CorporateAffairs.HttpJson",
+  "version": "0.1.0",
+  "domain": "corporate-affairs",
+  "capability_domains": ["corp", "stakeholder"],
+  "provider_kind": "http-json",
+  "capabilities": [
+    "corp.records.read",
+    "corp.filings.prepare",
+    "stakeholder.crm.read",
+    "corp.communication.draft",
+    "corp.approval.request"
+  ],
+  "binding": {
+    "routes": {
+      "corp.records.read": "/v1/corp/records/read",
+      "corp.filings.prepare": "/v1/corp/filings/prepare",
+      "stakeholder.crm.read": "/v1/stakeholder/crm/read",
+      "corp.communication.draft": "/v1/corp/communication/draft",
+      "corp.approval.request": "/v1/corp/approval/request"
+    },
+    "authorization": { "type": "bearer", "secret": "access_token" },
+    "config_headers": { "organization_id": "x-h2a2h-organization-id" }
+  },
+  "config_schema": {
+    "type": "object",
+    "required": ["base_url"],
+    "properties": {
+      "base_url": { "type": "string" },
+      "organization_id": { "type": "string" },
+      "timeout_ms": { "type": "number" }
+    },
+    "additionalProperties": false
+  },
+  "secrets": [{ "name": "access_token", "required": true }],
+  "runtime": { "network": true, "protocols": ["HTTP+JSON"] }
+}
