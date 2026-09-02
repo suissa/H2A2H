@@ -182,7 +182,7 @@ test('all 105 Employee Agents are runtime-ready from shared Provider Packs with 
   const providerCalls: ProviderCall[] = [];
   const fakeFetch: typeof fetch = async (_input, init) => {
     const body = init?.body;
-    assert.equal(typeof body, 'string');
+    if (typeof body !== 'string') throw new Error('Expected JSON string body from declarative HTTP Provider Pack');
     const request = JSON.parse(body) as ProviderCall;
     providerCalls.push(request);
     return new Response(JSON.stringify({
