@@ -5,6 +5,11 @@ import type {
   EmployeeToolCallContext,
   EmployeeToolExecutor,
 } from './employee-agent.js';
+import {
+  InMemoryToolExecutionJournalStore,
+  type ToolExecutionDescriptor,
+  type ToolExecutionJournalStore,
+} from './tool-execution-journal.js';
 import type { MaybePromise } from './types.js';
 
 export type EmployeeToolProviderKind =
@@ -83,6 +88,10 @@ export interface EmployeeToolResolver {
   resolveExecutor(canonicalLabel: string): EmployeeToolExecutor;
 }
 
+export interface EmployeeToolRegistryOptions {
+  executionJournal?: ToolExecutionJournalStore<unknown>;
+}
+
 export class EmployeeToolCapabilityError extends Error {
   constructor(public readonly code: string, message: string) {
     super(message);
@@ -153,17 +162,25 @@ function normalize(raw: RawEmployeeToolCatalog): EmployeeToolCapability[] {
 export class EmployeeToolRegistry implements EmployeeToolResolver {
   private readonly capabilities = new Map<string, EmployeeToolCapability>();
   private readonly providers = new Map<string, EmployeeToolProvider>();
+  readonly executionJournal: ToolExecutionJournalStore<unknown>;
 
-  constructor(capabilities: EmployeeToolCapability[]) {
+  constructor(
+    capabilities: EmployeeToolCapability[],
+    options: EmployeeToolRegistryOptions = {},
+  ) {
+    this.executionJournal = options.executionJournal ?? new InMemoryToolExecutionJournalStore();
     for (const capability of capabilities) {
       ensure(!this.capabilities.has(capability.canonical_label), 'tool.catalog.duplicate', `Duplicate capability ${capability.canonical_label}`);
       this.capabilities.set(capability.canonical_label, capability);
     }
   }
 
-  static async load(path = 'capabilities/employee-tools/catalog.json'): Promise<EmployeeToolRegistry> {
+  static async load(
+    path = 'capabilities/employee-tools/catalog.json',
+    options: EmployeeToolRegistryOptions = {},
+  ): Promise<EmployeeToolRegistry> {
     const raw = JSON.parse(await readFile(resolve(path), 'utf8')) as RawEmployeeToolCatalog;
-    return new EmployeeToolRegistry(normalize(raw));
+    return new EmployeeToolRegistry(normalize(raw), options);
   }
 
   list(): EmployeeToolCapability[] {
@@ -249,7 +266,53 @@ export class EmployeeToolRegistry implements EmployeeToolResolver {
           ? { approval_evidence_ref: callContext.validated_human_approval.evidence_ref }
           : {}),
       };
-      return provider.invoke(capability, input, context);
+      const descriptor: ToolExecutionDescriptor = {
+        execution_id: context.execution_id,
+        idempotency_key: context.idempotency_key,
+        operation_index: context.operation_index,
+        input_digest: context.input_digest,
+        capability_canonical_label: capability.canonical_label,
+        interaction_id: context.interaction_id,
+        correlation_id: context.correlation_id,
+        intent_canonical_label: context.intent_canonical_label,
+        employee_canonical_label: context.employee_canonical_label,
+      };
+
+      const claim = await this.executionJournal.claimExecution(descriptor);
+      if (claim.status === 'completed') return claim.record.result;
+      if (claim.status === 'conflict') {
+        throw new EmployeeToolCapabilityError(
+          'tool.execution.conflict',
+          `Tool execution ${context.execution_id} already has an active claim`,
+        );
+      }
+
+      try {
+        const result = await provider.invoke(capability, input, context);
+        const completed = await this.executionJournal.completeExecution(
+          context.execution_id,
+          claim.record.claim_id,
+          result,
+        );
+        ensure(
+          completed,
+          'tool.execution.complete_failed',
+          `Tool execution ${context.execution_id} could not be completed atomically`,
+        );
+        return result;
+      } catch (error) {
+        const released = await this.executionJournal.releaseExecution(
+          context.execution_id,
+          claim.record.claim_id,
+        );
+        if (!released) {
+          throw new EmployeeToolCapabilityError(
+            'tool.execution.release_failed',
+            `Tool execution ${context.execution_id} could not release its active claim`,
+          );
+        }
+        throw error;
+      }
     };
   }
 }
