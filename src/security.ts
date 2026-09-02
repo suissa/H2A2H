@@ -60,7 +60,7 @@ export function verifyEd25519<T>(evidence: SignedEvidence<T>, publicKey: KeyLike
 
 export class ReplayProtectionError extends Error {
   constructor(public readonly code: string, message: string) {
-    super(message);
+    super(`${code}:${message}`);
     this.name = 'ReplayProtectionError';
   }
 }
