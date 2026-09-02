@@ -1,0 +1,37 @@
+{
+  "canonical_label": "ProviderPack.SupplyChainManufacturing.HttpJson",
+  "version": "0.1.0",
+  "domain": "supply-chain-manufacturing",
+  "capability_domains": ["supply"],
+  "provider_kind": "http-json",
+  "capabilities": [
+    "supply.erp.read",
+    "supply.erp.write",
+    "supply.wms.query",
+    "supply.tms.query",
+    "supply.approval.request"
+  ],
+  "binding": {
+    "routes": {
+      "supply.erp.read": "/v1/supply/erp/read",
+      "supply.erp.write": "/v1/supply/erp/write",
+      "supply.wms.query": "/v1/supply/wms/query",
+      "supply.tms.query": "/v1/supply/tms/query",
+      "supply.approval.request": "/v1/supply/approval/request"
+    },
+    "authorization": { "type": "bearer", "secret": "access_token" },
+    "config_headers": { "organization_id": "x-h2a2h-organization-id" }
+  },
+  "config_schema": {
+    "type": "object",
+    "required": ["base_url"],
+    "properties": {
+      "base_url": { "type": "string" },
+      "organization_id": { "type": "string" },
+      "timeout_ms": { "type": "number" }
+    },
+    "additionalProperties": false
+  },
+  "secrets": [{ "name": "access_token", "required": true }],
+  "runtime": { "network": true, "protocols": ["HTTP+JSON"] }
+}
