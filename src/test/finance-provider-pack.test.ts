@@ -159,7 +159,9 @@ test('Finance Human approval remains above the declarative provider', async () =
         }],
       },
     };
-    await assert.rejects(() => sdk.run(request));
+    const denied = await sdk.run(request);
+    assert.equal(denied.state, 'HUMAN_ESCALATION_REQUIRED');
+    assert.equal(denied.human_escalation?.code, 'human.approval_required');
     assert.equal(received.length, 0);
     const approved = await sdk.run({
       ...request,
