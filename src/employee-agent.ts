@@ -1,9 +1,11 @@
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { parse as parseYaml } from 'yaml';
+import { humanEscalationRequired, isHumanEscalationRequired } from './runtime.js';
 import type {
   ChannelBinding,
   DelegationValidation,
+  HumanEscalationRequired,
   HumanReturnResult,
   InteractionContext,
   MaybePromise,
@@ -312,10 +314,36 @@ export class EmployeeAgentRuntime {
     };
   }
 
+  private approvalEscalation(
+    context: EmployeeToolCallContext,
+    requiredTriggers: string[],
+    code: string,
+    reason: string,
+    actionCanonicalLabel: string,
+  ): HumanEscalationRequired {
+    const claim = context.interaction.input.human_approval;
+    return humanEscalationRequired({
+      code,
+      reason,
+      evidence: [],
+      resume_state: 'EXECUTING',
+      human_action: {
+        canonical_label: actionCanonicalLabel,
+        metadata: {
+          employee_canonical_label: this.employee.contract.identity.canonical_label,
+          intent_canonical_label: context.interaction.intent.ref.canonical_label,
+          tool_canonical_label: context.operation.tool,
+          risk_triggers: [...requiredTriggers],
+          ...(claim?.evidence_ref ? { submitted_evidence_ref: claim.evidence_ref } : {}),
+        },
+      },
+    });
+  }
+
   private async governToolCall(
     context: EmployeeToolCallContext,
     sideEffect: boolean,
-  ): Promise<EmployeeToolCallContext> {
+  ): Promise<EmployeeToolCallContext | HumanEscalationRequired> {
     if (!sideEffect) return context;
 
     const requiredTriggers = [...new Set(await this.options.humanApproval.resolveRequiredTriggers(context))];
@@ -330,23 +358,38 @@ export class EmployeeAgentRuntime {
     if (requiredTriggers.length === 0) return context;
 
     const claim = context.interaction.input.human_approval;
-    policyAssert(
-      claim?.granted === true,
-      'human.approval_required',
-      `Human approval required for: ${requiredTriggers.join(', ')}`,
-    );
-    policyAssert(
-      typeof claim.approved_by === 'string' && claim.approved_by.length > 0 &&
-      typeof claim.evidence_ref === 'string' && claim.evidence_ref.length > 0,
-      'human.approval.evidence_missing',
-      'Human approval must include approved_by and evidence_ref',
-    );
+    if (claim?.granted !== true) {
+      return this.approvalEscalation(
+        context,
+        requiredTriggers,
+        'human.approval_required',
+        `Human approval required for: ${requiredTriggers.join(', ')}`,
+        'Human.Approval.Provide',
+      );
+    }
+    if (
+      typeof claim.approved_by !== 'string' || claim.approved_by.length === 0 ||
+      typeof claim.evidence_ref !== 'string' || claim.evidence_ref.length === 0
+    ) {
+      return this.approvalEscalation(
+        context,
+        requiredTriggers,
+        'human.approval.evidence_missing',
+        'Human approval must include approved_by and evidence_ref',
+        'Human.Approval.ProvideEvidence',
+      );
+    }
+
     const delegationRef = context.interaction.input.delegation_ref;
-    policyAssert(
-      typeof delegationRef === 'string' && delegationRef.length > 0,
-      'human.approval.delegation_missing',
-      'Human approval cannot be validated without delegation_ref',
-    );
+    if (typeof delegationRef !== 'string' || delegationRef.length === 0) {
+      return this.approvalEscalation(
+        context,
+        requiredTriggers,
+        'human.approval.delegation_missing',
+        'Human approval cannot be validated without delegation_ref',
+        'Human.Delegation.Provide',
+      );
+    }
 
     const binding: EmployeeHumanApprovalEvidenceBinding = {
       evidence_ref: claim.evidence_ref,
@@ -359,11 +402,15 @@ export class EmployeeAgentRuntime {
       interaction_id: context.interaction.interaction_id,
       risk_triggers: requiredTriggers,
     };
-    policyAssert(
-      await this.options.humanApproval.verifyEvidence(binding),
-      'human.approval.evidence_invalid',
-      `Human approval evidence ${claim.evidence_ref} is not valid for this delegated action`,
-    );
+    if (!await this.options.humanApproval.verifyEvidence(binding)) {
+      return this.approvalEscalation(
+        context,
+        requiredTriggers,
+        'human.approval.evidence_invalid',
+        `Human approval evidence ${claim.evidence_ref} is not valid for this delegated action`,
+        'Human.Approval.Reissue',
+      );
+    }
 
     return {
       ...context,
@@ -377,7 +424,7 @@ export class EmployeeAgentRuntime {
 
   private async execute(
     context: InteractionContext<EmployeeAgentInput, EmployeeAgentOutput>,
-  ): Promise<EmployeeAgentOutput> {
+  ): Promise<EmployeeAgentOutput | HumanEscalationRequired> {
     const declaredIntent = this.employee.contract.intents.find((intent) => intent.canonical_label === context.intent.ref.canonical_label);
     if (!declaredIntent) {
       throw new EmployeeAgentPolicyError('employee.intent.not_declared', 'Resolved Intent is not declared by the employee contract');
@@ -401,6 +448,8 @@ export class EmployeeAgentRuntime {
         operation,
       };
       const callContext = await this.governToolCall(rawCallContext, tool.side_effect);
+      if (isHumanEscalationRequired(callContext)) return callContext;
+
       await this.options.onToolCall?.(callContext);
       toolResults.push({ tool: tool.name, result: await executor(operation.input, callContext) });
     }
