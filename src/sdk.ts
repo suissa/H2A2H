@@ -8,6 +8,7 @@ import type {
   H2A2HEnvelope,
   InteractionContext,
   IntentRef,
+  ResumeRequest,
   RunRequest,
   RuntimeBindings,
 } from './types.js';
@@ -78,6 +79,13 @@ export class H2A2HSDK<TInput = unknown, TResult = unknown> {
 
   run(request: RunRequest<TInput>): Promise<InteractionContext<TInput, TResult>> {
     return this.runtime.run(request);
+  }
+
+  resume(
+    context: InteractionContext<TInput, TResult>,
+    request: ResumeRequest<TInput>,
+  ): Promise<InteractionContext<TInput, TResult>> {
+    return this.runtime.resume(context, request);
   }
 
   createEnvelope<T>(input: CreateEnvelopeInput<T>): H2A2HEnvelope<T> {
