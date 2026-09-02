@@ -3,7 +3,6 @@ import test from 'node:test';
 import { H2A2HSDK } from '../sdk.js';
 import {
   EmployeeAgentContractError,
-  EmployeeAgentPolicyError,
   loadEmployeeAgent,
   type EmployeeAgentRuntimeOptions,
   type EmployeeToolExecutor,
@@ -145,19 +144,21 @@ test('executes a delegated Personal Shopper read-only Intent through declared to
   assert.ok(sdk.verifyAudit().valid);
 });
 
-test('purchase approval requirement is external and cannot be suppressed by omitted/empty request risk_triggers', async () => {
+test('purchase approval requirement is a semantic HumanRequired outcome and cannot be suppressed by request risk_triggers', async () => {
   const purchaseCounter = { count: 0 };
   const employeeRuntime = await createPersonalShopperAgent(options(purchaseCounter));
   const sdk = new H2A2HSDK(employeeRuntime.bindings());
 
-  await assert.rejects(
-    sdk.run(purchaseRequest()),
-    (error: unknown) => error instanceof EmployeeAgentPolicyError && error.code === 'human.approval_required',
-  );
+  const result = await sdk.run(purchaseRequest());
+  assert.equal(result.state, 'HUMAN_ESCALATION_REQUIRED');
+  assert.equal(result.human_escalation?.code, 'human.approval_required');
+  assert.equal(result.human_escalation?.resume_state, 'EXECUTING');
+  assert.equal(result.human_escalation?.human_action.canonical_label, 'Human.Approval.Provide');
   assert.equal(purchaseCounter.count, 0);
+  assert.equal(sdk.verifyAudit().valid, true);
 });
 
-test('forged or incomplete Human approval never reaches the purchase executor', async () => {
+test('forged or incomplete Human approval produces HumanRequired and never reaches the purchase executor', async () => {
   const invalidClaims = [
     {
       claim: { granted: false, approved_by: human.entity_id, evidence_ref: 'approval:1' },
@@ -181,10 +182,10 @@ test('forged or incomplete Human approval never reaches the purchase executor', 
     const purchaseCounter = { count: 0 };
     const employeeRuntime = await createPersonalShopperAgent(options(purchaseCounter));
     const sdk = new H2A2HSDK(employeeRuntime.bindings());
-    await assert.rejects(
-      sdk.run(purchaseRequest(claim)),
-      (error: unknown) => error instanceof EmployeeAgentPolicyError && error.code === code,
-    );
+    const result = await sdk.run(purchaseRequest(claim));
+    assert.equal(result.state, 'HUMAN_ESCALATION_REQUIRED');
+    assert.equal(result.human_escalation?.code, code);
+    assert.equal(result.human_escalation?.resume_state, 'EXECUTING');
     assert.equal(purchaseCounter.count, 0, `purchase executor must not run for ${code}`);
   }
 });

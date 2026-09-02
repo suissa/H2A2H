@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type {
   EntityRef,
+  HumanEscalationRequired,
   InteractionContext,
   LifecycleState,
   RunRequest,
@@ -18,17 +19,17 @@ const TERMINAL = new Set<LifecycleState>([
 
 const ALLOWED: Record<LifecycleState, ReadonlySet<LifecycleState>> = {
   CREATED: new Set(['INTENT_CAPTURED', 'REJECTED', 'FAILED_TERMINAL']),
-  INTENT_CAPTURED: new Set(['AUTHORITY_VALIDATED', 'HEALING_REQUIRED', 'HUMAN_ESCALATION_REQUIRED', 'REJECTED']),
+  INTENT_CAPTURED: new Set(['AUTHORITY_VALIDATED', 'HEALING_REQUIRED', 'HUMAN_ESCALATION_REQUIRED', 'EXPIRED', 'REJECTED']),
   AUTHORITY_VALIDATED: new Set(['PARTICIPANTS_RESOLVED', 'HUMAN_ESCALATION_REQUIRED', 'EXPIRED', 'REJECTED']),
   PARTICIPANTS_RESOLVED: new Set(['CHANNEL_BOUND', 'SUSPENDED', 'HUMAN_ESCALATION_REQUIRED', 'FAILED_TERMINAL']),
   CHANNEL_BOUND: new Set(['EXECUTING', 'SUSPENDED', 'FAILED_TERMINAL']),
   EXECUTING: new Set(['RETURN_PENDING', 'HEALING_REQUIRED', 'HUMAN_ESCALATION_REQUIRED', 'SUSPENDED', 'FAILED_TERMINAL']),
   RETURN_PENDING: new Set(['HUMAN_RETURNED', 'HUMAN_ESCALATION_REQUIRED', 'SUSPENDED', 'FAILED_TERMINAL']),
-  HUMAN_RETURNED: new Set(['ACKNOWLEDGED', 'CLOSED', 'FAILED_TERMINAL']),
+  HUMAN_RETURNED: new Set(['ACKNOWLEDGED', 'CLOSED', 'HUMAN_ESCALATION_REQUIRED', 'FAILED_TERMINAL']),
   ACKNOWLEDGED: new Set(['CLOSED']),
   CLOSED: new Set(),
   HEALING_REQUIRED: new Set(['INTENT_CAPTURED', 'AUTHORITY_VALIDATED', 'PARTICIPANTS_RESOLVED', 'CHANNEL_BOUND', 'EXECUTING', 'RETURN_PENDING', 'HUMAN_ESCALATION_REQUIRED', 'FAILED_TERMINAL']),
-  HUMAN_ESCALATION_REQUIRED: new Set(['INTENT_CAPTURED', 'AUTHORITY_VALIDATED', 'PARTICIPANTS_RESOLVED', 'CHANNEL_BOUND', 'EXECUTING', 'RETURN_PENDING', 'CANCELLED', 'EXPIRED', 'REJECTED', 'FAILED_TERMINAL']),
+  HUMAN_ESCALATION_REQUIRED: new Set(['INTENT_CAPTURED', 'AUTHORITY_VALIDATED', 'PARTICIPANTS_RESOLVED', 'CHANNEL_BOUND', 'EXECUTING', 'RETURN_PENDING', 'HUMAN_RETURNED', 'CANCELLED', 'EXPIRED', 'REJECTED', 'FAILED_TERMINAL']),
   SUSPENDED: new Set(['PARTICIPANTS_RESOLVED', 'CHANNEL_BOUND', 'EXECUTING', 'RETURN_PENDING', 'CANCELLED', 'EXPIRED', 'FAILED_TERMINAL']),
   CANCELLED: new Set(),
   EXPIRED: new Set(),
@@ -49,6 +50,24 @@ export class H2A2HRuntimeError extends Error {
 
 function id(prefix: string): string {
   return `${prefix}:${randomUUID()}`;
+}
+
+export function humanEscalationRequired(
+  value: Omit<HumanEscalationRequired, 'kind'>,
+): HumanEscalationRequired {
+  return { kind: 'human_escalation_required', ...value };
+}
+
+export function isHumanEscalationRequired(value: unknown): value is HumanEscalationRequired {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Partial<HumanEscalationRequired>;
+  return candidate.kind === 'human_escalation_required'
+    && typeof candidate.code === 'string'
+    && typeof candidate.reason === 'string'
+    && Array.isArray(candidate.evidence)
+    && typeof candidate.resume_state === 'string'
+    && Boolean(candidate.human_action)
+    && typeof candidate.human_action?.canonical_label === 'string';
 }
 
 export class H2A2HRuntime<TInput = unknown, TResult = unknown> {
@@ -79,15 +98,29 @@ export class H2A2HRuntime<TInput = unknown, TResult = unknown> {
     const delegation = await this.bindings.validateDelegation(context);
     context.delegation = delegation;
     if (!delegation.valid) {
-      const target: LifecycleState = delegation.reason === 'delegation.expired'
-        ? 'EXPIRED'
-        : 'HUMAN_ESCALATION_REQUIRED';
-      await this.transition(context, target, `h2a2h.${delegation.reason ?? 'delegation.invalid'}`);
-      throw new H2A2HRuntimeError(
-        delegation.reason ?? 'delegation.invalid',
-        'Delegated authority could not be validated',
-        interactionId,
+      const code = delegation.reason ?? 'delegation.invalid';
+      if (code === 'delegation.expired') {
+        await this.transition(context, 'EXPIRED', 'h2a2h.delegation.expired', delegation.evidence ?? []);
+        return context;
+      }
+
+      context.human_escalation = humanEscalationRequired({
+        code,
+        reason: 'Delegated authority could not be validated',
+        evidence: delegation.evidence ?? [],
+        resume_state: 'INTENT_CAPTURED',
+        human_action: {
+          canonical_label: 'Human.Delegation.Provide',
+          metadata: { delegation_reason: code },
+        },
+      });
+      await this.transition(
+        context,
+        'HUMAN_ESCALATION_REQUIRED',
+        `h2a2h.${code}`,
+        context.human_escalation.evidence,
       );
+      return context;
     }
     await this.transition(context, 'AUTHORITY_VALIDATED', 'h2a2h.lifecycle.authority_validated', delegation.evidence ?? []);
 
@@ -98,7 +131,18 @@ export class H2A2HRuntime<TInput = unknown, TResult = unknown> {
     await this.transition(context, 'CHANNEL_BOUND', 'h2a2h.lifecycle.channel_bound');
 
     await this.transition(context, 'EXECUTING', 'h2a2h.lifecycle.executing');
-    context.result = await this.bindings.execute(context);
+    const execution = await this.bindings.execute(context);
+    if (isHumanEscalationRequired(execution)) {
+      context.human_escalation = execution;
+      await this.transition(
+        context,
+        'HUMAN_ESCALATION_REQUIRED',
+        `h2a2h.${execution.code}`,
+        execution.evidence,
+      );
+      return context;
+    }
+    context.result = execution;
 
     await this.transition(context, 'RETURN_PENDING', 'h2a2h.lifecycle.return_pending');
     context.human_return = await this.bindings.returnToHuman(context);
@@ -107,11 +151,23 @@ export class H2A2HRuntime<TInput = unknown, TResult = unknown> {
     if (context.intent.acknowledgement_required) {
       if (context.human_return.return_state !== 'human_acknowledged') {
         if (!this.bindings.acknowledge) {
-          throw new H2A2HRuntimeError(
-            'human.acknowledgement_required',
-            'Intent requires Human acknowledgement but no acknowledgement binding is configured',
-            interactionId,
+          context.human_escalation = humanEscalationRequired({
+            code: 'human.acknowledgement_required',
+            reason: 'Intent requires Human acknowledgement',
+            evidence: [context.human_return.proof_ref],
+            resume_state: 'HUMAN_RETURNED',
+            human_action: {
+              canonical_label: 'Human.Acknowledgement.Provide',
+              metadata: { proof_ref: context.human_return.proof_ref },
+            },
+          });
+          await this.transition(
+            context,
+            'HUMAN_ESCALATION_REQUIRED',
+            'h2a2h.human.acknowledgement_required',
+            context.human_escalation.evidence,
           );
+          return context;
         }
         await this.bindings.acknowledge(context);
       }

@@ -79,7 +79,9 @@ test('regulatory/public filing remains Human-approved above provider binding', a
         operations: [{ tool: 'corp.filings.prepare', input: { filing: 'public-regulatory-1' }, risk_triggers: ['regulatory/public filing'] }],
       },
     };
-    await assert.rejects(() => sdk.run(request));
+    const denied = await sdk.run(request);
+    assert.equal(denied.state, 'HUMAN_ESCALATION_REQUIRED');
+    assert.equal(denied.human_escalation?.code, 'human.approval_required');
     assert.equal(received.length, 0);
     const approved = await sdk.run({ ...request, input: { ...request.input, human_approval: { granted: true, approved_by: human.entity_id, evidence_ref: 'approval:corporate-filing-1' } } });
     assert.equal(approved.state, 'CLOSED');
