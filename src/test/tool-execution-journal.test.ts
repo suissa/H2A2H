@@ -175,7 +175,7 @@ test('active Tool execution claim rejects concurrent invocation before provider 
   await started;
 
   await assert.rejects(
-    () => executor(context.operation.input, context),
+    async () => executor(context.operation.input, context),
     (error: unknown) =>
       error instanceof EmployeeToolCapabilityError
       && error.code === 'tool.execution.conflict',
@@ -204,7 +204,7 @@ test('provider failure releases Tool execution claim and permits retry with the 
   const executor = registry.resolveExecutor('commerce.catalog.search');
 
   await assert.rejects(
-    () => executor(context.operation.input, context),
+    async () => executor(context.operation.input, context),
     /provider temporarily unavailable/,
   );
   assert.equal(await journal.loadExecution(context.execution.execution_id), undefined);
