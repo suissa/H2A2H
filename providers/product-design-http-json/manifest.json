@@ -1,0 +1,47 @@
+{
+  "canonical_label": "ProviderPack.ProductDesign.HttpJson",
+  "version": "0.1.0",
+  "domain": "product-design",
+  "capability_domains": ["product", "research", "design"],
+  "provider_kind": "http-json",
+  "capabilities": [
+    "product.backlog.read",
+    "product.backlog.write",
+    "research.repository.query",
+    "design.assets.read",
+    "product.approval.request"
+  ],
+  "binding": {
+    "routes": {
+      "product.backlog.read": "/v1/product/backlog/read",
+      "product.backlog.write": "/v1/product/backlog/write",
+      "research.repository.query": "/v1/research/repository/query",
+      "design.assets.read": "/v1/design/assets/read",
+      "product.approval.request": "/v1/product/approval/request"
+    },
+    "authorization": {
+      "type": "bearer",
+      "secret": "access_token"
+    },
+    "config_headers": {
+      "organization_id": "x-h2a2h-organization-id"
+    }
+  },
+  "config_schema": {
+    "type": "object",
+    "required": ["base_url"],
+    "properties": {
+      "base_url": { "type": "string" },
+      "organization_id": { "type": "string" },
+      "timeout_ms": { "type": "number" }
+    },
+    "additionalProperties": false
+  },
+  "secrets": [
+    { "name": "access_token", "required": true }
+  ],
+  "runtime": {
+    "network": true,
+    "protocols": ["HTTP+JSON"]
+  }
+}

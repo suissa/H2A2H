@@ -37,6 +37,7 @@ jobs:
           node -e "JSON.parse(require('node:fs').readFileSync('providers/hr-http-json/manifest.json','utf8')); console.log('HR Provider Pack manifest JSON valid')"
           node -e "JSON.parse(require('node:fs').readFileSync('providers/sales-customer-http-json/manifest.json','utf8')); console.log('Sales/Customer Provider Pack manifest JSON valid')"
           node -e "JSON.parse(require('node:fs').readFileSync('providers/marketing-communications-http-json/manifest.json','utf8')); console.log('Marketing/Communications Provider Pack manifest JSON valid')"
+          node -e "JSON.parse(require('node:fs').readFileSync('providers/product-design-http-json/manifest.json','utf8')); console.log('Product/Design Provider Pack manifest JSON valid')"
 
       - name: Validate employee Agent catalog
         run: node scripts/validate-employee-agents.mjs
