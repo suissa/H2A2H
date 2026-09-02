@@ -22,6 +22,7 @@
     "authorization": { "type": "bearer", "secret": "access_token" },
     "config_headers": { "organization_id": "x-h2a2h-organization-id" }
   },
+  "recovery": { "mode": "none" },
   "config_schema": {
     "type": "object",
     "required": ["base_url"],
