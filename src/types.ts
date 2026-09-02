@@ -141,6 +141,30 @@ export interface HumanEscalationRequired {
   human_action: HumanActionRequest;
 }
 
+/**
+ * Human-supplied action used to resume an escalated interaction. The runtime
+ * never trusts this claim by itself: RuntimeBindings.validateHumanAction must
+ * validate the actor/action/evidence before any checkpoint can be re-entered.
+ */
+export interface HumanResumeAction {
+  canonical_label: string;
+  actor: EntityRef;
+  evidence: string[];
+  metadata?: Record<string, unknown>;
+}
+
+export interface HumanActionValidation {
+  valid: boolean;
+  evidence?: string[];
+  reason?: string;
+}
+
+export interface ResumeRequest<TInput = unknown> {
+  human_action: HumanResumeAction;
+  /** Replacement input for the resumed checkpoint, e.g. a new delegation_ref or approval evidence. */
+  input?: TInput;
+}
+
 export interface InteractionContext<TInput = unknown, TResult = unknown> {
   interaction_id: string;
   correlation_id: string;
@@ -167,6 +191,11 @@ export interface RuntimeBindings<TInput = unknown, TResult = unknown> {
   execute(context: InteractionContext<TInput, TResult>): MaybePromise<TResult | HumanEscalationRequired>;
   returnToHuman(context: InteractionContext<TInput, TResult>): MaybePromise<HumanReturnResult>;
   acknowledge?(context: InteractionContext<TInput, TResult>): MaybePromise<void>;
+  validateHumanAction?(
+    context: InteractionContext<TInput, TResult>,
+    action: HumanResumeAction,
+    expected: HumanActionRequest,
+  ): MaybePromise<HumanActionValidation>;
   onTransition?(transition: TransitionRecord, context: InteractionContext<TInput, TResult>): MaybePromise<void>;
 }
 
