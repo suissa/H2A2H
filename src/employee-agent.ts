@@ -102,6 +102,11 @@ export interface EmployeeAgentDefinition {
 export interface EmployeeToolOperation {
   tool: string;
   input?: unknown;
+  /**
+   * @deprecated Informational compatibility field only. Human approval
+   * requirements are resolved by EmployeeAgentRuntimeOptions.humanApproval and
+   * this value never grants, suppresses or creates authority.
+   */
   risk_triggers?: string[];
 }
 
@@ -116,10 +121,34 @@ export interface EmployeeAgentInput {
   };
 }
 
+export interface EmployeeValidatedHumanApproval {
+  evidence_ref: string;
+  approved_by: string;
+  risk_triggers: string[];
+}
+
 export interface EmployeeToolCallContext {
   employee: EmployeeAgentDefinition;
   interaction: InteractionContext<EmployeeAgentInput, EmployeeAgentOutput>;
   operation: EmployeeToolOperation;
+  validated_human_approval?: EmployeeValidatedHumanApproval;
+}
+
+export interface EmployeeHumanApprovalEvidenceBinding {
+  evidence_ref: string;
+  approved_by: string;
+  employee_canonical_label: string;
+  intent_canonical_label: string;
+  tool_canonical_label: string;
+  delegation_ref: string;
+  correlation_id: string;
+  interaction_id: string;
+  risk_triggers: string[];
+}
+
+export interface EmployeeHumanApprovalGovernance {
+  resolveRequiredTriggers(context: EmployeeToolCallContext): MaybePromise<string[]>;
+  verifyEvidence(binding: EmployeeHumanApprovalEvidenceBinding): MaybePromise<boolean>;
 }
 
 export type EmployeeToolExecutor = (
@@ -137,6 +166,7 @@ export interface EmployeeAgentOutput {
 
 export interface EmployeeAgentRuntimeOptions {
   toolExecutors: Record<string, EmployeeToolExecutor>;
+  humanApproval: EmployeeHumanApprovalGovernance;
   validateDelegation(
     context: InteractionContext<EmployeeAgentInput, EmployeeAgentOutput>,
     employee: EmployeeAgentDefinition,
@@ -176,6 +206,10 @@ export class EmployeeAgentPolicyError extends Error {
 
 function assert(condition: unknown, code: string, message: string): asserts condition {
   if (!condition) throw new EmployeeAgentContractError(code, message);
+}
+
+function policyAssert(condition: unknown, code: string, message: string): asserts condition {
+  if (!condition) throw new EmployeeAgentPolicyError(code, message);
 }
 
 function unique(values: string[], code: string): void {
@@ -242,6 +276,12 @@ export class EmployeeAgentRuntime {
   ) {
     validateEmployeeAgentDefinition(employee);
     assertBusinessToolCoverage(employee, options.toolExecutors);
+    assert(
+      typeof options.humanApproval?.resolveRequiredTriggers === 'function' &&
+      typeof options.humanApproval?.verifyEvidence === 'function',
+      'employee.human_approval.governance_missing',
+      'Employee Agent runtime requires Human approval governance',
+    );
   }
 
   bindings(): RuntimeBindings<EmployeeAgentInput, EmployeeAgentOutput> {
@@ -272,6 +312,69 @@ export class EmployeeAgentRuntime {
     };
   }
 
+  private async governToolCall(
+    context: EmployeeToolCallContext,
+    sideEffect: boolean,
+  ): Promise<EmployeeToolCallContext> {
+    if (!sideEffect) return context;
+
+    const requiredTriggers = [...new Set(await this.options.humanApproval.resolveRequiredTriggers(context))];
+    const declaredTriggers = new Set(this.employee.contract.risk.human_approval_required_for);
+    for (const trigger of requiredTriggers) {
+      policyAssert(
+        declaredTriggers.has(trigger),
+        'human.approval.trigger_not_declared',
+        `Approval trigger ${trigger} is not declared by ${this.employee.contract.identity.canonical_label}`,
+      );
+    }
+    if (requiredTriggers.length === 0) return context;
+
+    const claim = context.interaction.input.human_approval;
+    policyAssert(
+      claim?.granted === true,
+      'human.approval_required',
+      `Human approval required for: ${requiredTriggers.join(', ')}`,
+    );
+    policyAssert(
+      typeof claim.approved_by === 'string' && claim.approved_by.length > 0 &&
+      typeof claim.evidence_ref === 'string' && claim.evidence_ref.length > 0,
+      'human.approval.evidence_missing',
+      'Human approval must include approved_by and evidence_ref',
+    );
+    const delegationRef = context.interaction.input.delegation_ref;
+    policyAssert(
+      typeof delegationRef === 'string' && delegationRef.length > 0,
+      'human.approval.delegation_missing',
+      'Human approval cannot be validated without delegation_ref',
+    );
+
+    const binding: EmployeeHumanApprovalEvidenceBinding = {
+      evidence_ref: claim.evidence_ref,
+      approved_by: claim.approved_by,
+      employee_canonical_label: this.employee.contract.identity.canonical_label,
+      intent_canonical_label: context.interaction.intent.ref.canonical_label,
+      tool_canonical_label: context.operation.tool,
+      delegation_ref: delegationRef,
+      correlation_id: context.interaction.correlation_id,
+      interaction_id: context.interaction.interaction_id,
+      risk_triggers: requiredTriggers,
+    };
+    policyAssert(
+      await this.options.humanApproval.verifyEvidence(binding),
+      'human.approval.evidence_invalid',
+      `Human approval evidence ${claim.evidence_ref} is not valid for this delegated action`,
+    );
+
+    return {
+      ...context,
+      validated_human_approval: {
+        evidence_ref: binding.evidence_ref,
+        approved_by: binding.approved_by,
+        risk_triggers: [...binding.risk_triggers],
+      },
+    };
+  }
+
   private async execute(
     context: InteractionContext<EmployeeAgentInput, EmployeeAgentOutput>,
   ): Promise<EmployeeAgentOutput> {
@@ -292,17 +395,12 @@ export class EmployeeAgentRuntime {
         throw new EmployeeAgentContractError('employee.tool.unbound', `Tool ${tool.name} has no executor`);
       }
 
-      const triggeredApprovals = (operation.risk_triggers ?? []).filter((trigger) =>
-        this.employee.contract.risk.human_approval_required_for.includes(trigger),
-      );
-      if (tool.side_effect && triggeredApprovals.length > 0 && context.input.human_approval?.granted !== true) {
-        throw new EmployeeAgentPolicyError(
-          'human.approval_required',
-          `Human approval required for: ${triggeredApprovals.join(', ')}`,
-        );
-      }
-
-      const callContext: EmployeeToolCallContext = { employee: this.employee, interaction: context, operation };
+      const rawCallContext: EmployeeToolCallContext = {
+        employee: this.employee,
+        interaction: context,
+        operation,
+      };
+      const callContext = await this.governToolCall(rawCallContext, tool.side_effect);
       await this.options.onToolCall?.(callContext);
       toolResults.push({ tool: tool.name, result: await executor(operation.input, callContext) });
     }
