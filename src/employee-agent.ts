@@ -2,6 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { parse as parseYaml } from 'yaml';
 import { humanEscalationRequired, isHumanEscalationRequired } from './runtime.js';
+import { sha256 } from './security.js';
 import type {
   ChannelBinding,
   DelegationValidation,
@@ -123,6 +124,14 @@ export interface EmployeeAgentInput {
   };
 }
 
+export interface EmployeeToolExecutionIdentity {
+  operation_index: number;
+  tool_canonical_label: string;
+  input_digest: string;
+  execution_id: string;
+  idempotency_key: string;
+}
+
 export interface EmployeeValidatedHumanApproval {
   evidence_ref: string;
   approved_by: string;
@@ -133,6 +142,7 @@ export interface EmployeeToolCallContext {
   employee: EmployeeAgentDefinition;
   interaction: InteractionContext<EmployeeAgentInput, EmployeeAgentOutput>;
   operation: EmployeeToolOperation;
+  execution: EmployeeToolExecutionIdentity;
   validated_human_approval?: EmployeeValidatedHumanApproval;
 }
 
@@ -146,6 +156,10 @@ export interface EmployeeHumanApprovalEvidenceBinding {
   correlation_id: string;
   interaction_id: string;
   risk_triggers: string[];
+  operation_index: number;
+  input_digest: string;
+  execution_id: string;
+  idempotency_key: string;
 }
 
 export interface EmployeeHumanApprovalGovernance {
@@ -163,7 +177,7 @@ export interface EmployeeAgentOutput {
   result_or_artifact: unknown;
   provenance: string[];
   audit_ref: string;
-  tool_results: Array<{ tool: string; result: unknown }>;
+  tool_results: Array<{ tool: string; execution_id: string; result: unknown }>;
 }
 
 export interface EmployeeAgentRuntimeOptions {
@@ -216,6 +230,34 @@ function policyAssert(condition: unknown, code: string, message: string): assert
 
 function unique(values: string[], code: string): void {
   assert(new Set(values).size === values.length, code, `${code}: values must be unique`);
+}
+
+export function deriveEmployeeToolExecutionIdentity(input: {
+  interaction_id: string;
+  intent_canonical_label: string;
+  employee_canonical_label: string;
+  operation_index: number;
+  tool_canonical_label: string;
+  operation_input: unknown;
+}): EmployeeToolExecutionIdentity {
+  const inputDigest = sha256(input.operation_input);
+  const digest = sha256({
+    protocol: 'h2a2h.employee-tool-execution',
+    version: '1.0.0',
+    interaction_id: input.interaction_id,
+    intent_canonical_label: input.intent_canonical_label,
+    employee_canonical_label: input.employee_canonical_label,
+    operation_index: input.operation_index,
+    tool_canonical_label: input.tool_canonical_label,
+    input_digest: inputDigest,
+  });
+  return {
+    operation_index: input.operation_index,
+    tool_canonical_label: input.tool_canonical_label,
+    input_digest: inputDigest,
+    execution_id: `tool-execution:${digest}`,
+    idempotency_key: `h2a2h:${digest}`,
+  };
 }
 
 export function validateEmployeeAgentDefinition(definition: EmployeeAgentDefinition): EmployeeAgentDefinition {
@@ -333,6 +375,10 @@ export class EmployeeAgentRuntime {
           employee_canonical_label: this.employee.contract.identity.canonical_label,
           intent_canonical_label: context.interaction.intent.ref.canonical_label,
           tool_canonical_label: context.operation.tool,
+          operation_index: context.execution.operation_index,
+          input_digest: context.execution.input_digest,
+          execution_id: context.execution.execution_id,
+          idempotency_key: context.execution.idempotency_key,
           risk_triggers: [...requiredTriggers],
           ...(claim?.evidence_ref ? { submitted_evidence_ref: claim.evidence_ref } : {}),
         },
@@ -401,6 +447,10 @@ export class EmployeeAgentRuntime {
       correlation_id: context.interaction.correlation_id,
       interaction_id: context.interaction.interaction_id,
       risk_triggers: requiredTriggers,
+      operation_index: context.execution.operation_index,
+      input_digest: context.execution.input_digest,
+      execution_id: context.execution.execution_id,
+      idempotency_key: context.execution.idempotency_key,
     };
     if (!await this.options.humanApproval.verifyEvidence(binding)) {
       return this.approvalEscalation(
@@ -431,8 +481,8 @@ export class EmployeeAgentRuntime {
     }
 
     const operations = context.input.operations ?? [];
-    const toolResults: Array<{ tool: string; result: unknown }> = [];
-    for (const operation of operations) {
+    const toolResults: Array<{ tool: string; execution_id: string; result: unknown }> = [];
+    for (const [operationIndex, operation] of operations.entries()) {
       const tool = this.employee.contract.tools.find((candidate) => candidate.name === operation.tool && candidate.permission === 'allow');
       if (!tool) {
         throw new EmployeeAgentPolicyError('employee.tool.not_allowed', `Tool ${operation.tool} is not allowed for this employee`);
@@ -442,16 +492,29 @@ export class EmployeeAgentRuntime {
         throw new EmployeeAgentContractError('employee.tool.unbound', `Tool ${tool.name} has no executor`);
       }
 
+      const execution = deriveEmployeeToolExecutionIdentity({
+        interaction_id: context.interaction_id,
+        intent_canonical_label: context.intent.ref.canonical_label,
+        employee_canonical_label: this.employee.contract.identity.canonical_label,
+        operation_index: operationIndex,
+        tool_canonical_label: tool.name,
+        operation_input: operation.input,
+      });
       const rawCallContext: EmployeeToolCallContext = {
         employee: this.employee,
         interaction: context,
         operation,
+        execution,
       };
       const callContext = await this.governToolCall(rawCallContext, tool.side_effect);
       if (isHumanEscalationRequired(callContext)) return callContext;
 
       await this.options.onToolCall?.(callContext);
-      toolResults.push({ tool: tool.name, result: await executor(operation.input, callContext) });
+      toolResults.push({
+        tool: tool.name,
+        execution_id: callContext.execution.execution_id,
+        result: await executor(operation.input, callContext),
+      });
     }
 
     return {
