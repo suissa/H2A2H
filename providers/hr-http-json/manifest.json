@@ -11,6 +11,22 @@
     "hr.policy.query",
     "hr.approval.request"
   ],
+  "binding": {
+    "routes": {
+      "hr.hris.read": "/v1/hr/hris/read",
+      "hr.hris.write": "/v1/hr/hris/write",
+      "hr.ats.query": "/v1/hr/ats/query",
+      "hr.policy.query": "/v1/hr/policy/query",
+      "hr.approval.request": "/v1/hr/approval/request"
+    },
+    "authorization": {
+      "type": "bearer",
+      "secret": "access_token"
+    },
+    "config_headers": {
+      "organization_id": "x-h2a2h-organization-id"
+    }
+  },
   "config_schema": {
     "type": "object",
     "required": ["base_url"],

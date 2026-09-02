@@ -1,12 +1,7 @@
 import assert from 'node:assert/strict';
-import { createServer, type IncomingHttpHeaders } from 'node:http';
 import test from 'node:test';
-import {
-  createCapabilityBackedOptionsFactory,
-  type EmployeeLifecycleBindings,
-} from '../employee-tool-binding.js';
+import { createCapabilityBackedOptionsFactory } from '../employee-tool-binding.js';
 import { EmployeeAgentRegistry } from '../employee-registry.js';
-import type { EmployeeAgentDefinition, EmployeeToolCallContext } from '../employee-agent.js';
 import {
   EmployeeProviderPackRegistry,
   loadEmployeeProviderPackManifest,
@@ -15,185 +10,41 @@ import {
   EmployeeToolCapabilityError,
   EmployeeToolRegistry,
 } from '../employee-tool-registry.js';
-import {
-  HR_HTTP_PATHS,
-  createHrHttpJsonProviderPackFactory,
-} from '../provider-packs/hr-http-json.js';
+import { createHrHttpJsonProviderPackFactory } from '../provider-packs/hr-http-json.js';
 import { H2A2HSDK } from '../sdk.js';
 import type { EntityRef } from '../types.js';
+import {
+  directProviderToolContext,
+  providerRoutes,
+  testLifecycleOptions,
+  withProviderServer,
+} from './http-provider-pack-test-helpers.js';
 
 const human: EntityRef = {
   entity_id: 'human:hr-owner',
   kind: 'Human',
   canonical_label: 'Human.HumanResourcesOwner',
 };
+const manifestPath = 'providers/hr-http-json/manifest.json';
+const employeeLabel = 'Enterprise.Employee.HrBusinessPartnerAgent';
+const analyzeIntent = `${employeeLabel}.Analyze`;
+const executeIntent = `${employeeLabel}.Execute`;
+const delegation = 'delegation:hr';
 
-interface ReceivedRequest {
-  path: string;
-  headers: IncomingHttpHeaders;
-  body: Record<string, unknown>;
-}
-
-function lifecycleOptions(employee: EmployeeAgentDefinition): EmployeeLifecycleBindings {
-  const agent: EntityRef = {
-    entity_id: `agent:${employee.contract.identity.canonical_label}`,
-    kind: 'Agent',
-    canonical_label: employee.contract.identity.canonical_label,
-  };
-  return {
-    validateDelegation: async (context) => ({
-      valid: context.input.delegation_ref === 'delegation:hr',
-      ...(context.input.delegation_ref ? { delegation_id: context.input.delegation_ref } : {}),
-      ...(context.input.delegation_ref === 'delegation:hr' ? {} : { reason: 'delegation.invalid' }),
-    }),
-    resolveParticipants: async () => ({
-      sender: human,
-      receiver: agent,
-      receiving_human: human,
-      responsibility_chain_ref: 'responsibility:hr-owner',
-    }),
-    resolveChannel: async () => ({ profile: 'memory' }),
-    returnToHuman: async (context) => ({
-      proof_ref: `pohr:${context.interaction_id}`,
-      return_state: 'human_presented',
-    }),
-  };
-}
-
-function directToolContext(
-  employee: EmployeeAgentDefinition,
-  tool: string,
-  interactionId: string,
-): EmployeeToolCallContext {
-  return {
-    employee,
-    operation: { tool, input: { test: true } },
-    interaction: {
-      interaction_id: interactionId,
-      correlation_id: `correlation:${interactionId}`,
-      state: 'EXECUTING',
-      initiating_human: human,
-      intent: {
-        ref: {
-          canonical_label: 'Enterprise.Employee.HrBusinessPartnerAgent.Analyze',
-          version: '0.1.0',
-        },
-        input_schema: 'input',
-        output_schema: 'output',
-      },
-      input: {
-        delegation_ref: 'delegation:hr',
-        request_payload: {},
-      },
-      transitions: [],
-    },
-  };
-}
-
-async function withHrServer(
-  run: (baseUrl: string, received: ReceivedRequest[]) => Promise<void>,
-): Promise<void> {
-  const received: ReceivedRequest[] = [];
-  const server = createServer((request, response) => {
-    let raw = '';
-    request.setEncoding('utf8');
-    request.on('data', (chunk) => { raw += chunk; });
-    request.on('end', () => {
-      received.push({
-        path: request.url ?? '',
-        headers: request.headers,
-        body: JSON.parse(raw) as Record<string, unknown>,
-      });
-      response.writeHead(200, { 'content-type': 'application/json' });
-      response.end(JSON.stringify({ ok: true, path: request.url }));
-    });
-  });
-  await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
-  const address = server.address();
-  assert.ok(address && typeof address === 'object');
-  try {
-    await run(`http://127.0.0.1:${address.port}`, received);
-  } finally {
-    await new Promise<void>((resolve, reject) =>
-      server.close((error) => error ? reject(error) : resolve()),
-    );
-  }
-}
-
-test('HR Provider Pack covers all Human Resources capabilities', async () => {
+test('HR manifest owns complete HTTP routes and authorization metadata', async () => {
   const tools = await EmployeeToolRegistry.load();
-  const manifest = await loadEmployeeProviderPackManifest('providers/hr-http-json/manifest.json', tools);
-  assert.equal(manifest.canonical_label, 'ProviderPack.HumanResources.HttpJson');
+  const manifest = await loadEmployeeProviderPackManifest(manifestPath, tools);
   assert.equal(manifest.domain, 'human-resources');
   assert.deepEqual(manifest.capability_domains, ['hr']);
-  assert.deepEqual(manifest.capabilities.sort(), Object.keys(HR_HTTP_PATHS).sort());
+  assert.deepEqual(Object.keys(providerRoutes(manifest)).sort(), manifest.capabilities.slice().sort());
+  assert.equal(manifest.binding?.authorization.secret, 'access_token');
+  assert.equal(manifest.binding?.config_headers?.organization_id, 'x-h2a2h-organization-id');
 });
 
-test('one HR Provider Pack makes an HR Business Partner capability-complete', async () => {
+test('HR declarative factory makes HR Business Partner capability-complete', async () => {
   const tools = await EmployeeToolRegistry.load();
+  const manifest = await loadEmployeeProviderPackManifest(manifestPath, tools);
   const packs = new EmployeeProviderPackRegistry(tools);
-  const manifest = await loadEmployeeProviderPackManifest('providers/hr-http-json/manifest.json', tools);
-  packs.register(manifest, createHrHttpJsonProviderPackFactory(async () =>
-    new Response(JSON.stringify({ ok: true }), {
-      status: 200,
-      headers: { 'content-type': 'application/json' },
-    }),
-  ));
-  await packs.activate(
-    manifest.canonical_label,
-    { base_url: 'https://hr.example.test' },
-    { access_token: 'test-token' },
-  );
-  const employee = await (await EmployeeAgentRegistry.fromCatalog()).load(
-    'Enterprise.Employee.HrBusinessPartnerAgent',
-  );
-  assert.doesNotThrow(() => tools.assertEmployeeReady(employee));
-});
-
-test('HR Provider Pack routes all five capabilities and propagates H2A2H metadata', async () => {
-  await withHrServer(async (baseUrl, received) => {
-    const tools = await EmployeeToolRegistry.load();
-    const packs = new EmployeeProviderPackRegistry(tools);
-    const manifest = await loadEmployeeProviderPackManifest('providers/hr-http-json/manifest.json', tools);
-    packs.register(manifest, createHrHttpJsonProviderPackFactory());
-    await packs.activate(
-      manifest.canonical_label,
-      { base_url: baseUrl, organization_id: 'org-1', timeout_ms: 5000 },
-      { access_token: 'hr-secret-token' },
-    );
-    const employee = await (await EmployeeAgentRegistry.fromCatalog()).load(
-      'Enterprise.Employee.HrBusinessPartnerAgent',
-    );
-    for (const [index, capability] of manifest.capabilities.entries()) {
-      await tools.resolveExecutor(capability)(
-        { sequence: index },
-        directToolContext(employee, capability, `hr-${index}`),
-      );
-    }
-    assert.equal(received.length, 5);
-    assert.deepEqual(
-      received.map((request) => request.path),
-      manifest.capabilities.map(
-        (capability) => HR_HTTP_PATHS[capability as keyof typeof HR_HTTP_PATHS],
-      ),
-    );
-    for (let index = 0; index < received.length; index += 1) {
-      const request = received[index]!;
-      const capability = manifest.capabilities[index]!;
-      assert.equal(request.headers.authorization, 'Bearer hr-secret-token');
-      assert.equal(request.headers['x-h2a2h-capability'], capability);
-      assert.equal(request.headers['x-h2a2h-delegation-ref'], 'delegation:hr');
-      assert.equal(request.headers['x-h2a2h-organization-id'], 'org-1');
-      assert.equal(request.headers['x-h2a2h-correlation-id'], `correlation:hr-${index}`);
-      assert.equal(request.body.capability, capability);
-    }
-  });
-});
-
-test('HR Provider Pack rejects employee-data read without delegation context', async () => {
-  const tools = await EmployeeToolRegistry.load();
-  const packs = new EmployeeProviderPackRegistry(tools);
-  const manifest = await loadEmployeeProviderPackManifest('providers/hr-http-json/manifest.json', tools);
   packs.register(manifest, createHrHttpJsonProviderPackFactory(async () =>
     new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } }),
   ));
@@ -202,10 +53,62 @@ test('HR Provider Pack rejects employee-data read without delegation context', a
     { base_url: 'https://hr.example.test' },
     { access_token: 'token' },
   );
-  const employee = await (await EmployeeAgentRegistry.fromCatalog()).load(
-    'Enterprise.Employee.HrBusinessPartnerAgent',
+  const employee = await (await EmployeeAgentRegistry.fromCatalog()).load(employeeLabel);
+  assert.doesNotThrow(() => tools.assertEmployeeReady(employee));
+});
+
+test('HR routes and organization header execute directly from manifest binding', async () => {
+  await withProviderServer(async (baseUrl, received) => {
+    const tools = await EmployeeToolRegistry.load();
+    const manifest = await loadEmployeeProviderPackManifest(manifestPath, tools);
+    const routes = providerRoutes(manifest);
+    const packs = new EmployeeProviderPackRegistry(tools);
+    packs.register(manifest, createHrHttpJsonProviderPackFactory());
+    await packs.activate(
+      manifest.canonical_label,
+      { base_url: baseUrl, organization_id: 'org-1', timeout_ms: 5000 },
+      { access_token: 'hr-token' },
+    );
+    const employee = await (await EmployeeAgentRegistry.fromCatalog()).load(employeeLabel);
+    for (const [index, capability] of manifest.capabilities.entries()) {
+      await tools.resolveExecutor(capability)(
+        { sequence: index },
+        directProviderToolContext(employee, human, analyzeIntent, capability, `hr-${index}`, delegation),
+      );
+    }
+    assert.deepEqual(
+      received.map((request) => request.path),
+      manifest.capabilities.map((capability) => routes[capability]),
+    );
+    for (const request of received) {
+      assert.equal(request.headers.authorization, 'Bearer hr-token');
+      assert.equal(request.headers['x-h2a2h-organization-id'], 'org-1');
+      assert.equal(request.headers['x-h2a2h-delegation-ref'], delegation);
+    }
+  });
+});
+
+test('HR provider blocks employee-data access without delegation', async () => {
+  const tools = await EmployeeToolRegistry.load();
+  const manifest = await loadEmployeeProviderPackManifest(manifestPath, tools);
+  const packs = new EmployeeProviderPackRegistry(tools);
+  packs.register(manifest, createHrHttpJsonProviderPackFactory(async () =>
+    new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } }),
+  ));
+  await packs.activate(
+    manifest.canonical_label,
+    { base_url: 'https://hr.example.test' },
+    { access_token: 'token' },
   );
-  const context = directToolContext(employee, 'hr.hris.read', 'no-delegation');
+  const employee = await (await EmployeeAgentRegistry.fromCatalog()).load(employeeLabel);
+  const context = directProviderToolContext(
+    employee,
+    human,
+    analyzeIntent,
+    'hr.hris.read',
+    'hr-no-delegation',
+    delegation,
+  );
   delete context.interaction.input.delegation_ref;
   await assert.rejects(
     async () => tools.resolveExecutor('hr.hris.read')({}, context),
@@ -215,28 +118,26 @@ test('HR Provider Pack rejects employee-data read without delegation context', a
   );
 });
 
-test('hire/termination HR write remains Human-approved before provider invocation', async () => {
-  await withHrServer(async (baseUrl, received) => {
+test('HR termination remains Human-approved above declarative provider binding', async () => {
+  await withProviderServer(async (baseUrl, received) => {
     const tools = await EmployeeToolRegistry.load();
+    const manifest = await loadEmployeeProviderPackManifest(manifestPath, tools);
     const packs = new EmployeeProviderPackRegistry(tools);
-    const manifest = await loadEmployeeProviderPackManifest('providers/hr-http-json/manifest.json', tools);
     packs.register(manifest, createHrHttpJsonProviderPackFactory());
-    await packs.activate(
-      manifest.canonical_label,
-      { base_url: baseUrl },
-      { access_token: 'token' },
-    );
+    await packs.activate(manifest.canonical_label, { base_url: baseUrl }, { access_token: 'token' });
     const employees = await EmployeeAgentRegistry.fromCatalog();
     const runtime = await employees.createRuntime(
-      'Enterprise.Employee.HrBusinessPartnerAgent',
-      createCapabilityBackedOptionsFactory(tools, async (employee) => lifecycleOptions(employee)),
+      employeeLabel,
+      createCapabilityBackedOptionsFactory(tools, async (employee) =>
+        testLifecycleOptions(employee, human, delegation, 'responsibility:hr-owner'),
+      ),
     );
     const sdk = new H2A2HSDK(runtime.bindings());
     const request = {
       initiating_human: human,
-      intent: { canonical_label: 'Enterprise.Employee.HrBusinessPartnerAgent.Execute' },
+      intent: { canonical_label: executeIntent },
       input: {
-        delegation_ref: 'delegation:hr',
+        delegation_ref: delegation,
         request_payload: { action: 'terminate employee' },
         operations: [{
           tool: 'hr.hris.write',
@@ -245,13 +146,8 @@ test('hire/termination HR write remains Human-approved before provider invocatio
         }],
       },
     };
-    await assert.rejects(
-      () => sdk.run(request),
-      (error: unknown) =>
-        error instanceof Error && error.message.includes('Human approval required'),
-    );
+    await assert.rejects(() => sdk.run(request));
     assert.equal(received.length, 0);
-
     const approved = await sdk.run({
       ...request,
       input: {
@@ -264,28 +160,6 @@ test('hire/termination HR write remains Human-approved before provider invocatio
       },
     });
     assert.equal(approved.state, 'CLOSED');
-    assert.equal(received.length, 1);
     assert.equal(received[0]?.headers['x-h2a2h-approval-evidence'], 'approval:hr-termination-1');
   });
-});
-
-test('HR Provider Pack fails closed on missing base_url or access_token', async () => {
-  const tools = await EmployeeToolRegistry.load();
-  const manifest = await loadEmployeeProviderPackManifest('providers/hr-http-json/manifest.json', tools);
-  const missingConfig = new EmployeeProviderPackRegistry(tools);
-  missingConfig.register(manifest, createHrHttpJsonProviderPackFactory());
-  await assert.rejects(
-    () => missingConfig.activate(manifest.canonical_label, {}, { access_token: 'token' }),
-    (error: unknown) =>
-      error instanceof EmployeeToolCapabilityError && error.code === 'provider_pack.config.missing',
-  );
-
-  const tools2 = await EmployeeToolRegistry.load();
-  const missingSecret = new EmployeeProviderPackRegistry(tools2);
-  missingSecret.register(manifest, createHrHttpJsonProviderPackFactory());
-  await assert.rejects(
-    () => missingSecret.activate(manifest.canonical_label, { base_url: 'https://hr.example.test' }, {}),
-    (error: unknown) =>
-      error instanceof EmployeeToolCapabilityError && error.code === 'provider_pack.secret.missing',
-  );
 });

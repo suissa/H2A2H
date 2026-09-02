@@ -11,6 +11,22 @@
     "observability.query",
     "engineering.change.request"
   ],
+  "binding": {
+    "routes": {
+      "engineering.scm.read": "/v1/engineering/scm/read",
+      "engineering.scm.write": "/v1/engineering/scm/write",
+      "engineering.ci.execute": "/v1/engineering/ci/execute",
+      "observability.query": "/v1/observability/query",
+      "engineering.change.request": "/v1/engineering/change/request"
+    },
+    "authorization": {
+      "type": "bearer",
+      "secret": "access_token"
+    },
+    "config_headers": {
+      "workspace": "x-h2a2h-workspace"
+    }
+  },
   "config_schema": {
     "type": "object",
     "required": ["base_url"],
