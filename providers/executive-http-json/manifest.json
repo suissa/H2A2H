@@ -1,0 +1,47 @@
+{
+  "canonical_label": "ProviderPack.Executive.HttpJson",
+  "version": "0.1.0",
+  "domain": "executive",
+  "capability_domains": ["enterprise"],
+  "provider_kind": "http-json",
+  "capabilities": [
+    "enterprise.strategy.read",
+    "enterprise.kpi.read",
+    "enterprise.decision.record",
+    "enterprise.communication.publish",
+    "enterprise.approval.request"
+  ],
+  "binding": {
+    "routes": {
+      "enterprise.strategy.read": "/v1/enterprise/strategy/read",
+      "enterprise.kpi.read": "/v1/enterprise/kpi/read",
+      "enterprise.decision.record": "/v1/enterprise/decision/record",
+      "enterprise.communication.publish": "/v1/enterprise/communication/publish",
+      "enterprise.approval.request": "/v1/enterprise/approval/request"
+    },
+    "authorization": {
+      "type": "bearer",
+      "secret": "access_token"
+    },
+    "config_headers": {
+      "organization_id": "x-h2a2h-organization-id"
+    }
+  },
+  "config_schema": {
+    "type": "object",
+    "required": ["base_url"],
+    "properties": {
+      "base_url": { "type": "string" },
+      "organization_id": { "type": "string" },
+      "timeout_ms": { "type": "number" }
+    },
+    "additionalProperties": false
+  },
+  "secrets": [
+    { "name": "access_token", "required": true }
+  ],
+  "runtime": {
+    "network": true,
+    "protocols": ["HTTP+JSON"]
+  }
+}
