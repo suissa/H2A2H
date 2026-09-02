@@ -19,7 +19,7 @@ import {
 } from '../employee-tool-binding.js';
 import { EmployeeToolRegistry } from '../employee-tool-registry.js';
 import {
-  createEmployeeHumanApprovalGuard,
+  createEmployeeHumanApprovalGovernance,
   type EmployeeHumanApprovalEvidenceBinding,
 } from '../employee-human-approval.js';
 import { createDeclarativeHttpJsonProviderPackFactory } from '../provider-packs/http-json-domain.js';
@@ -93,12 +93,12 @@ function lifecycleOptions(
     kind: 'Agent',
     canonical_label: employee.contract.identity.canonical_label,
   };
-  const approvalGuard = createEmployeeHumanApprovalGuard({
-    resolveRequiredTriggers: async (context) => approvalRequirements.get(context.interaction.interaction_id) ?? [],
-    verifyEvidence: async (binding) => sameApproval(approvalEvidence.get(binding.evidence_ref), binding),
-  });
 
   return {
+    humanApproval: createEmployeeHumanApprovalGovernance({
+      resolveRequiredTriggers: async (context) => approvalRequirements.get(context.interaction.interaction_id) ?? [],
+      verifyEvidence: async (binding) => sameApproval(approvalEvidence.get(binding.evidence_ref), binding),
+    }),
     validateDelegation: async (context) => ({
       valid: context.input.delegation_ref === 'delegation:readiness',
       ...(context.input.delegation_ref ? { delegation_id: context.input.delegation_ref } : {}),
@@ -120,7 +120,6 @@ function lifecycleOptions(
       proof_ref: `pohr:${context.interaction_id}`,
       return_state: 'human_presented',
     }),
-    onToolCall: approvalGuard,
   };
 }
 
@@ -171,7 +170,7 @@ test('Provider Pack planner selects a deterministic non-overlapping catalog and 
   );
 });
 
-test('all 105 Employee Agents are runtime-ready from shared Provider Packs with delegated reads and externally validated Human approval', async () => {
+test('all 105 Employee Agents are runtime-ready from shared Provider Packs with delegated reads and mandatory validated Human approval', async () => {
   const tools = await EmployeeToolRegistry.load();
   const providerCatalog = await discoverEmployeeProviderPacks(tools);
   const requiredCapabilities = tools.list()
@@ -270,7 +269,11 @@ test('all 105 Employee Agents are runtime-ready from shared Provider Packs with 
         input: {
           delegation_ref: 'delegation:readiness',
           request_payload: { readiness: true },
-          operations: [{ tool: sideEffectTool.name, input: { employee: entry.canonical_label } }],
+          operations: [{
+            tool: sideEffectTool.name,
+            input: { employee: entry.canonical_label },
+            risk_triggers: [],
+          }],
         },
       }),
       (error: unknown) => error instanceof EmployeeAgentPolicyError && error.code === 'human.approval_required',
@@ -308,7 +311,11 @@ test('all 105 Employee Agents are runtime-ready from shared Provider Packs with 
           approved_by: human.entity_id,
           evidence_ref: evidenceRef,
         },
-        operations: [{ tool: sideEffectTool.name, input: { employee: entry.canonical_label } }],
+        operations: [{
+          tool: sideEffectTool.name,
+          input: { employee: entry.canonical_label },
+          risk_triggers: [],
+        }],
       },
     });
     assert.equal(executeResult.state, 'CLOSED');

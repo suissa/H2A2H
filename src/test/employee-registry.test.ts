@@ -45,6 +45,10 @@ test('dynamically instantiates an Employee Agent without role-specific factory b
 
     return {
       toolExecutors,
+      humanApproval: {
+        resolveRequiredTriggers: async () => [],
+        verifyEvidence: async () => false,
+      },
       validateDelegation: async (context) => ({
         valid: Boolean(context.input.delegation_ref),
         ...(context.input.delegation_ref ? { delegation_id: context.input.delegation_ref } : { reason: 'delegation.missing' }),
