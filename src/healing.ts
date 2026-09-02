@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { sha256 } from './security.js';
 import type { LifecycleState } from './types.js';
 
 export interface HealingFailure {
@@ -36,44 +37,55 @@ export interface EscalationRecord<T = unknown> {
   human_event_ref?: string;
 }
 
-function fingerprint(value: unknown): string {
-  const text = JSON.stringify(value, Object.keys((value && typeof value === 'object' ? value : {}) as object).sort());
-  let hash = 2166136261;
-  for (let index = 0; index < text.length; index += 1) {
-    hash ^= text.charCodeAt(index);
-    hash = Math.imul(hash, 16777619);
-  }
-  return (hash >>> 0).toString(16).padStart(8, '0');
+export function healingFingerprint(value: unknown): string {
+  return sha256({
+    profile: 'h2a2h.healing.input-fingerprint.v1',
+    value,
+  });
 }
 
-export class HealingCoordinator<T = unknown> {
-  private readonly attempts: HealingAttempt[] = [];
-  private readonly visited = new Set<string>();
+function cloneAttempts(attempts: readonly HealingAttempt[]): HealingAttempt[] {
+  return structuredClone([...attempts]);
+}
 
+/**
+ * Stateless-across-invocations healing coordinator.
+ *
+ * Recursive/cycle state belongs to one `heal()` execution only. Reusing the
+ * coordinator instance cannot leak prior visits or attempts into a later
+ * Intent-based Healing invocation.
+ */
+export class HealingCoordinator<T = unknown> {
   async heal(value: T, steps: readonly HealingStep<T>[]): Promise<{ value: T; attempts: HealingAttempt[] }> {
+    const attempts: HealingAttempt[] = [];
+    const visited = new Set<string>();
     let current = value;
+
     for (const step of steps) {
-      const inputFingerprint = fingerprint(current);
+      if (!step.canonical_label.trim()) {
+        throw new Error('healing.step.canonical_label_required');
+      }
+
+      const inputFingerprint = healingFingerprint(current);
       const visitKey = `${step.canonical_label}:${inputFingerprint}`;
-      if (this.visited.has(visitKey)) {
+      if (visited.has(visitKey)) {
         throw new Error(`healing.cycle_detected:${step.canonical_label}`);
       }
-      this.visited.add(visitKey);
+      visited.add(visitKey);
 
       try {
         const next = await step.apply(current);
         const valid = step.validate ? await step.validate(current, next) : true;
-        const attempt: HealingAttempt = {
+        attempts.push({
           canonical_label: step.canonical_label,
           attempted_at: new Date().toISOString(),
           input_fingerprint: inputFingerprint,
           outcome: valid ? 'applied' : 'rejected',
-        };
-        this.attempts.push(attempt);
+        });
         if (!valid) continue;
         current = next;
       } catch (error) {
-        this.attempts.push({
+        attempts.push({
           canonical_label: step.canonical_label,
           attempted_at: new Date().toISOString(),
           input_fingerprint: inputFingerprint,
@@ -82,7 +94,11 @@ export class HealingCoordinator<T = unknown> {
         });
       }
     }
-    return { value: current, attempts: [...this.attempts] };
+
+    return {
+      value: current,
+      attempts: cloneAttempts(attempts),
+    };
   }
 
   escalate(input: {
@@ -92,16 +108,18 @@ export class HealingCoordinator<T = unknown> {
     current_state: LifecycleState;
     resume_state: LifecycleState;
     value: T;
+    /** Attempts from the exact healing invocation being escalated. */
+    attempts?: readonly HealingAttempt[];
   }): EscalationRecord<T> {
     return {
       escalation_id: `escalation:${randomUUID()}`,
       interaction_id: input.interaction_id,
       correlation_id: input.correlation_id,
-      cause: input.cause,
+      cause: structuredClone(input.cause),
       current_state: input.current_state,
       resume_state: input.resume_state,
-      value: input.value,
-      attempts: [...this.attempts],
+      value: structuredClone(input.value),
+      attempts: cloneAttempts(input.attempts ?? []),
       created_at: new Date().toISOString(),
       status: 'pending_human',
     };
@@ -112,15 +130,19 @@ export class HealingCoordinator<T = unknown> {
     correction: T,
     humanEventRef: string,
   ): U {
-    escalation.value = correction;
-    escalation.status = 'resolved';
-    escalation.human_event_ref = humanEventRef;
-    return escalation;
+    return {
+      ...structuredClone(escalation),
+      value: structuredClone(correction),
+      status: 'resolved',
+      human_event_ref: humanEventRef,
+    } as U;
   }
 
   cancel<U extends EscalationRecord<T>>(escalation: U, humanEventRef: string): U {
-    escalation.status = 'cancelled';
-    escalation.human_event_ref = humanEventRef;
-    return escalation;
+    return {
+      ...structuredClone(escalation),
+      status: 'cancelled',
+      human_event_ref: humanEventRef,
+    } as U;
   }
 }
