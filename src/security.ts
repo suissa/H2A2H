@@ -1,6 +1,21 @@
 import { createHash, sign, verify, type KeyLike } from 'node:crypto';
 import type { MaybePromise } from './types.js';
 
+export type CanonicalJsonValue =
+  | null
+  | boolean
+  | string
+  | number
+  | CanonicalJsonValue[]
+  | { [key: string]: CanonicalJsonValue };
+
+export class SecurityCanonicalizationError extends Error {
+  constructor(public readonly code: string, message: string) {
+    super(`${code}:${message}`);
+    this.name = 'SecurityCanonicalizationError';
+  }
+}
+
 export interface SignedEvidence<T = unknown> {
   profile: 'h2a2h.security.signed-ed25519.v1';
   key_id: string;
@@ -11,51 +26,202 @@ export interface SignedEvidence<T = unknown> {
   payload: T;
 }
 
-function canonicalizeValue(value: unknown): unknown {
-  if (Array.isArray(value)) return value.map(canonicalizeValue);
-  if (value && typeof value === 'object') {
-    const object = value as Record<string, unknown>;
-    return Object.fromEntries(
-      Object.keys(object)
-        .sort()
-        .map((key) => [key, canonicalizeValue(object[key])]),
-    );
+function isPlainObject(value: object): value is Record<string, unknown> {
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
+}
+
+function canonicalizeValue(value: unknown, stack: WeakSet<object>, path: string): CanonicalJsonValue {
+  if (value === null) return null;
+
+  switch (typeof value) {
+    case 'boolean':
+    case 'string':
+      return value;
+    case 'number':
+      if (!Number.isFinite(value)) {
+        throw new SecurityCanonicalizationError(
+          'security.canonical.non_finite_number',
+          `Non-finite number at ${path}`,
+        );
+      }
+      return Object.is(value, -0) ? 0 : value;
+    case 'undefined':
+      throw new SecurityCanonicalizationError('security.canonical.undefined', `Undefined value at ${path}`);
+    case 'bigint':
+    case 'symbol':
+    case 'function':
+      throw new SecurityCanonicalizationError(
+        'security.canonical.invalid_type',
+        `Unsupported ${typeof value} value at ${path}`,
+      );
+    case 'object':
+      break;
+    default:
+      throw new SecurityCanonicalizationError('security.canonical.invalid_type', `Unsupported value at ${path}`);
   }
-  if (value === undefined) return null;
-  return value;
+
+  const object = value as object;
+  if (stack.has(object)) {
+    throw new SecurityCanonicalizationError('security.canonical.cycle', `Cyclic value at ${path}`);
+  }
+  stack.add(object);
+  try {
+    if (Array.isArray(value)) {
+      if (Object.getOwnPropertySymbols(value).length > 0) {
+        throw new SecurityCanonicalizationError('security.canonical.array_metadata', `Array has symbol metadata at ${path}`);
+      }
+      const ownNames = Object.getOwnPropertyNames(value).filter((key) => key !== 'length');
+      if (ownNames.length !== value.length) {
+        throw new SecurityCanonicalizationError('security.canonical.sparse_array', `Sparse or decorated array at ${path}`);
+      }
+      const result: CanonicalJsonValue[] = [];
+      for (let index = 0; index < value.length; index += 1) {
+        const key = String(index);
+        if (!Object.prototype.hasOwnProperty.call(value, key)) {
+          throw new SecurityCanonicalizationError('security.canonical.sparse_array', `Sparse array at ${path}[${index}]`);
+        }
+        const descriptor = Object.getOwnPropertyDescriptor(value, key);
+        if (!descriptor || !('value' in descriptor) || !descriptor.enumerable) {
+          throw new SecurityCanonicalizationError('security.canonical.array_accessor', `Non-data array element at ${path}[${index}]`);
+        }
+        result.push(canonicalizeValue(descriptor.value, stack, `${path}[${index}]`));
+      }
+      return result;
+    }
+
+    if (!isPlainObject(object)) {
+      throw new SecurityCanonicalizationError(
+        'security.canonical.non_plain_object',
+        `Only plain JSON objects are allowed at ${path}`,
+      );
+    }
+    if (Object.getOwnPropertySymbols(object).length > 0) {
+      throw new SecurityCanonicalizationError('security.canonical.symbol_key', `Symbol-keyed property at ${path}`);
+    }
+
+    const ownNames = Object.getOwnPropertyNames(object);
+    const enumerableKeys = Object.keys(object);
+    if (ownNames.length !== enumerableKeys.length) {
+      throw new SecurityCanonicalizationError(
+        'security.canonical.hidden_property',
+        `Non-enumerable property at ${path}`,
+      );
+    }
+
+    const result: Record<string, CanonicalJsonValue> = {};
+    for (const key of enumerableKeys.sort()) {
+      const descriptor = Object.getOwnPropertyDescriptor(object, key);
+      if (!descriptor || !('value' in descriptor) || !descriptor.enumerable) {
+        throw new SecurityCanonicalizationError(
+          'security.canonical.accessor_property',
+          `Accessor property ${path}.${key} is not canonical JSON`,
+        );
+      }
+      result[key] = canonicalizeValue(descriptor.value, stack, `${path}.${key}`);
+    }
+    return result;
+  } finally {
+    stack.delete(object);
+  }
 }
 
 export function canonicalJson(value: unknown): string {
-  return JSON.stringify(canonicalizeValue(value));
+  return JSON.stringify(canonicalizeValue(value, new WeakSet<object>(), '$'));
 }
 
 export function sha256(value: unknown): string {
   return createHash('sha256').update(canonicalJson(value)).digest('base64url');
 }
 
+function requireValidIsoInstant(value: string): boolean {
+  if (typeof value !== 'string' || !value) return false;
+  const parsed = new Date(value);
+  return Number.isFinite(parsed.getTime()) && parsed.toISOString() === value;
+}
+
+function strictBase64Url(value: unknown, expectedBytes: number): value is string {
+  if (typeof value !== 'string' || !/^[A-Za-z0-9_-]+$/.test(value)) return false;
+  try {
+    const decoded = Buffer.from(value, 'base64url');
+    return decoded.length === expectedBytes && decoded.toString('base64url') === value;
+  } catch {
+    return false;
+  }
+}
+
+function exactKeys(value: Record<string, unknown>, expected: readonly string[]): boolean {
+  const actual = Object.keys(value).sort();
+  const canonicalExpected = [...expected].sort();
+  return actual.length === canonicalExpected.length
+    && actual.every((key, index) => key === canonicalExpected[index]);
+}
+
 export function signEd25519<T>(
   payload: T,
   options: { key_id: string; private_key: KeyLike; created_at?: Date },
 ): SignedEvidence<T> {
+  if (typeof options.key_id !== 'string' || !options.key_id.trim()) {
+    throw new SecurityCanonicalizationError('security.evidence.key_id_required', 'Signing key id is required');
+  }
+  const createdAt = options.created_at ?? new Date();
+  if (!Number.isFinite(createdAt.getTime())) {
+    throw new SecurityCanonicalizationError('security.evidence.created_at_invalid', 'Signing creation time is invalid');
+  }
+
   const serialized = canonicalJson(payload);
   const digest = createHash('sha256').update(serialized).digest('base64url');
   const signature = sign(null, Buffer.from(serialized), options.private_key).toString('base64url');
+  const isolatedPayload = JSON.parse(serialized) as T;
   return {
     profile: 'h2a2h.security.signed-ed25519.v1',
     key_id: options.key_id,
     algorithm: 'Ed25519',
-    created_at: (options.created_at ?? new Date()).toISOString(),
+    created_at: createdAt.toISOString(),
     payload_digest: { algorithm: 'sha-256', value: digest },
     signature,
-    payload,
+    payload: isolatedPayload,
   };
 }
 
-export function verifyEd25519<T>(evidence: SignedEvidence<T>, publicKey: KeyLike): boolean {
-  const serialized = canonicalJson(evidence.payload);
-  const digest = createHash('sha256').update(serialized).digest('base64url');
-  if (digest !== evidence.payload_digest.value) return false;
-  return verify(null, Buffer.from(serialized), publicKey, Buffer.from(evidence.signature, 'base64url'));
+export function verifyEd25519<T>(evidence: unknown, publicKey: KeyLike): evidence is SignedEvidence<T> {
+  try {
+    if (!evidence || typeof evidence !== 'object' || !isPlainObject(evidence as object)) return false;
+    const candidate = evidence as Record<string, unknown>;
+    if (!exactKeys(candidate, [
+      'profile',
+      'key_id',
+      'algorithm',
+      'created_at',
+      'payload_digest',
+      'signature',
+      'payload',
+    ])) return false;
+    if (candidate['profile'] !== 'h2a2h.security.signed-ed25519.v1') return false;
+    if (candidate['algorithm'] !== 'Ed25519') return false;
+    if (typeof candidate['key_id'] !== 'string' || !candidate['key_id'].trim()) return false;
+    if (!requireValidIsoInstant(candidate['created_at'] as string)) return false;
+    if (!strictBase64Url(candidate['signature'], 64)) return false;
+
+    const digestMetadata = candidate['payload_digest'];
+    if (!digestMetadata || typeof digestMetadata !== 'object' || !isPlainObject(digestMetadata as object)) return false;
+    const digest = digestMetadata as Record<string, unknown>;
+    if (!exactKeys(digest, ['algorithm', 'value'])) return false;
+    if (digest['algorithm'] !== 'sha-256') return false;
+    if (!strictBase64Url(digest['value'], 32)) return false;
+
+    const serialized = canonicalJson(candidate['payload']);
+    const recomputed = createHash('sha256').update(serialized).digest('base64url');
+    if (recomputed !== digest['value']) return false;
+    return verify(
+      null,
+      Buffer.from(serialized),
+      publicKey,
+      Buffer.from(candidate['signature'] as string, 'base64url'),
+    );
+  } catch {
+    return false;
+  }
 }
 
 export class ReplayProtectionError extends Error {
