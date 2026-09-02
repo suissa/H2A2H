@@ -9,6 +9,7 @@ import {
   type EmployeeProviderPackManifest,
 } from '../employee-provider-pack.js';
 import { EmployeeToolCapabilityError, EmployeeToolRegistry } from '../employee-tool-registry.js';
+import { deriveEmployeeToolExecutionIdentity } from '../employee-agent.js';
 
 const commerceCapabilities = [
   'commerce.catalog.search',
@@ -53,9 +54,19 @@ test('Provider Pack execution preserves canonical capability identity through th
   await packs.activate(manifest.canonical_label);
   const shopper = await (await EmployeeAgentRegistry.fromCatalog()).load('Enterprise.Employee.PersonalShopperAgent');
   const executor = tools.resolveExecutor('commerce.catalog.search');
+  const operation = { tool: 'commerce.catalog.search', input: { query: 'laptop' } };
+  const execution = deriveEmployeeToolExecutionIdentity({
+    interaction_id: 'interaction:provider-pack',
+    intent_canonical_label: 'Enterprise.Employee.PersonalShopperAgent.Analyze',
+    employee_canonical_label: shopper.contract.identity.canonical_label,
+    operation_index: 0,
+    tool_canonical_label: operation.tool,
+    operation_input: operation.input,
+  });
   const result = await executor({ query: 'laptop' }, {
     employee: shopper,
-    operation: { tool: 'commerce.catalog.search', input: { query: 'laptop' } },
+    operation,
+    execution,
     interaction: {
       interaction_id: 'interaction:provider-pack',
       correlation_id: 'correlation:provider-pack',
