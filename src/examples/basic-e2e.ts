@@ -125,14 +125,16 @@ export async function runBasicH2A2HScenario(options: BasicScenarioOptions = {}) 
       intent: { canonical_label: 'Example.DeliverMessage', version: '1.0.0' },
       input: { message: 'hello from Human A' },
     });
-    const pohr = sdk.finalizeHumanReturn({
-      interaction_id: context.interaction_id,
-      target_human: humanB,
-      result: context.result,
-      channel_profile: 'h2a2h.channel.in-memory.v1',
-      return_state: 'human_acknowledged',
-      evidence_ref: context.human_return?.proof_ref ?? 'pohr:missing',
-    });
+    const pohr = context.human_return
+      ? sdk.finalizeHumanReturn({
+          interaction_id: context.interaction_id,
+          target_human: humanB,
+          result: context.result,
+          channel_profile: 'h2a2h.channel.in-memory.v1',
+          return_state: context.human_return.return_state,
+          evidence_ref: context.human_return.proof_ref,
+        })
+      : undefined;
     return {
       context,
       pohr,
