@@ -88,8 +88,52 @@ export class H2A2HSDK<TInput = unknown, TResult = unknown> {
     this.runtime = new H2A2HRuntime(wrapped);
   }
 
-  run(request: RunRequest<TInput>): Promise<InteractionContext<TInput, TResult>> {
-    return this.runtime.run(request);
+  async run(request: RunRequest<TInput>): Promise<InteractionContext<TInput, TResult>> {
+    const interactionId = request.interaction_id ?? `interaction:${randomUUID()}`;
+    const correlationId = request.correlation_id ?? `correlation:${randomUUID()}`;
+    const claimStart = this.checkpoints.claimStart;
+    const releaseStart = this.checkpoints.releaseStart;
+    if (!claimStart || !releaseStart) {
+      throw new H2A2HRuntimeError(
+        'interaction.start_claim_unsupported',
+        'Checkpoint store must support atomic interaction start claiming',
+        interactionId,
+      );
+    }
+
+    const claim = await claimStart.call(this.checkpoints, interactionId);
+    if (claim.status === 'exists') {
+      throw new H2A2HRuntimeError(
+        'interaction.already_exists',
+        `Canonical H2A2H interaction ${interactionId} already exists`,
+        interactionId,
+      );
+    }
+    if (claim.status === 'conflict') {
+      throw new H2A2HRuntimeError(
+        'interaction.start_conflict',
+        `Interaction ${interactionId} is already being created`,
+        interactionId,
+      );
+    }
+
+    const claimId = claim.lease.claim_id;
+    try {
+      return await this.runtime.run({
+        ...request,
+        interaction_id: interactionId,
+        correlation_id: correlationId,
+      });
+    } finally {
+      const released = await releaseStart.call(this.checkpoints, interactionId, claimId);
+      if (!released) {
+        throw new H2A2HRuntimeError(
+          'interaction.start_release_failed',
+          `Atomic interaction start claim could not be released for ${interactionId}`,
+          interactionId,
+        );
+      }
+    }
   }
 
   async resume(
