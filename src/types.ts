@@ -78,8 +78,17 @@ export type LifecycleState =
   | 'REJECTED'
   | 'FAILED_TERMINAL';
 
+/**
+ * Canonical lifecycle transition persisted inside the Interaction checkpoint.
+ *
+ * `sequence` is optional for source compatibility; the SDK derives the stable
+ * sequence from the transition's canonical position in `context.transitions`
+ * whenever a legacy/custom runtime omits it. Optional semantic snapshots allow
+ * richer durable audit reconstruction when supplied by a runtime.
+ */
 export interface TransitionRecord {
   interaction_id: string;
+  sequence?: number;
   from: LifecycleState | null;
   to: LifecycleState;
   event: string;
@@ -88,6 +97,10 @@ export interface TransitionRecord {
   causation_id?: string;
   timestamp: string;
   evidence: string[];
+  intent?: IntentRef;
+  delegation_ref?: string;
+  channel_profile?: string;
+  proof_refs?: string[];
 }
 
 export interface ResolvedIntent {
