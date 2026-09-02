@@ -30,6 +30,16 @@ function lifecycleOptions(employee: EmployeeAgentDefinition): EmployeeLifecycleB
     canonical_label: employee.contract.identity.canonical_label,
   };
   return {
+    humanApproval: {
+      resolveRequiredTriggers: async (context) => {
+        const tool = employee.contract.tools.find((candidate) => candidate.name === context.operation.tool);
+        if (!tool?.side_effect) return [];
+        const trigger = employee.contract.risk.human_approval_required_for[0];
+        return trigger ? [trigger] : [];
+      },
+      verifyEvidence: async (binding) =>
+        binding.approved_by === human.entity_id && binding.evidence_ref.startsWith('approval:'),
+    },
     validateDelegation: async (context) => ({
       valid: context.input.delegation_ref === 'delegation:valid',
       ...(context.input.delegation_ref ? { delegation_id: context.input.delegation_ref } : {}),
@@ -116,7 +126,7 @@ test('Personal Shopper executes a read-only capability through the in-memory pro
   });
 });
 
-test('approved side effect executes through HTTP+JSON provider with H2A2H correlation metadata', async () => {
+test('approved side effect executes through HTTP+JSON provider with validated H2A2H approval metadata', async () => {
   const received: Array<Record<string, unknown>> = [];
   const server = createServer((request, response) => {
     let body = '';
@@ -164,7 +174,7 @@ test('approved side effect executes through HTTP+JSON provider with H2A2H correl
         operations: [{
           tool: 'commerce.purchase.request',
           input: { sku: 'sku-1', amount: 499 },
-          risk_triggers: ['purchase commitment'],
+          risk_triggers: [],
         }],
       },
     });
