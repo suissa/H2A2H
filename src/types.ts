@@ -78,8 +78,17 @@ export type LifecycleState =
   | 'REJECTED'
   | 'FAILED_TERMINAL';
 
+/**
+ * Canonical lifecycle transition persisted inside the Interaction checkpoint.
+ *
+ * `sequence` is monotonic within one interaction and makes every transition a
+ * stable audit position. The optional semantic fields are snapshots captured
+ * at transition time so an audit record can be reconstructed after a process
+ * crash without consulting mutable runtime state.
+ */
 export interface TransitionRecord {
   interaction_id: string;
+  sequence: number;
   from: LifecycleState | null;
   to: LifecycleState;
   event: string;
@@ -88,6 +97,10 @@ export interface TransitionRecord {
   causation_id?: string;
   timestamp: string;
   evidence: string[];
+  intent?: IntentRef;
+  delegation_ref?: string;
+  channel_profile?: string;
+  proof_refs?: string[];
 }
 
 export interface ResolvedIntent {
