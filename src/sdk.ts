@@ -1,7 +1,9 @@
+import { AsyncLocalStorage } from 'node:async_hooks';
 import { randomUUID } from 'node:crypto';
 import { AuditTrail } from './audit.js';
 import {
   InMemoryInteractionCheckpointStore,
+  type InteractionCheckpointOwnership,
   type InteractionCheckpointStore,
 } from './interaction-checkpoint.js';
 import { H2A2HRuntime, H2A2HRuntimeError } from './runtime.js';
@@ -56,12 +58,17 @@ export interface ProofOfHumanReturn<T = unknown> {
   result?: T;
 }
 
+function isFencedOwnership(ownership: InteractionCheckpointOwnership | undefined): boolean {
+  return ownership?.fence !== undefined;
+}
+
 export class H2A2HSDK<TInput = unknown, TResult = unknown> {
   readonly protocolVersion: string;
   readonly registry: ProtocolRegistry;
   readonly audit: AuditTrail;
   readonly checkpoints: InteractionCheckpointStore<TInput, TResult>;
   readonly runtime: H2A2HRuntime<TInput, TResult>;
+  private readonly checkpointOwnership = new AsyncLocalStorage<InteractionCheckpointOwnership>();
 
   constructor(
     bindings: RuntimeBindings<TInput, TResult>,
@@ -81,7 +88,29 @@ export class H2A2HSDK<TInput = unknown, TResult = unknown> {
           ...(context.channel?.profile ? { channel_profile: context.channel.profile } : {}),
           ...(context.human_return?.proof_ref ? { proof_refs: [context.human_return.proof_ref] } : {}),
         });
-        await this.checkpoints.save(context);
+
+        const ownership = this.checkpointOwnership.getStore();
+        if (isFencedOwnership(ownership)) {
+          const saveOwned = this.checkpoints.saveOwned;
+          if (!saveOwned) {
+            throw new H2A2HRuntimeError(
+              'interaction.checkpoint_fenced_save_unsupported',
+              'Checkpoint store issued fenced Interaction ownership without supporting atomic owned checkpoint writes',
+              context.interaction_id,
+            );
+          }
+          const saved = await saveOwned.call(this.checkpoints, context, ownership!);
+          if (!saved) {
+            throw new H2A2HRuntimeError(
+              'interaction.checkpoint_fenced',
+              `Interaction ${context.interaction_id} lost canonical checkpoint ownership to a newer recovery fence`,
+              context.interaction_id,
+            );
+          }
+        } else {
+          await this.checkpoints.save(context);
+        }
+
         await bindings.onTransition?.(transition, context);
       },
     };
@@ -118,15 +147,27 @@ export class H2A2HSDK<TInput = unknown, TResult = unknown> {
     }
 
     const claimId = claim.lease.claim_id;
+    const ownership: InteractionCheckpointOwnership = {
+      kind: 'start',
+      claim_id: claimId,
+      ...(claim.lease.fence !== undefined ? { fence: claim.lease.fence } : {}),
+    };
+    let primaryError: unknown;
     try {
-      return await this.runtime.run({
-        ...request,
-        interaction_id: interactionId,
-        correlation_id: correlationId,
-      });
+      return await this.checkpointOwnership.run(
+        ownership,
+        () => this.runtime.run({
+          ...request,
+          interaction_id: interactionId,
+          correlation_id: correlationId,
+        }),
+      );
+    } catch (error) {
+      primaryError = error;
+      throw error;
     } finally {
       const released = await releaseStart.call(this.checkpoints, interactionId, claimId);
-      if (!released) {
+      if (!released && primaryError === undefined) {
         throw new H2A2HRuntimeError(
           'interaction.start_release_failed',
           `Atomic interaction start claim could not be released for ${interactionId}`,
@@ -167,31 +208,46 @@ export class H2A2HSDK<TInput = unknown, TResult = unknown> {
     }
 
     const { lease_id: leaseId, context } = claim.lease;
+    const ownership: InteractionCheckpointOwnership = {
+      kind: 'resume',
+      lease_id: leaseId,
+      ...(claim.lease.fence !== undefined ? { fence: claim.lease.fence } : {}),
+    };
+    let primaryError: unknown;
     try {
-      const hasReplacementInput = Object.prototype.hasOwnProperty.call(request, 'input');
-      const resumeMetadata = hasReplacementInput
-        ? {
-            proposed_input: request.input,
-            proposed_input_digest: sha256(request.input),
-          }
-        : {
-            proposed_input_supplied: false,
-          };
-      const humanAction = {
-        ...request.human_action,
-        metadata: {
-          ...(request.human_action.metadata ?? {}),
-          h2a2h_resume: resumeMetadata,
-        },
-      };
-      const canonicalRequest: ResumeRequest<TInput> = hasReplacementInput
-        ? { human_action: humanAction, input: request.input as TInput }
-        : { human_action: humanAction };
+      return await this.checkpointOwnership.run(ownership, async () => {
+        const hasReplacementInput = Object.prototype.hasOwnProperty.call(request, 'input');
+        const resumeMetadata = hasReplacementInput
+          ? {
+              proposed_input: request.input,
+              proposed_input_digest: sha256(request.input),
+              ...(claim.lease.recovered ? { lease_recovered: true } : {}),
+              ...(claim.lease.fence !== undefined ? { lease_fence: claim.lease.fence } : {}),
+            }
+          : {
+              proposed_input_supplied: false,
+              ...(claim.lease.recovered ? { lease_recovered: true } : {}),
+              ...(claim.lease.fence !== undefined ? { lease_fence: claim.lease.fence } : {}),
+            };
+        const humanAction = {
+          ...request.human_action,
+          metadata: {
+            ...(request.human_action.metadata ?? {}),
+            h2a2h_resume: resumeMetadata,
+          },
+        };
+        const canonicalRequest: ResumeRequest<TInput> = hasReplacementInput
+          ? { human_action: humanAction, input: request.input as TInput }
+          : { human_action: humanAction };
 
-      return await this.runtime.resume(context, canonicalRequest);
+        return this.runtime.resume(context, canonicalRequest);
+      });
+    } catch (error) {
+      primaryError = error;
+      throw error;
     } finally {
       const released = await releaseResume.call(this.checkpoints, interactionId, leaseId);
-      if (!released) {
+      if (!released && primaryError === undefined) {
         throw new H2A2HRuntimeError(
           'interaction.resume_release_failed',
           `Atomic Human resume lease could not be released for ${interactionId}`,
@@ -224,7 +280,7 @@ export class H2A2HSDK<TInput = unknown, TResult = unknown> {
       ...(input.delegation_id ? { delegation: { delegation_id: input.delegation_id } } : {}),
       ...(input.responsibility_chain_ref ? { responsibility_chain_ref: input.responsibility_chain_ref } : {}),
       payload: { schema: input.schema, media_type: 'application/json', value: input.value },
-      ...(input.channel_profile ? { channel: { profile: input.channel_profile } } : {}),
+      ...(input.channel_profile ? { profile: input.channel_profile } : {}),
     };
   }
 
