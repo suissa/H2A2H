@@ -14,6 +14,7 @@ export * from './employee-agent.js';
 export * from './personal-shopper.js';
 export * from './employee-registry.js';
 export * from './employee-tool-registry.js';
+export * from './tool-execution-journal.js';
 export * from './employee-tool-binding.js';
 export * from './employee-provider-pack.js';
 export * from './employee-provider-catalog.js';
