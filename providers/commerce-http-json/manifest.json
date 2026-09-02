@@ -1,0 +1,47 @@
+{
+  "canonical_label": "ProviderPack.Commerce.HttpJson",
+  "version": "0.1.0",
+  "domain": "commerce",
+  "capability_domains": ["commerce"],
+  "provider_kind": "http-json",
+  "capabilities": [
+    "commerce.catalog.search",
+    "commerce.offer.compare",
+    "commerce.cart.prepare",
+    "commerce.order.status",
+    "commerce.purchase.request"
+  ],
+  "binding": {
+    "routes": {
+      "commerce.catalog.search": "/v1/commerce/catalog/search",
+      "commerce.offer.compare": "/v1/commerce/offer/compare",
+      "commerce.cart.prepare": "/v1/commerce/cart/prepare",
+      "commerce.order.status": "/v1/commerce/order/status",
+      "commerce.purchase.request": "/v1/commerce/purchase/request"
+    },
+    "authorization": {
+      "type": "bearer",
+      "secret": "access_token"
+    },
+    "config_headers": {
+      "merchant_context": "x-h2a2h-merchant-context"
+    }
+  },
+  "config_schema": {
+    "type": "object",
+    "required": ["base_url"],
+    "properties": {
+      "base_url": { "type": "string" },
+      "merchant_context": { "type": "string" },
+      "timeout_ms": { "type": "number" }
+    },
+    "additionalProperties": false
+  },
+  "secrets": [
+    { "name": "access_token", "required": true }
+  ],
+  "runtime": {
+    "network": true,
+    "protocols": ["HTTP+JSON"]
+  }
+}
