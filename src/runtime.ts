@@ -4,6 +4,7 @@ import type {
   HumanEscalationRequired,
   InteractionContext,
   LifecycleState,
+  ResumeRequest,
   RunRequest,
   RuntimeBindings,
   TransitionRecord,
@@ -15,6 +16,16 @@ const TERMINAL = new Set<LifecycleState>([
   'EXPIRED',
   'REJECTED',
   'FAILED_TERMINAL',
+]);
+
+const RESUMABLE = new Set<LifecycleState>([
+  'INTENT_CAPTURED',
+  'AUTHORITY_VALIDATED',
+  'PARTICIPANTS_RESOLVED',
+  'CHANNEL_BOUND',
+  'EXECUTING',
+  'RETURN_PENDING',
+  'HUMAN_RETURNED',
 ]);
 
 const ALLOWED: Record<LifecycleState, ReadonlySet<LifecycleState>> = {
@@ -29,7 +40,7 @@ const ALLOWED: Record<LifecycleState, ReadonlySet<LifecycleState>> = {
   ACKNOWLEDGED: new Set(['CLOSED']),
   CLOSED: new Set(),
   HEALING_REQUIRED: new Set(['INTENT_CAPTURED', 'AUTHORITY_VALIDATED', 'PARTICIPANTS_RESOLVED', 'CHANNEL_BOUND', 'EXECUTING', 'RETURN_PENDING', 'HUMAN_ESCALATION_REQUIRED', 'FAILED_TERMINAL']),
-  HUMAN_ESCALATION_REQUIRED: new Set(['INTENT_CAPTURED', 'AUTHORITY_VALIDATED', 'PARTICIPANTS_RESOLVED', 'CHANNEL_BOUND', 'EXECUTING', 'RETURN_PENDING', 'HUMAN_RETURNED', 'CANCELLED', 'EXPIRED', 'REJECTED', 'FAILED_TERMINAL']),
+  HUMAN_ESCALATION_REQUIRED: new Set(['HUMAN_ESCALATION_REQUIRED', 'INTENT_CAPTURED', 'AUTHORITY_VALIDATED', 'PARTICIPANTS_RESOLVED', 'CHANNEL_BOUND', 'EXECUTING', 'RETURN_PENDING', 'HUMAN_RETURNED', 'CANCELLED', 'EXPIRED', 'REJECTED', 'FAILED_TERMINAL']),
   SUSPENDED: new Set(['PARTICIPANTS_RESOLVED', 'CHANNEL_BOUND', 'EXECUTING', 'RETURN_PENDING', 'CANCELLED', 'EXPIRED', 'FAILED_TERMINAL']),
   CANCELLED: new Set(),
   EXPIRED: new Set(),
@@ -94,7 +105,147 @@ export class H2A2HRuntime<TInput = unknown, TResult = unknown> {
 
     await this.recordInitial(context);
     await this.transition(context, 'INTENT_CAPTURED', 'h2a2h.lifecycle.intent_captured');
+    return this.continueFrom(context, 'INTENT_CAPTURED');
+  }
 
+  async resume(
+    context: InteractionContext<TInput, TResult>,
+    request: ResumeRequest<TInput>,
+  ): Promise<InteractionContext<TInput, TResult>> {
+    if (context.state !== 'HUMAN_ESCALATION_REQUIRED') {
+      throw new H2A2HRuntimeError(
+        'human.resume.not_escalated',
+        `Interaction ${context.interaction_id} is not awaiting a Human action`,
+        context.interaction_id,
+      );
+    }
+
+    const escalation = context.human_escalation;
+    if (!escalation) {
+      throw new H2A2HRuntimeError(
+        'human.resume.missing_escalation',
+        'Human escalation state has no escalation contract',
+        context.interaction_id,
+      );
+    }
+
+    if (!RESUMABLE.has(escalation.resume_state)) {
+      throw new H2A2HRuntimeError(
+        'human.resume.unsupported_checkpoint',
+        `Cannot resume H2A2H interaction from ${escalation.resume_state}`,
+        context.interaction_id,
+      );
+    }
+
+    const validateHumanAction = this.bindings.validateHumanAction;
+    if (!validateHumanAction) {
+      throw new H2A2HRuntimeError(
+        'human.resume.validator_missing',
+        'Human resume requires validateHumanAction binding',
+        context.interaction_id,
+      );
+    }
+
+    const action = request.human_action;
+    if (
+      action.actor.kind !== 'Human'
+      || action.canonical_label !== escalation.human_action.canonical_label
+    ) {
+      await this.transition(
+        context,
+        'HUMAN_ESCALATION_REQUIRED',
+        'h2a2h.human.resume_rejected',
+        action.evidence,
+        action.actor,
+      );
+      return context;
+    }
+
+    const validation = await validateHumanAction(context, action, escalation.human_action);
+    if (!validation.valid) {
+      await this.transition(
+        context,
+        'HUMAN_ESCALATION_REQUIRED',
+        `h2a2h.${validation.reason ?? 'human.resume.evidence_invalid'}`,
+        validation.evidence ?? action.evidence,
+        action.actor,
+      );
+      return context;
+    }
+
+    if ('input' in request) {
+      context.input = request.input as TInput;
+    }
+
+    const resumeState = escalation.resume_state;
+    const resumeEvidence = validation.evidence ?? action.evidence;
+    delete context.human_escalation;
+
+    await this.transition(
+      context,
+      resumeState,
+      'h2a2h.lifecycle.resumed',
+      resumeEvidence,
+      action.actor,
+    );
+
+    if (
+      resumeState === 'HUMAN_RETURNED'
+      && action.canonical_label === 'Human.Acknowledgement.Provide'
+    ) {
+      if (context.human_return) {
+        context.human_return = {
+          ...context.human_return,
+          return_state: 'human_acknowledged',
+        };
+      }
+      if (context.intent.acknowledgement_required) {
+        await this.transition(
+          context,
+          'ACKNOWLEDGED',
+          'h2a2h.lifecycle.acknowledged',
+          resumeEvidence,
+          action.actor,
+        );
+      }
+      await this.transition(context, 'CLOSED', 'h2a2h.lifecycle.closed', resumeEvidence, action.actor);
+      return context;
+    }
+
+    return this.continueFrom(context, resumeState);
+  }
+
+  private async continueFrom(
+    context: InteractionContext<TInput, TResult>,
+    checkpoint: LifecycleState,
+  ): Promise<InteractionContext<TInput, TResult>> {
+    switch (checkpoint) {
+      case 'INTENT_CAPTURED':
+        return this.afterIntentCaptured(context);
+      case 'AUTHORITY_VALIDATED':
+        return this.afterAuthorityValidated(context);
+      case 'PARTICIPANTS_RESOLVED':
+        return this.afterParticipantsResolved(context);
+      case 'CHANNEL_BOUND':
+        return this.afterChannelBound(context);
+      case 'EXECUTING':
+        return this.afterExecuting(context);
+      case 'RETURN_PENDING':
+        return this.afterReturnPending(context);
+      case 'HUMAN_RETURNED':
+        return this.afterHumanReturned(context);
+      default:
+        throw new H2A2HRuntimeError(
+          'human.resume.unsupported_checkpoint',
+          `Cannot continue H2A2H interaction from ${checkpoint}`,
+          context.interaction_id,
+        );
+    }
+  }
+
+  private async afterIntentCaptured(
+    context: InteractionContext<TInput, TResult>,
+  ): Promise<InteractionContext<TInput, TResult>> {
     const delegation = await this.bindings.validateDelegation(context);
     context.delegation = delegation;
     if (!delegation.valid) {
@@ -122,15 +273,42 @@ export class H2A2HRuntime<TInput = unknown, TResult = unknown> {
       );
       return context;
     }
-    await this.transition(context, 'AUTHORITY_VALIDATED', 'h2a2h.lifecycle.authority_validated', delegation.evidence ?? []);
 
+    await this.transition(
+      context,
+      'AUTHORITY_VALIDATED',
+      'h2a2h.lifecycle.authority_validated',
+      delegation.evidence ?? [],
+    );
+    return this.afterAuthorityValidated(context);
+  }
+
+  private async afterAuthorityValidated(
+    context: InteractionContext<TInput, TResult>,
+  ): Promise<InteractionContext<TInput, TResult>> {
     context.participants = await this.bindings.resolveParticipants(context);
     await this.transition(context, 'PARTICIPANTS_RESOLVED', 'h2a2h.lifecycle.participants_resolved');
+    return this.afterParticipantsResolved(context);
+  }
 
+  private async afterParticipantsResolved(
+    context: InteractionContext<TInput, TResult>,
+  ): Promise<InteractionContext<TInput, TResult>> {
     context.channel = await this.bindings.resolveChannel(context);
     await this.transition(context, 'CHANNEL_BOUND', 'h2a2h.lifecycle.channel_bound');
+    return this.afterChannelBound(context);
+  }
 
+  private async afterChannelBound(
+    context: InteractionContext<TInput, TResult>,
+  ): Promise<InteractionContext<TInput, TResult>> {
     await this.transition(context, 'EXECUTING', 'h2a2h.lifecycle.executing');
+    return this.afterExecuting(context);
+  }
+
+  private async afterExecuting(
+    context: InteractionContext<TInput, TResult>,
+  ): Promise<InteractionContext<TInput, TResult>> {
     const execution = await this.bindings.execute(context);
     if (isHumanEscalationRequired(execution)) {
       context.human_escalation = execution;
@@ -145,20 +323,38 @@ export class H2A2HRuntime<TInput = unknown, TResult = unknown> {
     context.result = execution;
 
     await this.transition(context, 'RETURN_PENDING', 'h2a2h.lifecycle.return_pending');
-    context.human_return = await this.bindings.returnToHuman(context);
-    await this.transition(context, 'HUMAN_RETURNED', 'h2a2h.lifecycle.human_returned', [context.human_return.proof_ref]);
+    return this.afterReturnPending(context);
+  }
 
+  private async afterReturnPending(
+    context: InteractionContext<TInput, TResult>,
+  ): Promise<InteractionContext<TInput, TResult>> {
+    context.human_return = await this.bindings.returnToHuman(context);
+    await this.transition(
+      context,
+      'HUMAN_RETURNED',
+      'h2a2h.lifecycle.human_returned',
+      [context.human_return.proof_ref],
+    );
+    return this.afterHumanReturned(context);
+  }
+
+  private async afterHumanReturned(
+    context: InteractionContext<TInput, TResult>,
+  ): Promise<InteractionContext<TInput, TResult>> {
     if (context.intent.acknowledgement_required) {
-      if (context.human_return.return_state !== 'human_acknowledged') {
+      if (context.human_return?.return_state !== 'human_acknowledged') {
         if (!this.bindings.acknowledge) {
           context.human_escalation = humanEscalationRequired({
             code: 'human.acknowledgement_required',
             reason: 'Intent requires Human acknowledgement',
-            evidence: [context.human_return.proof_ref],
+            evidence: context.human_return ? [context.human_return.proof_ref] : [],
             resume_state: 'HUMAN_RETURNED',
             human_action: {
               canonical_label: 'Human.Acknowledgement.Provide',
-              metadata: { proof_ref: context.human_return.proof_ref },
+              metadata: context.human_return
+                ? { proof_ref: context.human_return.proof_ref }
+                : {},
             },
           });
           await this.transition(
