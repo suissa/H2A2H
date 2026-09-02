@@ -177,12 +177,14 @@ implements InteractionCheckpointStore<TInput, TResult> {
   }
 
   claimStart(interactionId: string): InteractionStartClaim {
-    // Once the first canonical checkpoint exists, this interaction identity may
-    // never be restarted even if an old start reservation itself has expired.
-    if (this.checkpoints.has(interactionId)) return { status: 'exists' };
-
     const existing = this.startClaims.get(interactionId);
+    const hasCheckpoint = this.checkpoints.has(interactionId);
+
+    // A currently live creator still owns admission even after it has emitted
+    // intermediate checkpoints. Once that owner expires or releases, any
+    // canonical checkpoint makes the interaction identity non-restartable.
     if (existing && !this.isExpired(existing)) return { status: 'conflict' };
+    if (hasCheckpoint) return { status: 'exists' };
 
     const recovered = Boolean(existing);
     const fence = this.nextFence(this.startFences, interactionId);
