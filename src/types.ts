@@ -81,14 +81,14 @@ export type LifecycleState =
 /**
  * Canonical lifecycle transition persisted inside the Interaction checkpoint.
  *
- * `sequence` is monotonic within one interaction and makes every transition a
- * stable audit position. The optional semantic fields are snapshots captured
- * at transition time so an audit record can be reconstructed after a process
- * crash without consulting mutable runtime state.
+ * `sequence` is optional for source compatibility; the SDK derives the stable
+ * sequence from the transition's canonical position in `context.transitions`
+ * whenever a legacy/custom runtime omits it. Optional semantic snapshots allow
+ * richer durable audit reconstruction when supplied by a runtime.
  */
 export interface TransitionRecord {
   interaction_id: string;
-  sequence: number;
+  sequence?: number;
   from: LifecycleState | null;
   to: LifecycleState;
   event: string;
