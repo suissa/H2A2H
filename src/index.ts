@@ -6,6 +6,7 @@ export * from './healing.js';
 export * from './audit.js';
 export * from './registry.js';
 export * from './sdk.js';
+export * from './interaction-checkpoint.js';
 export * from './channels.js';
 export * from './interop.js';
 export * from './versioning.js';
