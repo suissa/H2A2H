@@ -111,8 +111,8 @@ test('loads Personal Shopper A2A identity and H2A2H employee contract', async ()
 });
 
 test('Employee runtime fails closed when Human approval governance is unavailable', async () => {
-  const insecure = options() as EmployeeAgentRuntimeOptions & { humanApproval?: never };
-  delete insecure.humanApproval;
+  const { humanApproval: removedGovernance, ...insecure } = options();
+  void removedGovernance;
   await assert.rejects(
     createPersonalShopperAgent(insecure as EmployeeAgentRuntimeOptions),
     (error: unknown) =>
