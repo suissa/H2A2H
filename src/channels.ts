@@ -1,4 +1,5 @@
 import type { H2A2HEnvelope } from './types.js';
+import { negotiateVersion, parseVersion } from './versioning.js';
 
 export type ChannelTransport =
   | 'in-memory'
@@ -54,6 +55,72 @@ export interface TransportDriver {
 
 export type AdapterFactory = (declaration: ChannelDeclaration) => ChannelAdapter;
 
+const MODES = new Set<ChannelDeclaration['mode']>(['request_reply', 'pub_sub', 'stream', 'datagram']);
+const WILDCARD_VERSION = /^(?:0|[1-9]\d*)\.x$/;
+
+function assertVersionSelector(version: string): void {
+  if (WILDCARD_VERSION.test(version)) return;
+  try {
+    parseVersion(version);
+  } catch {
+    throw new Error(`channel.version_invalid:${version}`);
+  }
+}
+
+function deepFreeze<T>(value: T): T {
+  if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
+  for (const child of Object.values(value as Record<string, unknown>)) deepFreeze(child);
+  return Object.freeze(value);
+}
+
+export function validateChannelDeclaration(declaration: ChannelDeclaration): void {
+  if (!declaration || typeof declaration !== 'object') throw new Error('channel.declaration_required');
+  if (!declaration.channel_id?.trim()) throw new Error('channel.id_required');
+  if (typeof declaration.transport !== 'string' || !declaration.transport.trim()) throw new Error('channel.transport_required');
+  if (!MODES.has(declaration.mode)) throw new Error(`channel.mode_invalid:${String(declaration.mode)}`);
+  if (!Array.isArray(declaration.versions) || declaration.versions.length === 0) throw new Error('channel.version_required');
+  for (const version of declaration.versions) {
+    if (typeof version !== 'string' || !version.trim()) throw new Error('channel.version_required');
+    assertVersionSelector(version);
+  }
+  if (!declaration.security?.profile?.trim()) throw new Error('channel.security_profile_required');
+
+  const maximum = declaration.capabilities?.max_payload_bytes;
+  if (maximum !== undefined && (!Number.isSafeInteger(maximum) || maximum <= 0)) {
+    throw new Error('channel.max_payload_bytes_invalid');
+  }
+
+  if (declaration.transport === 'in-memory') {
+    const address = declaration.endpoint?.['address'];
+    if (address !== undefined && (typeof address !== 'string' || !address.trim())) {
+      throw new Error('channel.in_memory.address_invalid');
+    }
+  }
+
+  if (declaration.transport === 'http' || declaration.transport === 'https') {
+    const rawUrl = declaration.endpoint?.['url'];
+    if (typeof rawUrl !== 'string' || !rawUrl.trim()) throw new Error('channel.http.url_required');
+    let url: URL;
+    try {
+      url = new URL(rawUrl);
+    } catch {
+      throw new Error('channel.http.url_invalid');
+    }
+    if (url.protocol !== `${declaration.transport}:`) {
+      throw new Error('channel.http.transport_mismatch');
+    }
+  }
+}
+
+export function snapshotChannelDeclaration(declaration: ChannelDeclaration): ChannelDeclaration {
+  validateChannelDeclaration(declaration);
+  try {
+    return deepFreeze(structuredClone(declaration));
+  } catch {
+    throw new Error('channel.declaration_not_cloneable');
+  }
+}
+
 function defaultCapabilities(declaration: ChannelDeclaration): ChannelCapabilities {
   return {
     mode: declaration.mode,
@@ -64,10 +131,14 @@ function defaultCapabilities(declaration: ChannelDeclaration): ChannelCapabiliti
 }
 
 export class InjectedTransportAdapter implements ChannelAdapter {
+  readonly declaration: ChannelDeclaration;
+
   constructor(
-    readonly declaration: ChannelDeclaration,
+    declaration: ChannelDeclaration,
     private readonly driver: TransportDriver,
-  ) {}
+  ) {
+    this.declaration = snapshotChannelDeclaration(declaration);
+  }
 
   capabilities(): ChannelCapabilities {
     return defaultCapabilities(this.declaration);
@@ -124,13 +195,15 @@ class InMemoryHub {
 export const globalInMemoryHub = new InMemoryHub();
 
 export class InMemoryChannelAdapter implements ChannelAdapter {
+  readonly declaration: ChannelDeclaration;
   private readonly address: string;
 
   constructor(
-    readonly declaration: ChannelDeclaration,
+    declaration: ChannelDeclaration,
     private readonly hub: InMemoryHub = globalInMemoryHub,
   ) {
-    this.address = String(declaration.endpoint?.['address'] ?? declaration.channel_id);
+    this.declaration = snapshotChannelDeclaration(declaration);
+    this.address = String(this.declaration.endpoint?.['address'] ?? this.declaration.channel_id);
   }
 
   capabilities(): ChannelCapabilities {
@@ -157,12 +230,12 @@ export class InMemoryChannelAdapter implements ChannelAdapter {
 }
 
 export class HttpChannelAdapter implements ChannelAdapter {
+  readonly declaration: ChannelDeclaration;
   private readonly url: string;
 
-  constructor(readonly declaration: ChannelDeclaration) {
-    const url = declaration.endpoint?.['url'];
-    if (typeof url !== 'string' || !url) throw new Error('channel.http.url_required');
-    this.url = url;
+  constructor(declaration: ChannelDeclaration) {
+    this.declaration = snapshotChannelDeclaration(declaration);
+    this.url = String(this.declaration.endpoint?.['url']);
   }
 
   capabilities(): ChannelCapabilities {
@@ -179,6 +252,7 @@ export class HttpChannelAdapter implements ChannelAdapter {
   }
 
   async request(envelope: H2A2HEnvelope): Promise<H2A2HEnvelope> {
+    if (this.declaration.mode !== 'request_reply') throw new Error('channel.request_not_supported');
     const response = await fetch(this.url, {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'accept': 'application/json', 'h2a2h-version': envelope.version },
@@ -206,37 +280,37 @@ export class ChannelForger {
   }
 
   register(transport: ChannelTransport, factory: AdapterFactory): void {
+    if (!String(transport).trim()) throw new Error('channel.transport_required');
+    if (this.factories.has(transport)) throw new Error(`channel.factory_already_registered:${transport}`);
     this.factories.set(transport, factory);
   }
 
   forge(declaration: ChannelDeclaration): ChannelAdapter {
-    this.validateDeclaration(declaration);
-    const factory = this.factories.get(declaration.transport);
-    if (!factory) throw new Error(`channel.adapter_unavailable:${declaration.transport}`);
-    return factory(declaration);
+    const snapshot = snapshotChannelDeclaration(declaration);
+    const factory = this.factories.get(snapshot.transport);
+    if (!factory) throw new Error(`channel.adapter_unavailable:${snapshot.transport}`);
+    return factory(snapshot);
   }
 
   resolve(
-    requiredProfiles: readonly string[],
+    requiredVersions: readonly string[],
     declarations: readonly ChannelDeclaration[],
   ): ChannelAdapter {
+    if (requiredVersions.length === 0) throw new Error('channel.required_version_missing');
+    for (const version of requiredVersions) assertVersionSelector(version);
+
     for (const declaration of declarations) {
-      if (!requiredProfiles.some((profile) => this.versionMatches(profile, declaration.versions))) continue;
-      if (!this.factories.has(declaration.transport)) continue;
-      return this.forge(declaration);
+      const snapshot = snapshotChannelDeclaration(declaration);
+      if (!this.factories.has(snapshot.transport)) continue;
+      try {
+        negotiateVersion(requiredVersions, snapshot.versions);
+      } catch (error) {
+        if (error instanceof Error && error.message === 'version.no_common_version') continue;
+        throw error;
+      }
+      const factory = this.factories.get(snapshot.transport)!;
+      return factory(snapshot);
     }
     throw new Error('channel.no_compatible_binding');
-  }
-
-  private validateDeclaration(declaration: ChannelDeclaration): void {
-    if (!declaration.channel_id) throw new Error('channel.id_required');
-    if (!declaration.transport) throw new Error('channel.transport_required');
-    if (!declaration.versions.length) throw new Error('channel.version_required');
-    if (!declaration.security?.profile) throw new Error('channel.security_profile_required');
-  }
-
-  private versionMatches(required: string, supported: readonly string[]): boolean {
-    const requiredMajor = required.split('.')[0];
-    return supported.some((version) => version === required || version === `${requiredMajor}.x` || version.split('.')[0] === requiredMajor);
   }
 }
