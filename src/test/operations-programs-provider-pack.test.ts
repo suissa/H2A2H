@@ -79,7 +79,9 @@ test('safety-impacting operational change requires Human approval', async () => 
         operations: [{ tool: 'operations.workflow.write', input: { workflow: 'safety-critical' }, risk_triggers: ['safety-impacting change'] }],
       },
     };
-    await assert.rejects(() => sdk.run(request));
+    const denied = await sdk.run(request);
+    assert.equal(denied.state, 'HUMAN_ESCALATION_REQUIRED');
+    assert.equal(denied.human_escalation?.code, 'human.approval_required');
     assert.equal(received.length, 0);
     const approved = await sdk.run({ ...request, input: { ...request.input, human_approval: { granted: true, approved_by: human.entity_id, evidence_ref: 'approval:operations-1' } } });
     assert.equal(approved.state, 'CLOSED');
