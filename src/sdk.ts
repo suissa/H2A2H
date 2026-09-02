@@ -126,7 +126,7 @@ export class H2A2HSDK<TInput = unknown, TResult = unknown> {
       proof_id: `pohr:${randomUUID()}`,
       interaction_id: input.interaction_id,
       target_human: input.target_human,
-      result_digest: { algorithm: 'sha-256'; value: sha256(input.result) },
+      result_digest: { algorithm: 'sha-256', value: sha256(input.result) },
       return_state: input.return_state,
       channel: { profile: input.channel_profile },
       presented_at: now,
