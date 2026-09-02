@@ -1,0 +1,47 @@
+{
+  "canonical_label": "ProviderPack.AnalyticsStrategy.HttpJson",
+  "version": "0.1.0",
+  "domain": "analytics-strategy",
+  "capability_domains": ["data", "analytics", "bi"],
+  "provider_kind": "http-json",
+  "capabilities": [
+    "data.warehouse.query",
+    "data.catalog.query",
+    "analytics.notebook.execute",
+    "bi.report.publish",
+    "data.approval.request"
+  ],
+  "binding": {
+    "routes": {
+      "data.warehouse.query": "/v1/data/warehouse/query",
+      "data.catalog.query": "/v1/data/catalog/query",
+      "analytics.notebook.execute": "/v1/analytics/notebook/execute",
+      "bi.report.publish": "/v1/bi/report/publish",
+      "data.approval.request": "/v1/data/approval/request"
+    },
+    "authorization": {
+      "type": "bearer",
+      "secret": "access_token"
+    },
+    "config_headers": {
+      "organization_id": "x-h2a2h-organization-id"
+    }
+  },
+  "config_schema": {
+    "type": "object",
+    "required": ["base_url"],
+    "properties": {
+      "base_url": { "type": "string" },
+      "organization_id": { "type": "string" },
+      "timeout_ms": { "type": "number" }
+    },
+    "additionalProperties": false
+  },
+  "secrets": [
+    { "name": "access_token", "required": true }
+  ],
+  "runtime": {
+    "network": true,
+    "protocols": ["HTTP+JSON"]
+  }
+}
