@@ -53,14 +53,17 @@ function employeeOptions(purchaseCounter: { count: number }): EmployeeAgentRunti
         && binding.correlation_id === 'correlation:employee-resume'
         && binding.risk_triggers.includes('purchase commitment'),
     },
-    validateDelegation: (context) => ({
-      valid: context.input.delegation_ref === 'delegation:resume',
-      delegation_id: context.input.delegation_ref,
-      evidence: ['delegation-proof:resume'],
-      ...(context.input.delegation_ref === 'delegation:resume'
-        ? {}
-        : { reason: 'delegation.invalid' }),
-    }),
+    validateDelegation: (context) => context.input.delegation_ref === 'delegation:resume'
+      ? {
+          valid: true,
+          delegation_id: context.input.delegation_ref,
+          evidence: ['delegation-proof:resume'],
+        }
+      : {
+          valid: false,
+          reason: 'delegation.invalid',
+          evidence: ['delegation-proof:resume'],
+        },
     resolveParticipants: () => ({
       sender: human,
       receiver: agent,
