@@ -82,13 +82,6 @@ export class H2A2HSDK<TInput = unknown, TResult = unknown> {
     const wrapped: RuntimeBindings<TInput, TResult> = {
       ...bindings,
       onTransition: async (transition, context) => {
-        this.audit.appendTransition(transition, {
-          intent: context.intent.ref,
-          ...(context.delegation?.delegation_id ? { delegation_ref: context.delegation.delegation_id } : {}),
-          ...(context.channel?.profile ? { channel_profile: context.channel.profile } : {}),
-          ...(context.human_return?.proof_ref ? { proof_refs: [context.human_return.proof_ref] } : {}),
-        });
-
         const ownership = this.checkpointOwnership.getStore();
         if (isFencedOwnership(ownership)) {
           const saveOwned = this.checkpoints.saveOwned;
@@ -111,6 +104,14 @@ export class H2A2HSDK<TInput = unknown, TResult = unknown> {
           await this.checkpoints.save(context);
         }
 
+        // Only transitions that successfully reached the canonical checkpoint
+        // store are authoritative enough to enter the append-only audit trail.
+        this.audit.appendTransition(transition, {
+          intent: context.intent.ref,
+          ...(context.delegation?.delegation_id ? { delegation_ref: context.delegation.delegation_id } : {}),
+          ...(context.channel?.profile ? { channel_profile: context.channel.profile } : {}),
+          ...(context.human_return?.proof_ref ? { proof_refs: [context.human_return.proof_ref] } : {}),
+        });
         await bindings.onTransition?.(transition, context);
       },
     };
