@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import { createServer, type IncomingHttpHeaders } from 'node:http';
-import type {
-  EmployeeAgentDefinition,
-  EmployeeToolCallContext,
+import {
+  deriveEmployeeToolExecutionIdentity,
+  type EmployeeAgentDefinition,
+  type EmployeeToolCallContext,
 } from '../employee-agent.js';
 import type { EmployeeLifecycleBindings } from '../employee-tool-binding.js';
 import type { EmployeeProviderPackManifest } from '../employee-provider-pack.js';
@@ -98,9 +99,18 @@ export function directProviderToolContext(
   interactionId: string,
   delegationRef: string,
 ): EmployeeToolCallContext {
+  const operation = { tool, input: { test: true } };
   return {
     employee,
-    operation: { tool, input: { test: true } },
+    operation,
+    execution: deriveEmployeeToolExecutionIdentity({
+      interaction_id: interactionId,
+      intent_canonical_label: intentLabel,
+      employee_canonical_label: employee.contract.identity.canonical_label,
+      operation_index: 0,
+      tool_canonical_label: tool,
+      operation_input: operation.input,
+    }),
     interaction: {
       interaction_id: interactionId,
       correlation_id: `correlation:${interactionId}`,

@@ -62,6 +62,10 @@ export interface ToolProviderInvocationContext {
   delegation_ref?: string;
   approval_evidence_ref?: string;
   operation: EmployeeToolCallContext['operation'];
+  operation_index: number;
+  input_digest: string;
+  execution_id: string;
+  idempotency_key: string;
 }
 
 export interface EmployeeToolProvider {
@@ -234,6 +238,10 @@ export class EmployeeToolRegistry implements EmployeeToolResolver {
         interaction_id: callContext.interaction.interaction_id,
         correlation_id: callContext.interaction.correlation_id,
         operation: callContext.operation,
+        operation_index: callContext.execution.operation_index,
+        input_digest: callContext.execution.input_digest,
+        execution_id: callContext.execution.execution_id,
+        idempotency_key: callContext.execution.idempotency_key,
         ...(callContext.interaction.input.delegation_ref
           ? { delegation_ref: callContext.interaction.input.delegation_ref }
           : {}),
@@ -332,7 +340,12 @@ export class HttpJsonEmployeeToolProvider implements EmployeeToolProvider {
   ): Promise<unknown> {
     const response = await this.fetchImpl(this.endpointFor(capability), {
       method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-h2a2h-capability': capability.canonical_label },
+      headers: {
+        'content-type': 'application/json',
+        'x-h2a2h-capability': capability.canonical_label,
+        'x-h2a2h-execution-id': context.execution_id,
+        'Idempotency-Key': context.idempotency_key,
+      },
       body: JSON.stringify({ capability: capability.canonical_label, input, context }),
     });
     if (!response.ok) {
