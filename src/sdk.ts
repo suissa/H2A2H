@@ -96,36 +96,65 @@ export class H2A2HSDK<TInput = unknown, TResult = unknown> {
     interactionId: string,
     request: ResumeRequest<TInput>,
   ): Promise<InteractionContext<TInput, TResult>> {
-    const context = await this.checkpoints.load(interactionId);
-    if (!context) {
+    const claimResume = this.checkpoints.claimResume;
+    const releaseResume = this.checkpoints.releaseResume;
+    if (!claimResume || !releaseResume) {
+      throw new H2A2HRuntimeError(
+        'interaction.resume_claim_unsupported',
+        'Checkpoint store must support atomic Human resume claiming',
+        interactionId,
+      );
+    }
+
+    const claim = await claimResume.call(this.checkpoints, interactionId);
+    if (claim.status === 'not_found') {
       throw new H2A2HRuntimeError(
         'interaction.checkpoint_not_found',
         `No canonical H2A2H checkpoint exists for ${interactionId}`,
         interactionId,
       );
     }
+    if (claim.status === 'conflict') {
+      throw new H2A2HRuntimeError(
+        'interaction.resume_conflict',
+        `Interaction ${interactionId} already has an active Human resume claim`,
+        interactionId,
+      );
+    }
 
-    const hasReplacementInput = Object.prototype.hasOwnProperty.call(request, 'input');
-    const resumeMetadata = hasReplacementInput
-      ? {
-          proposed_input: request.input,
-          proposed_input_digest: sha256(request.input),
-        }
-      : {
-          proposed_input_supplied: false,
-        };
-    const humanAction = {
-      ...request.human_action,
-      metadata: {
-        ...(request.human_action.metadata ?? {}),
-        h2a2h_resume: resumeMetadata,
-      },
-    };
-    const canonicalRequest: ResumeRequest<TInput> = hasReplacementInput
-      ? { human_action: humanAction, input: request.input as TInput }
-      : { human_action: humanAction };
+    const { lease_id: leaseId, context } = claim.lease;
+    try {
+      const hasReplacementInput = Object.prototype.hasOwnProperty.call(request, 'input');
+      const resumeMetadata = hasReplacementInput
+        ? {
+            proposed_input: request.input,
+            proposed_input_digest: sha256(request.input),
+          }
+        : {
+            proposed_input_supplied: false,
+          };
+      const humanAction = {
+        ...request.human_action,
+        metadata: {
+          ...(request.human_action.metadata ?? {}),
+          h2a2h_resume: resumeMetadata,
+        },
+      };
+      const canonicalRequest: ResumeRequest<TInput> = hasReplacementInput
+        ? { human_action: humanAction, input: request.input as TInput }
+        : { human_action: humanAction };
 
-    return this.runtime.resume(context, canonicalRequest);
+      return await this.runtime.resume(context, canonicalRequest);
+    } finally {
+      const released = await releaseResume.call(this.checkpoints, interactionId, leaseId);
+      if (!released) {
+        throw new H2A2HRuntimeError(
+          'interaction.resume_release_failed',
+          `Atomic Human resume lease could not be released for ${interactionId}`,
+          interactionId,
+        );
+      }
+    }
   }
 
   async getInteraction(
