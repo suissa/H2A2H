@@ -156,10 +156,11 @@ export interface EmployeeHumanApprovalEvidenceBinding {
   correlation_id: string;
   interaction_id: string;
   risk_triggers: string[];
-  operation_index: number;
-  input_digest: string;
-  execution_id: string;
-  idempotency_key: string;
+  /** Runtime-generated in current H2A2H SDKs; optional here for source compatibility with older custom policy fixtures. */
+  operation_index?: number;
+  input_digest?: string;
+  execution_id?: string;
+  idempotency_key?: string;
 }
 
 export interface EmployeeHumanApprovalGovernance {
