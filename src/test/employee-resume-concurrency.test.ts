@@ -142,10 +142,11 @@ test('two concurrent valid approval resumes execute the Personal Shopper provide
   const firstResume = sdk.resume(escalated.interaction_id, resumeRequest);
   await providerStarted;
   const secondResume = sdk.resume(escalated.interaction_id, resumeRequest);
+  const outcomesPromise = Promise.allSettled([firstResume, secondResume]);
   await new Promise<void>((resolve) => setTimeout(resolve, 0));
   providerReleaseResolve();
 
-  const outcomes = await Promise.allSettled([firstResume, secondResume]);
+  const outcomes = await outcomesPromise;
   const fulfilled = outcomes.filter((outcome) => outcome.status === 'fulfilled');
   const rejected = outcomes.filter((outcome) => outcome.status === 'rejected');
 
