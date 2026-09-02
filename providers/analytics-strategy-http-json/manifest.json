@@ -11,6 +11,7 @@
     "bi.report.publish",
     "data.approval.request"
   ],
+  "recovery": { "mode": "none" },
   "binding": {
     "routes": {
       "data.warehouse.query": "/v1/data/warehouse/query",
