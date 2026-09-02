@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   businessTools,
-  EmployeeAgentPolicyError,
   type EmployeeAgentDefinition,
 } from '../employee-agent.js';
 import {
@@ -170,7 +169,7 @@ test('Provider Pack planner selects a deterministic non-overlapping catalog and 
   );
 });
 
-test('all 105 Employee Agents are runtime-ready from shared Provider Packs with delegated reads and mandatory validated Human approval', async () => {
+test('all 105 Employee Agents are runtime-ready from shared Provider Packs with delegated reads and semantic HumanRequired approval', async () => {
   const tools = await EmployeeToolRegistry.load();
   const providerCatalog = await discoverEmployeeProviderPacks(tools);
   const requiredCapabilities = tools.list()
@@ -260,24 +259,26 @@ test('all 105 Employee Agents are runtime-ready from shared Provider Packs with 
     approvalRequirements.set(deniedInteraction, [riskTrigger]);
     const deniedCallStart = providerCalls.length;
     const deniedSdk = new H2A2HSDK(runtime.bindings());
-    await assert.rejects(
-      deniedSdk.run({
-        initiating_human: human,
-        interaction_id: deniedInteraction,
-        correlation_id: `correlation:denied:${entry.slug}`,
-        intent: { canonical_label: `${entry.canonical_label}.Execute` },
-        input: {
-          delegation_ref: 'delegation:readiness',
-          request_payload: { readiness: true },
-          operations: [{
-            tool: sideEffectTool.name,
-            input: { employee: entry.canonical_label },
-            risk_triggers: [],
-          }],
-        },
-      }),
-      (error: unknown) => error instanceof EmployeeAgentPolicyError && error.code === 'human.approval_required',
-    );
+    const deniedResult = await deniedSdk.run({
+      initiating_human: human,
+      interaction_id: deniedInteraction,
+      correlation_id: `correlation:denied:${entry.slug}`,
+      intent: { canonical_label: `${entry.canonical_label}.Execute` },
+      input: {
+        delegation_ref: 'delegation:readiness',
+        request_payload: { readiness: true },
+        operations: [{
+          tool: sideEffectTool.name,
+          input: { employee: entry.canonical_label },
+          risk_triggers: [],
+        }],
+      },
+    });
+    assert.equal(deniedResult.state, 'HUMAN_ESCALATION_REQUIRED');
+    assert.equal(deniedResult.human_escalation?.code, 'human.approval_required');
+    assert.equal(deniedResult.human_escalation?.resume_state, 'EXECUTING');
+    assert.equal(deniedResult.human_escalation?.human_action.canonical_label, 'Human.Approval.Provide');
+    assert.equal(deniedSdk.verifyAudit().valid, true);
     assert.equal(providerCalls.length, deniedCallStart, `${entry.canonical_label} provider must not execute before Human approval`);
 
     const executeInteraction = `execute:${entry.slug}`;
