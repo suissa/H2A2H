@@ -162,7 +162,9 @@ test('sensitive BI publication remains Human-approved above provider binding', a
       },
     };
 
-    await assert.rejects(() => sdk.run(request));
+    const denied = await sdk.run(request);
+    assert.equal(denied.state, 'HUMAN_ESCALATION_REQUIRED');
+    assert.equal(denied.human_escalation?.code, 'human.approval_required');
     assert.equal(received.length, 0);
 
     const approved = await sdk.run({
