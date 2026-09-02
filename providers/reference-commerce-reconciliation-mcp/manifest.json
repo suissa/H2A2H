@@ -1,0 +1,29 @@
+{
+  "canonical_label": "ProviderPack.Commerce.ReferenceReconciliationMcp",
+  "version": "0.1.0",
+  "domain": "commerce",
+  "capability_domains": ["commerce"],
+  "provider_kind": "mcp",
+  "capabilities": [
+    "commerce.catalog.search",
+    "commerce.offer.compare",
+    "commerce.cart.prepare",
+    "commerce.order.status",
+    "commerce.purchase.request"
+  ],
+  "recovery": {
+    "mode": "reconciliation",
+    "profile": "h2a2h://recovery/reconciliation/reference-commerce-mcp/v1"
+  },
+  "config_schema": {
+    "type": "object",
+    "required": [],
+    "properties": {},
+    "additionalProperties": false
+  },
+  "secrets": [],
+  "runtime": {
+    "network": true,
+    "protocols": ["MCP"]
+  }
+}
