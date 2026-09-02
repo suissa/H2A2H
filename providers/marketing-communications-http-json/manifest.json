@@ -1,0 +1,47 @@
+{
+  "canonical_label": "ProviderPack.MarketingCommunications.HttpJson",
+  "version": "0.1.0",
+  "domain": "marketing-communications",
+  "capability_domains": ["marketing", "brand"],
+  "provider_kind": "http-json",
+  "capabilities": [
+    "marketing.analytics.read",
+    "marketing.cms.write",
+    "marketing.campaign.manage",
+    "brand.policy.query",
+    "marketing.approval.request"
+  ],
+  "binding": {
+    "routes": {
+      "marketing.analytics.read": "/v1/marketing/analytics/read",
+      "marketing.cms.write": "/v1/marketing/cms/write",
+      "marketing.campaign.manage": "/v1/marketing/campaign/manage",
+      "brand.policy.query": "/v1/brand/policy/query",
+      "marketing.approval.request": "/v1/marketing/approval/request"
+    },
+    "authorization": {
+      "type": "bearer",
+      "secret": "access_token"
+    },
+    "config_headers": {
+      "organization_id": "x-h2a2h-organization-id"
+    }
+  },
+  "config_schema": {
+    "type": "object",
+    "required": ["base_url"],
+    "properties": {
+      "base_url": { "type": "string" },
+      "organization_id": { "type": "string" },
+      "timeout_ms": { "type": "number" }
+    },
+    "additionalProperties": false
+  },
+  "secrets": [
+    { "name": "access_token", "required": true }
+  ],
+  "runtime": {
+    "network": true,
+    "protocols": ["HTTP+JSON"]
+  }
+}
