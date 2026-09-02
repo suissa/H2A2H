@@ -280,7 +280,7 @@ export class H2A2HSDK<TInput = unknown, TResult = unknown> {
       ...(input.delegation_id ? { delegation: { delegation_id: input.delegation_id } } : {}),
       ...(input.responsibility_chain_ref ? { responsibility_chain_ref: input.responsibility_chain_ref } : {}),
       payload: { schema: input.schema, media_type: 'application/json', value: input.value },
-      ...(input.channel_profile ? { profile: input.channel_profile } : {}),
+      ...(input.channel_profile ? { channel: { profile: input.channel_profile } } : {}),
     };
   }
 
