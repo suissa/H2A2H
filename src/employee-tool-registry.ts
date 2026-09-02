@@ -19,6 +19,15 @@ export type EmployeeToolProviderKind =
   | 'injected'
   | 'internal';
 
+export type EmployeeToolProviderRecoveryMode =
+  | 'none'
+  | 'provider-idempotency'
+  | 'reconciliation';
+
+export interface EmployeeToolProviderOptions {
+  recovery_mode?: EmployeeToolProviderRecoveryMode;
+}
+
 export type EmployeeToolEffect = 'read-only' | 'side-effect' | 'protocol-control';
 
 export interface EmployeeToolCapability {
@@ -71,11 +80,18 @@ export interface ToolProviderInvocationContext {
   input_digest: string;
   execution_id: string;
   idempotency_key: string;
+  execution_recovered?: boolean;
+  execution_fence?: number;
 }
 
 export interface EmployeeToolProvider {
   readonly id: string;
   readonly kind: EmployeeToolProviderKind;
+  /**
+   * Optional for source compatibility. Absence is semantically equivalent to
+   * `none` and therefore cannot authorize recovered side-effect execution.
+   */
+  readonly recovery_mode?: EmployeeToolProviderRecoveryMode;
   invoke(
     capability: EmployeeToolCapability,
     input: unknown,
@@ -287,8 +303,25 @@ export class EmployeeToolRegistry implements EmployeeToolResolver {
         );
       }
 
+      if (
+        claim.recovered === true
+        && capability.side_effect
+        && (provider.recovery_mode ?? 'none') === 'none'
+      ) {
+        throw new EmployeeToolCapabilityError(
+          'tool.execution.recovery_unsafe',
+          `Recovered side-effect execution ${context.execution_id} requires an idempotent or reconciling provider`,
+        );
+      }
+
+      const providerContext: ToolProviderInvocationContext = {
+        ...context,
+        ...(claim.recovered === true ? { execution_recovered: true } : {}),
+        ...(typeof claim.record.fence === 'number' ? { execution_fence: claim.record.fence } : {}),
+      };
+
       try {
-        const result = await provider.invoke(capability, input, context);
+        const result = await provider.invoke(capability, input, providerContext);
         const completed = await this.executionJournal.completeExecution(
           context.execution_id,
           claim.record.claim_id,
@@ -325,11 +358,15 @@ export type InMemoryToolHandler = (
 
 export class InMemoryEmployeeToolProvider implements EmployeeToolProvider {
   readonly kind = 'in-memory' as const;
+  readonly recovery_mode: EmployeeToolProviderRecoveryMode;
 
   constructor(
     readonly id: string,
     private readonly handlers: Record<string, InMemoryToolHandler>,
-  ) {}
+    options: EmployeeToolProviderOptions = {},
+  ) {
+    this.recovery_mode = options.recovery_mode ?? 'none';
+  }
 
   invoke(
     capability: EmployeeToolCapability,
@@ -344,6 +381,7 @@ export class InMemoryEmployeeToolProvider implements EmployeeToolProvider {
 
 export class InjectedEmployeeToolProvider implements EmployeeToolProvider {
   readonly kind = 'injected' as const;
+  readonly recovery_mode: EmployeeToolProviderRecoveryMode;
 
   constructor(
     readonly id: string,
@@ -352,7 +390,10 @@ export class InjectedEmployeeToolProvider implements EmployeeToolProvider {
       input: unknown,
       context: ToolProviderInvocationContext,
     ) => MaybePromise<unknown>,
-  ) {}
+    options: EmployeeToolProviderOptions = {},
+  ) {
+    this.recovery_mode = options.recovery_mode ?? 'none';
+  }
 
   invoke(
     capability: EmployeeToolCapability,
@@ -373,8 +414,15 @@ export interface McpToolDriver {
 
 export class McpEmployeeToolProvider implements EmployeeToolProvider {
   readonly kind = 'mcp' as const;
+  readonly recovery_mode: EmployeeToolProviderRecoveryMode;
 
-  constructor(readonly id: string, private readonly driver: McpToolDriver) {}
+  constructor(
+    readonly id: string,
+    private readonly driver: McpToolDriver,
+    options: EmployeeToolProviderOptions = {},
+  ) {
+    this.recovery_mode = options.recovery_mode ?? 'none';
+  }
 
   invoke(
     capability: EmployeeToolCapability,
@@ -389,12 +437,16 @@ export type ToolEndpointResolver = (capability: EmployeeToolCapability) => strin
 
 export class HttpJsonEmployeeToolProvider implements EmployeeToolProvider {
   readonly kind = 'http-json' as const;
+  readonly recovery_mode: EmployeeToolProviderRecoveryMode;
 
   constructor(
     readonly id: string,
     private readonly endpointFor: ToolEndpointResolver,
     private readonly fetchImpl: typeof fetch = fetch,
-  ) {}
+    options: EmployeeToolProviderOptions = {},
+  ) {
+    this.recovery_mode = options.recovery_mode ?? 'none';
+  }
 
   async invoke(
     capability: EmployeeToolCapability,
