@@ -15,6 +15,8 @@ export * from './employee-registry.js';
 export * from './employee-tool-registry.js';
 export * from './employee-tool-binding.js';
 export * from './employee-provider-pack.js';
+export * from './employee-provider-catalog.js';
+export * from './employee-human-approval.js';
 export * from './provider-packs/finance-http-json.js';
 export * from './provider-packs/http-json-domain.js';
 export * from './provider-packs/engineering-http-json.js';
