@@ -11,6 +11,7 @@
     "corp.communication.draft",
     "corp.approval.request"
   ],
+  "recovery": { "mode": "none" },
   "binding": {
     "routes": {
       "corp.records.read": "/v1/corp/records/read",
