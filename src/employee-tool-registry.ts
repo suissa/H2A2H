@@ -228,7 +228,6 @@ export class EmployeeToolRegistry implements EmployeeToolResolver {
       const provider = this.providers.get(canonicalLabel);
       ensure(provider, 'tool.provider.unbound', `No provider bound for capability ${canonicalLabel}`);
 
-      const approval = callContext.interaction.input.human_approval;
       const context: ToolProviderInvocationContext = {
         employee_canonical_label: callContext.employee.contract.identity.canonical_label,
         intent_canonical_label: callContext.interaction.intent.ref.canonical_label,
@@ -238,7 +237,9 @@ export class EmployeeToolRegistry implements EmployeeToolResolver {
         ...(callContext.interaction.input.delegation_ref
           ? { delegation_ref: callContext.interaction.input.delegation_ref }
           : {}),
-        ...(approval?.evidence_ref ? { approval_evidence_ref: approval.evidence_ref } : {}),
+        ...(callContext.validated_human_approval?.evidence_ref
+          ? { approval_evidence_ref: callContext.validated_human_approval.evidence_ref }
+          : {}),
       };
       return provider.invoke(capability, input, context);
     };
