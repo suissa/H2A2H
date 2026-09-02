@@ -12,6 +12,7 @@
         "input": {},
         "risk_triggers": {
           "type": "array",
+          "description": "Deprecated informational compatibility field. Runtime Human-approval requirements are resolved externally and this field carries no authority.",
           "items": { "type": "string", "minLength": 1 },
           "uniqueItems": true
         }
@@ -20,7 +21,7 @@
     },
     "humanApproval": {
       "type": "object",
-      "required": ["granted"],
+      "required": ["granted", "approved_by", "evidence_ref"],
       "properties": {
         "granted": { "type": "boolean" },
         "approved_by": { "type": "string", "minLength": 1 },
