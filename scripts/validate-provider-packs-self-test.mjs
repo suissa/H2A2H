@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {
+  assertCompleteProviderCoverage,
   buildCapabilityIndex,
   validateProviderManifestSemantics,
 } from './validate-provider-packs.mjs';
@@ -46,6 +47,10 @@ const valid = {
 };
 
 assert.doesNotThrow(() => validateProviderManifestSemantics(valid, capabilities));
+assert.doesNotThrow(() => assertCompleteProviderCoverage(capabilities, new Map([
+  ['alpha.read', new Set(['ProviderPack.Test.HttpJson'])],
+  ['beta.write', new Set(['ProviderPack.Test.HttpJson'])],
+])));
 
 assert.throws(
   () => validateProviderManifestSemantics({ ...valid, capabilities: ['unknown.read'] }, capabilities),
@@ -72,5 +77,11 @@ assert.throws(
   }, capabilities),
   /undeclared config/,
 );
+assert.throws(
+  () => assertCompleteProviderCoverage(capabilities, new Map([
+    ['alpha.read', new Set(['ProviderPack.Test.HttpJson'])],
+  ])),
+  /beta\.write/,
+);
 
-console.log('Provider Pack validator self-test passed: malformed semantic bindings fail closed.');
+console.log('Provider Pack validator self-test passed: malformed bindings and incomplete capability coverage fail closed.');
