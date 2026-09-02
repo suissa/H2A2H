@@ -45,9 +45,10 @@
     },
     "toolResult": {
       "type": "object",
-      "required": ["tool", "result"],
+      "required": ["tool", "execution_id", "result"],
       "properties": {
         "tool": { "type": "string", "minLength": 1 },
+        "execution_id": { "type": "string", "pattern": "^tool-execution:" },
         "result": {}
       },
       "additionalProperties": false
