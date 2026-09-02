@@ -2,11 +2,13 @@ import {
   EmployeeToolCapabilityError,
   type EmployeeToolCapability,
   type EmployeeToolProvider,
+  type EmployeeToolProviderRecoveryMode,
   type ToolProviderInvocationContext,
 } from '../employee-tool-registry.js';
-import type {
-  EmployeeProviderPackFactory,
-  EmployeeProviderPackManifest,
+import {
+  providerPackRecovery,
+  type EmployeeProviderPackFactory,
+  type EmployeeProviderPackManifest,
 } from '../employee-provider-pack.js';
 
 export interface HttpJsonDomainPackDefinition {
@@ -14,6 +16,8 @@ export interface HttpJsonDomainPackDefinition {
   paths: Record<string, string>;
   token_secret: string;
   config_headers?: Record<string, string>;
+  /** Low-level compatibility option. Declarative factories derive this from the manifest. */
+  recovery_mode?: EmployeeToolProviderRecoveryMode;
 }
 
 function fail(code: string, message: string): never {
@@ -36,6 +40,7 @@ function normalizeBaseUrl(value: string): string {
 export class HttpJsonDomainProvider implements EmployeeToolProvider {
   readonly kind = 'http-json' as const;
   readonly id: string;
+  readonly recovery_mode: EmployeeToolProviderRecoveryMode;
   private readonly baseUrl: string;
 
   constructor(
@@ -45,6 +50,7 @@ export class HttpJsonDomainProvider implements EmployeeToolProvider {
     private readonly fetchImpl: typeof fetch = fetch,
   ) {
     this.id = definition.id;
+    this.recovery_mode = definition.recovery_mode ?? 'none';
     const baseUrl = config.base_url;
     if (typeof baseUrl !== 'string') {
       fail('http_domain_provider.config.base_url', 'Provider Pack base_url must be a string');
@@ -81,9 +87,17 @@ export class HttpJsonDomainProvider implements EmployeeToolProvider {
       'x-h2a2h-interaction-id': context.interaction_id,
       'x-h2a2h-correlation-id': context.correlation_id,
       'x-h2a2h-delegation-ref': context.delegation_ref,
+      'x-h2a2h-execution-id': context.execution_id,
+      'Idempotency-Key': context.idempotency_key,
     };
     if (context.approval_evidence_ref) {
       headers['x-h2a2h-approval-evidence'] = context.approval_evidence_ref;
+    }
+    if (context.execution_recovered) {
+      headers['x-h2a2h-execution-recovered'] = 'true';
+    }
+    if (context.execution_fence !== undefined) {
+      headers['x-h2a2h-execution-fence'] = String(context.execution_fence);
     }
     for (const [configKey, headerName] of Object.entries(this.definition.config_headers ?? {})) {
       const value = this.config[configKey];
@@ -103,6 +117,12 @@ export class HttpJsonDomainProvider implements EmployeeToolProvider {
           interaction_id: context.interaction_id,
           correlation_id: context.correlation_id,
           delegation_ref: context.delegation_ref,
+          operation_index: context.operation_index,
+          input_digest: context.input_digest,
+          execution_id: context.execution_id,
+          idempotency_key: context.idempotency_key,
+          ...(context.execution_recovered ? { execution_recovered: true } : {}),
+          ...(context.execution_fence !== undefined ? { execution_fence: context.execution_fence } : {}),
           ...(context.approval_evidence_ref
             ? { approval_evidence_ref: context.approval_evidence_ref }
             : {}),
@@ -149,6 +169,7 @@ export function createDeclarativeHttpJsonProviderPackFactory(
       id: `provider-pack:${manifest.canonical_label}`,
       paths: binding.routes,
       token_secret: binding.authorization.secret,
+      recovery_mode: providerPackRecovery(manifest).mode,
       ...(binding.config_headers ? { config_headers: binding.config_headers } : {}),
     };
     return {

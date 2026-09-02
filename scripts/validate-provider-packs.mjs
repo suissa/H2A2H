@@ -55,9 +55,25 @@ export function buildCapabilityIndex(catalog) {
   return index;
 }
 
+export function normalizedProviderRecovery(manifest) {
+  return manifest.recovery ?? { mode: 'none' };
+}
+
 export function validateProviderManifestSemantics(manifest, capabilityIndex) {
   const allowedDomains = new Set(manifest.capability_domains ?? [manifest.domain]);
   if (allowedDomains.size === 0) fail(`${manifest.canonical_label} declares no capability domains`);
+
+  const recovery = normalizedProviderRecovery(manifest);
+  if (!['none', 'provider-idempotency', 'reconciliation'].includes(recovery.mode)) {
+    fail(`${manifest.canonical_label} has unsupported recovery mode ${recovery.mode}`);
+  }
+  if (recovery.mode === 'none') {
+    if (recovery.profile !== undefined) {
+      fail(`${manifest.canonical_label} cannot declare recovery profile when mode is none`);
+    }
+  } else if (typeof recovery.profile !== 'string' || recovery.profile.length === 0) {
+    fail(`${manifest.canonical_label} recovery mode ${recovery.mode} requires a semantic profile`);
+  }
 
   for (const label of manifest.capabilities) {
     const capability = capabilityIndex.get(label);

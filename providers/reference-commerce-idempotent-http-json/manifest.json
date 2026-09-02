@@ -1,5 +1,5 @@
 {
-  "canonical_label": "ProviderPack.Commerce.HttpJson",
+  "canonical_label": "ProviderPack.Commerce.ReferenceIdempotentHttpJson",
   "version": "0.1.0",
   "domain": "commerce",
   "capability_domains": ["commerce"],
@@ -11,7 +11,6 @@
     "commerce.order.status",
     "commerce.purchase.request"
   ],
-  "recovery": { "mode": "none" },
   "binding": {
     "routes": {
       "commerce.catalog.search": "/v1/commerce/catalog/search",
@@ -20,21 +19,17 @@
       "commerce.order.status": "/v1/commerce/order/status",
       "commerce.purchase.request": "/v1/commerce/purchase/request"
     },
-    "authorization": {
-      "type": "bearer",
-      "secret": "access_token"
-    },
-    "config_headers": {
-      "merchant_context": "x-h2a2h-merchant-context"
-    }
+    "authorization": { "type": "bearer", "secret": "access_token" }
+  },
+  "recovery": {
+    "mode": "provider-idempotency",
+    "profile": "h2a2h://recovery/provider-idempotency/reference-commerce/v1"
   },
   "config_schema": {
     "type": "object",
     "required": ["base_url"],
     "properties": {
-      "base_url": { "type": "string" },
-      "merchant_context": { "type": "string" },
-      "timeout_ms": { "type": "number" }
+      "base_url": { "type": "string" }
     },
     "additionalProperties": false
   },

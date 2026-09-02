@@ -26,6 +26,7 @@
       "tenant_id": "x-h2a2h-tenant-id"
     }
   },
+  "recovery": { "mode": "none" },
   "config_schema": {
     "type": "object",
     "required": ["base_url"],

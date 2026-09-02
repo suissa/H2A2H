@@ -11,6 +11,7 @@
     "observability.query",
     "engineering.change.request"
   ],
+  "recovery": { "mode": "none" },
   "binding": {
     "routes": {
       "engineering.scm.read": "/v1/engineering/scm/read",

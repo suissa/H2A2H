@@ -26,6 +26,7 @@ const valid = {
   capability_domains: ['alpha', 'beta'],
   provider_kind: 'http-json',
   capabilities: ['alpha.read', 'beta.write'],
+  recovery: { mode: 'none' },
   binding: {
     routes: {
       'alpha.read': '/v1/alpha/read',
@@ -47,6 +48,15 @@ const valid = {
 };
 
 assert.doesNotThrow(() => validateProviderManifestSemantics(valid, capabilities));
+assert.doesNotThrow(() => validateProviderManifestSemantics({ ...valid, recovery: undefined }, capabilities));
+assert.doesNotThrow(() => validateProviderManifestSemantics({
+  ...valid,
+  recovery: { mode: 'provider-idempotency', profile: 'h2a2h.provider.idempotency-key.v1' },
+}, capabilities));
+assert.doesNotThrow(() => validateProviderManifestSemantics({
+  ...valid,
+  recovery: { mode: 'reconciliation', profile: 'h2a2h.provider.reconciliation.v1' },
+}, capabilities));
 assert.doesNotThrow(() => assertCompleteProviderCoverage(capabilities, new Map([
   ['alpha.read', new Set(['ProviderPack.Test.HttpJson'])],
   ['beta.write', new Set(['ProviderPack.Test.HttpJson'])],
@@ -78,10 +88,31 @@ assert.throws(
   /undeclared config/,
 );
 assert.throws(
+  () => validateProviderManifestSemantics({
+    ...valid,
+    recovery: { mode: 'provider-idempotency' },
+  }, capabilities),
+  /requires a semantic profile/,
+);
+assert.throws(
+  () => validateProviderManifestSemantics({
+    ...valid,
+    recovery: { mode: 'reconciliation' },
+  }, capabilities),
+  /requires a semantic profile/,
+);
+assert.throws(
+  () => validateProviderManifestSemantics({
+    ...valid,
+    recovery: { mode: 'none', profile: 'should-not-exist' },
+  }, capabilities),
+  /cannot declare recovery profile/,
+);
+assert.throws(
   () => assertCompleteProviderCoverage(capabilities, new Map([
     ['alpha.read', new Set(['ProviderPack.Test.HttpJson'])],
   ])),
   /beta\.write/,
 );
 
-console.log('Provider Pack validator self-test passed: malformed bindings and incomplete capability coverage fail closed.');
+console.log('Provider Pack validator self-test passed: malformed bindings, recovery contracts, and incomplete capability coverage fail closed.');

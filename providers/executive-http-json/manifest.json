@@ -11,6 +11,7 @@
     "enterprise.communication.publish",
     "enterprise.approval.request"
   ],
+  "recovery": { "mode": "none" },
   "binding": {
     "routes": {
       "enterprise.strategy.read": "/v1/enterprise/strategy/read",

@@ -8,6 +8,7 @@ import {
   McpEmployeeToolProvider,
   type EmployeeToolProvider,
   type EmployeeToolProviderKind,
+  type EmployeeToolProviderRecoveryMode,
   type EmployeeToolRegistry,
   type InMemoryToolHandler,
   type McpToolDriver,
@@ -29,6 +30,15 @@ export interface EmployeeProviderPackHttpBinding {
   config_headers?: Record<string, string>;
 }
 
+export interface EmployeeProviderPackRecovery {
+  mode: EmployeeToolProviderRecoveryMode;
+  /**
+   * Semantic reference to the provider-side deduplication/reconciliation
+   * contract. Required whenever recovery mode is not `none`.
+   */
+  profile?: string;
+}
+
 export interface EmployeeProviderPackManifest {
   canonical_label: string;
   version: string;
@@ -37,6 +47,8 @@ export interface EmployeeProviderPackManifest {
   provider_kind: EmployeeProviderPackKind;
   capabilities: string[];
   binding?: EmployeeProviderPackHttpBinding;
+  /** Missing manifests normalize to `{ mode: 'none' }` for compatibility. */
+  recovery?: EmployeeProviderPackRecovery;
   config_schema: {
     type: 'object';
     required?: string[];
@@ -88,6 +100,10 @@ export function providerPackCapabilityDomains(manifest: EmployeeProviderPackMani
   return manifest.capability_domains ?? [manifest.domain];
 }
 
+export function providerPackRecovery(manifest: EmployeeProviderPackManifest): EmployeeProviderPackRecovery {
+  return manifest.recovery ?? { mode: 'none' };
+}
+
 export function validateEmployeeProviderPackManifest(
   manifest: EmployeeProviderPackManifest,
   tools: EmployeeToolRegistry,
@@ -117,6 +133,26 @@ export function validateEmployeeProviderPackManifest(
     'provider_pack.capabilities.duplicate',
     `Provider Pack ${manifest.canonical_label} declares duplicate capabilities`,
   );
+
+  const recovery = providerPackRecovery(manifest);
+  ensure(
+    ['none', 'provider-idempotency', 'reconciliation'].includes(recovery.mode),
+    'provider_pack.recovery.mode_invalid',
+    `${manifest.canonical_label} has unsupported recovery mode ${recovery.mode}`,
+  );
+  if (recovery.mode === 'none') {
+    ensure(
+      recovery.profile === undefined,
+      'provider_pack.recovery.profile_unexpected',
+      `${manifest.canonical_label} cannot declare a recovery profile when mode is none`,
+    );
+  } else {
+    ensure(
+      typeof recovery.profile === 'string' && recovery.profile.length > 0,
+      'provider_pack.recovery.profile_missing',
+      `${manifest.canonical_label} recovery mode ${recovery.mode} requires a semantic profile`,
+    );
+  }
 
   for (const label of manifest.capabilities) {
     const capability = tools.get(label);
@@ -185,7 +221,10 @@ export function validateEmployeeProviderPackManifest(
     );
   }
 
-  return manifest;
+  return {
+    ...manifest,
+    recovery: { ...recovery },
+  };
 }
 
 export async function loadEmployeeProviderPackManifest(
@@ -204,13 +243,13 @@ export class EmployeeProviderPackRegistry {
   constructor(readonly tools: EmployeeToolRegistry) {}
 
   register(manifest: EmployeeProviderPackManifest, factory: EmployeeProviderPackFactory): this {
-    validateEmployeeProviderPackManifest(manifest, this.tools);
+    const validated = validateEmployeeProviderPackManifest(manifest, this.tools);
     ensure(
-      !this.packs.has(manifest.canonical_label),
+      !this.packs.has(validated.canonical_label),
       'provider_pack.identity.duplicate',
-      `Provider Pack ${manifest.canonical_label} is already registered`,
+      `Provider Pack ${validated.canonical_label} is already registered`,
     );
-    this.packs.set(manifest.canonical_label, { manifest, factory });
+    this.packs.set(validated.canonical_label, { manifest: validated, factory });
     return this;
   }
 
@@ -260,6 +299,11 @@ export class EmployeeProviderPackRegistry {
         provider.kind === registered.manifest.provider_kind,
         'provider_pack.binding.kind_mismatch',
         `${capability} expected ${registered.manifest.provider_kind}, received ${provider.kind}`,
+      );
+      ensure(
+        (provider.recovery_mode ?? 'none') === providerPackRecovery(registered.manifest).mode,
+        'provider_pack.binding.recovery_mismatch',
+        `${capability} provider recovery mode does not match ${registered.manifest.canonical_label}`,
       );
       resolved.set(capability, provider);
     }
@@ -315,9 +359,20 @@ export function createInMemoryProviderPackFactory(
   handlers: Record<string, InMemoryToolHandler>,
 ): EmployeeProviderPackFactory {
   return ({ manifest }) => ({
-    defaultProvider: new InMemoryEmployeeToolProvider(id, handlers),
+    defaultProvider: new InMemoryEmployeeToolProvider(
+      id,
+      handlers,
+      { recovery_mode: providerPackRecovery(manifest).mode },
+    ),
     capabilityProviders: Object.fromEntries(
-      manifest.capabilities.map((label) => [label, new InMemoryEmployeeToolProvider(id, handlers)]),
+      manifest.capabilities.map((label) => [
+        label,
+        new InMemoryEmployeeToolProvider(
+          id,
+          handlers,
+          { recovery_mode: providerPackRecovery(manifest).mode },
+        ),
+      ]),
     ),
   });
 }
@@ -327,8 +382,13 @@ export function createHttpJsonProviderPackFactory(
   endpointFor: ToolEndpointResolver,
   fetchImpl?: typeof fetch,
 ): EmployeeProviderPackFactory {
-  return () => ({
-    defaultProvider: new HttpJsonEmployeeToolProvider(id, endpointFor, fetchImpl ?? fetch),
+  return ({ manifest }) => ({
+    defaultProvider: new HttpJsonEmployeeToolProvider(
+      id,
+      endpointFor,
+      fetchImpl ?? fetch,
+      { recovery_mode: providerPackRecovery(manifest).mode },
+    ),
   });
 }
 
@@ -336,7 +396,13 @@ export function createMcpProviderPackFactory(
   id: string,
   driver: McpToolDriver,
 ): EmployeeProviderPackFactory {
-  return () => ({ defaultProvider: new McpEmployeeToolProvider(id, driver) });
+  return ({ manifest }) => ({
+    defaultProvider: new McpEmployeeToolProvider(
+      id,
+      driver,
+      { recovery_mode: providerPackRecovery(manifest).mode },
+    ),
+  });
 }
 
 export function createInjectedProviderPackFactory(
@@ -347,5 +413,11 @@ export function createInjectedProviderPackFactory(
     context: ToolProviderInvocationContext,
   ) => MaybePromise<unknown>,
 ): EmployeeProviderPackFactory {
-  return () => ({ defaultProvider: new InjectedEmployeeToolProvider(id, handler) });
+  return ({ manifest }) => ({
+    defaultProvider: new InjectedEmployeeToolProvider(
+      id,
+      handler,
+      { recovery_mode: providerPackRecovery(manifest).mode },
+    ),
+  });
 }
