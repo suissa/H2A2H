@@ -122,6 +122,25 @@ export interface HumanReturnResult {
   return_state: 'human_presented' | 'human_acknowledged';
 }
 
+export interface HumanActionRequest {
+  canonical_label: string;
+  metadata?: Record<string, unknown>;
+}
+
+/**
+ * Expected Human-in-the-loop control outcome. This is protocol data, not a
+ * technical exception. `resume_state` identifies the lifecycle checkpoint that
+ * should be re-entered after the requested Human action has been satisfied.
+ */
+export interface HumanEscalationRequired {
+  kind: 'human_escalation_required';
+  code: string;
+  reason: string;
+  evidence: string[];
+  resume_state: LifecycleState;
+  human_action: HumanActionRequest;
+}
+
 export interface InteractionContext<TInput = unknown, TResult = unknown> {
   interaction_id: string;
   correlation_id: string;
@@ -134,6 +153,7 @@ export interface InteractionContext<TInput = unknown, TResult = unknown> {
   channel?: ChannelBinding;
   result?: TResult;
   human_return?: HumanReturnResult;
+  human_escalation?: HumanEscalationRequired;
   transitions: TransitionRecord[];
 }
 
@@ -144,7 +164,7 @@ export interface RuntimeBindings<TInput = unknown, TResult = unknown> {
   validateDelegation(context: InteractionContext<TInput, TResult>): MaybePromise<DelegationValidation>;
   resolveParticipants(context: InteractionContext<TInput, TResult>): MaybePromise<ParticipantResolution>;
   resolveChannel(context: InteractionContext<TInput, TResult>): MaybePromise<ChannelBinding>;
-  execute(context: InteractionContext<TInput, TResult>): MaybePromise<TResult>;
+  execute(context: InteractionContext<TInput, TResult>): MaybePromise<TResult | HumanEscalationRequired>;
   returnToHuman(context: InteractionContext<TInput, TResult>): MaybePromise<HumanReturnResult>;
   acknowledge?(context: InteractionContext<TInput, TResult>): MaybePromise<void>;
   onTransition?(transition: TransitionRecord, context: InteractionContext<TInput, TResult>): MaybePromise<void>;
