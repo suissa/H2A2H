@@ -138,7 +138,7 @@ test('atomic renewal creates exactly one successor under concurrent attempts', a
   const first = new DelegationSessionCoordinator(records);
   const second = new DelegationSessionCoordinator(records);
   const prior = await first.create(authority('delegation:prior'));
-  const renewAt = new Date('2026-09-02T17:10:00.000Z');
+  const renewAt = new Date('2026-09-02T17:04:00.000Z');
 
   const outcomes = await Promise.allSettled([
     first.renew(prior.session_id, authority('delegation:new-a', { now: renewAt }), renewAt),
