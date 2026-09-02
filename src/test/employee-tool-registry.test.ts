@@ -14,7 +14,10 @@ import {
   InMemoryEmployeeToolProvider,
   McpEmployeeToolProvider,
 } from '../employee-tool-registry.js';
-import type { EmployeeAgentDefinition } from '../employee-agent.js';
+import {
+  deriveEmployeeToolExecutionIdentity,
+  type EmployeeAgentDefinition,
+} from '../employee-agent.js';
 import type { EntityRef } from '../types.js';
 
 const human: EntityRef = {
@@ -120,20 +123,33 @@ test('Personal Shopper executes a read-only capability through the in-memory pro
 
   assert.equal(result.state, 'CLOSED');
   assert.equal(result.result?.tool_results[0]?.tool, 'commerce.catalog.search');
+  assert.match(result.result?.tool_results[0]?.execution_id ?? '', /^tool-execution:/);
   assert.deepEqual(result.result?.tool_results[0]?.result, {
     tool: 'commerce.catalog.search',
     input: { query: 'headphones' },
   });
 });
 
-test('approved side effect executes through HTTP+JSON provider with validated H2A2H approval metadata', async () => {
-  const received: Array<Record<string, unknown>> = [];
+test('approved side effect executes through HTTP+JSON provider with validated H2A2H approval and idempotency metadata', async () => {
+  const received: Array<{
+    body: Record<string, unknown>;
+    idempotencyKey?: string;
+    executionId?: string;
+  }> = [];
   const server = createServer((request, response) => {
     let body = '';
     request.setEncoding('utf8');
     request.on('data', (chunk) => { body += chunk; });
     request.on('end', () => {
-      received.push(JSON.parse(body) as Record<string, unknown>);
+      received.push({
+        body: JSON.parse(body) as Record<string, unknown>,
+        ...(typeof request.headers['idempotency-key'] === 'string'
+          ? { idempotencyKey: request.headers['idempotency-key'] }
+          : {}),
+        ...(typeof request.headers['x-h2a2h-execution-id'] === 'string'
+          ? { executionId: request.headers['x-h2a2h-execution-id'] }
+          : {}),
+      });
       response.writeHead(200, { 'content-type': 'application/json' });
       response.end(JSON.stringify({ accepted: true, provider: 'commerce-http' }));
     });
@@ -182,17 +198,20 @@ test('approved side effect executes through HTTP+JSON provider with validated H2
     assert.equal(result.state, 'CLOSED');
     assert.deepEqual(result.result?.tool_results[0]?.result, { accepted: true, provider: 'commerce-http' });
     assert.equal(received.length, 1);
-    const providerContext = received[0]?.context as Record<string, unknown>;
-    assert.equal(received[0]?.capability, 'commerce.purchase.request');
+    const providerContext = received[0]?.body.context as Record<string, unknown>;
+    assert.equal(received[0]?.body.capability, 'commerce.purchase.request');
     assert.equal(providerContext.delegation_ref, 'delegation:valid');
     assert.equal(providerContext.approval_evidence_ref, 'approval:purchase-1');
     assert.equal(providerContext.correlation_id, result.correlation_id);
+    assert.equal(received[0]?.executionId, providerContext.execution_id);
+    assert.equal(received[0]?.idempotencyKey, providerContext.idempotency_key);
+    assert.equal(result.result?.tool_results[0]?.execution_id, providerContext.execution_id);
   } finally {
     await new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
   }
 });
 
-test('MCP provider adapter preserves canonical capability identity and correlation metadata', async () => {
+test('MCP provider adapter preserves canonical capability, correlation and execution identity metadata', async () => {
   const tools = await EmployeeToolRegistry.load();
   let call: { name: string; args: unknown; metadata: Record<string, unknown> } | undefined;
   const provider = new McpEmployeeToolProvider('mcp:commerce', {
@@ -204,9 +223,18 @@ test('MCP provider adapter preserves canonical capability identity and correlati
   tools.bind('commerce.catalog.search', provider);
   const executor = tools.resolveExecutor('commerce.catalog.search');
   const employee = await (await EmployeeAgentRegistry.fromCatalog()).load('Enterprise.Employee.PersonalShopperAgent');
+  const execution = deriveEmployeeToolExecutionIdentity({
+    interaction_id: 'interaction:mcp',
+    intent_canonical_label: 'Enterprise.Employee.PersonalShopperAgent.Analyze',
+    employee_canonical_label: employee.contract.identity.canonical_label,
+    operation_index: 0,
+    tool_canonical_label: 'commerce.catalog.search',
+    operation_input: { query: 'camera' },
+  });
   await executor({ query: 'camera' }, {
     employee,
     operation: { tool: 'commerce.catalog.search', input: { query: 'camera' } },
+    execution,
     interaction: {
       interaction_id: 'interaction:mcp',
       correlation_id: 'correlation:mcp',
@@ -223,4 +251,7 @@ test('MCP provider adapter preserves canonical capability identity and correlati
   });
   assert.equal(call?.name, 'commerce.catalog.search');
   assert.equal(call?.metadata.correlation_id, 'correlation:mcp');
+  assert.equal(call?.metadata.execution_id, execution.execution_id);
+  assert.equal(call?.metadata.idempotency_key, execution.idempotency_key);
+  assert.equal(call?.metadata.operation_index, 0);
 });
