@@ -1,6 +1,13 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { randomUUID } from 'node:crypto';
-import { AuditTrail } from './audit.js';
+import {
+  AuditTrail,
+  AuditTrailError,
+  InMemoryAuditRecordStore,
+  auditInputFromTransition,
+  createAuditRecord,
+  type AuditRecordStore,
+} from './audit.js';
 import {
   InMemoryInteractionCheckpointStore,
   type InteractionCheckpointOwnership,
@@ -22,7 +29,10 @@ import type {
 export interface SDKOptions<TInput = unknown, TResult = unknown> {
   protocol_version?: string;
   registry?: ProtocolRegistry;
+  /** Optional hydrated local audit view retained for source compatibility. */
   audit?: AuditTrail;
+  /** Durable audit authority. Defaults to an in-memory atomic store. */
+  audit_store?: AuditRecordStore;
   checkpoint_store?: InteractionCheckpointStore<TInput, TResult>;
 }
 
@@ -65,9 +75,10 @@ function isFencedOwnership(ownership: InteractionCheckpointOwnership | undefined
 export class H2A2HSDK<TInput = unknown, TResult = unknown> {
   readonly protocolVersion: string;
   readonly registry: ProtocolRegistry;
-  readonly audit: AuditTrail;
   readonly checkpoints: InteractionCheckpointStore<TInput, TResult>;
   readonly runtime: H2A2HRuntime<TInput, TResult>;
+  private readonly auditTrail: AuditTrail;
+  private readonly auditStore: AuditRecordStore;
   private readonly checkpointOwnership = new AsyncLocalStorage<InteractionCheckpointOwnership>();
 
   constructor(
@@ -76,7 +87,8 @@ export class H2A2HSDK<TInput = unknown, TResult = unknown> {
   ) {
     this.protocolVersion = options.protocol_version ?? '1.0.0';
     this.registry = options.registry ?? new ProtocolRegistry();
-    this.audit = options.audit ?? new AuditTrail();
+    this.auditTrail = options.audit ?? new AuditTrail();
+    this.auditStore = options.audit_store ?? new InMemoryAuditRecordStore(this.auditTrail.export());
     this.checkpoints = options.checkpoint_store ?? new InMemoryInteractionCheckpointStore<TInput, TResult>();
 
     const wrapped: RuntimeBindings<TInput, TResult> = {
@@ -104,23 +116,77 @@ export class H2A2HSDK<TInput = unknown, TResult = unknown> {
           await this.checkpoints.save(context);
         }
 
-        // Only transitions that successfully reached the canonical checkpoint
-        // store are authoritative enough to enter the append-only audit trail.
-        this.audit.appendTransition(transition, {
-          intent: context.intent.ref,
-          ...(context.delegation?.delegation_id ? { delegation_ref: context.delegation.delegation_id } : {}),
-          ...(context.channel?.profile ? { channel_profile: context.channel.profile } : {}),
-          ...(context.human_return?.proof_ref ? { proof_refs: [context.human_return.proof_ref] } : {}),
-        });
+        // Checkpoint persistence is the canonical state gate. Only after it
+        // succeeds may the transition enter the durable audit chain.
+        const sequence = context.transitions.length - 1;
+        const previous = sequence > 0
+          ? this.auditTrail.get(context.interaction_id, sequence - 1)
+          : undefined;
+        const record = createAuditRecord(
+          auditInputFromTransition(transition, sequence, { intent: context.intent.ref }),
+          previous,
+        );
+        const persisted = await this.auditStore.append(record);
+        this.auditTrail.appendRecord(persisted.record);
+
         await bindings.onTransition?.(transition, context);
       },
     };
     this.runtime = new H2A2HRuntime(wrapped);
   }
 
+  private async hydrateAudit(interactionId: string): Promise<void> {
+    const records = await this.auditStore.load(interactionId);
+    this.auditTrail.hydrate(records);
+  }
+
+  /**
+   * Reconciles the durable audit chain against canonical checkpoint history.
+   * This closes the crash window where the checkpoint commit succeeded but the
+   * process died before its corresponding audit append completed.
+   */
+  private async reconcileAudit(
+    context: InteractionContext<TInput, TResult>,
+  ): Promise<void> {
+    await this.hydrateAudit(context.interaction_id);
+    const persistedCount = this.auditTrail.size(context.interaction_id);
+    if (persistedCount > context.transitions.length) {
+      throw new AuditTrailError(
+        'audit.ahead_of_checkpoint',
+        `Audit chain for ${context.interaction_id} contains more transitions than its canonical checkpoint`,
+      );
+    }
+
+    for (let sequence = 0; sequence < context.transitions.length; sequence += 1) {
+      const transition = context.transitions[sequence]!;
+      const previous = sequence > 0
+        ? this.auditTrail.get(context.interaction_id, sequence - 1)
+        : undefined;
+      const expected = createAuditRecord(
+        auditInputFromTransition(transition, sequence, { intent: context.intent.ref }),
+        previous,
+      );
+      const existing = this.auditTrail.get(context.interaction_id, sequence);
+      if (existing) {
+        if (existing.digest !== expected.digest) {
+          throw new AuditTrailError(
+            'audit.checkpoint_conflict',
+            `Audit sequence ${sequence} does not match canonical checkpoint transition`,
+          );
+        }
+        continue;
+      }
+
+      const persisted = await this.auditStore.append(expected);
+      this.auditTrail.appendRecord(persisted.record);
+    }
+  }
+
   async run(request: RunRequest<TInput>): Promise<InteractionContext<TInput, TResult>> {
     const interactionId = request.interaction_id ?? `interaction:${randomUUID()}`;
     const correlationId = request.correlation_id ?? `correlation:${randomUUID()}`;
+    await this.hydrateAudit(interactionId);
+
     const claimStart = this.checkpoints.claimStart;
     const releaseStart = this.checkpoints.releaseStart;
     if (!claimStart || !releaseStart) {
@@ -155,6 +221,12 @@ export class H2A2HSDK<TInput = unknown, TResult = unknown> {
     };
     let primaryError: unknown;
     try {
+      if (this.auditTrail.size(interactionId) > 0) {
+        throw new AuditTrailError(
+          'audit.orphan_chain',
+          `Audit records exist for ${interactionId} but no canonical checkpoint owns that interaction`,
+        );
+      }
       return await this.checkpointOwnership.run(
         ownership,
         () => this.runtime.run({
@@ -216,6 +288,7 @@ export class H2A2HSDK<TInput = unknown, TResult = unknown> {
     };
     let primaryError: unknown;
     try {
+      await this.reconcileAudit(context);
       return await this.checkpointOwnership.run(ownership, async () => {
         const hasReplacementInput = Object.prototype.hasOwnProperty.call(request, 'input');
         const resumeMetadata = hasReplacementInput
@@ -262,6 +335,11 @@ export class H2A2HSDK<TInput = unknown, TResult = unknown> {
     interactionId: string,
   ): Promise<InteractionContext<TInput, TResult> | undefined> {
     return this.checkpoints.load(interactionId);
+  }
+
+  async loadAudit(interactionId: string) {
+    await this.hydrateAudit(interactionId);
+    return this.auditTrail.export(interactionId);
   }
 
   createEnvelope<T>(input: CreateEnvelopeInput<T>): H2A2HEnvelope<T> {
@@ -317,11 +395,11 @@ export class H2A2HSDK<TInput = unknown, TResult = unknown> {
     };
   }
 
-  getAudit() {
-    return this.audit.export();
+  getAudit(interactionId?: string) {
+    return this.auditTrail.export(interactionId);
   }
 
-  verifyAudit() {
-    return this.audit.verify();
+  verifyAudit(interactionId?: string) {
+    return this.auditTrail.verify(interactionId);
   }
 }
