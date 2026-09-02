@@ -38,6 +38,16 @@ function toolExecutors(): Record<string, EmployeeToolExecutor> {
 function options(): EmployeeAgentRuntimeOptions {
   return {
     toolExecutors: toolExecutors(),
+    humanApproval: {
+      resolveRequiredTriggers: async (context) =>
+        context.operation.tool === 'commerce.purchase.request' ? ['purchase commitment'] : [],
+      verifyEvidence: async (binding) =>
+        binding.evidence_ref === 'approval:1' &&
+        binding.approved_by === human.entity_id &&
+        binding.employee_canonical_label === PERSONAL_SHOPPER_CANONICAL_LABEL &&
+        binding.tool_canonical_label === 'commerce.purchase.request' &&
+        binding.delegation_ref === 'delegation:valid',
+    },
     validateDelegation: async (context) => {
       const valid = context.input.delegation_ref === 'delegation:valid';
       return {
@@ -94,7 +104,7 @@ test('executes a delegated Personal Shopper read-only Intent through declared to
   assert.ok(sdk.verifyAudit().valid);
 });
 
-test('fails closed when Personal Shopper purchase needs Human approval', async () => {
+test('fails closed when Personal Shopper purchase needs Human approval even when request omits risk_triggers', async () => {
   const employeeRuntime = await createPersonalShopperAgent(options());
   const sdk = new H2A2HSDK(employeeRuntime.bindings());
 
@@ -109,7 +119,6 @@ test('fails closed when Personal Shopper purchase needs Human approval', async (
           {
             tool: 'commerce.purchase.request',
             input: { sku: 'sku-1', amount: 499 },
-            risk_triggers: ['purchase commitment'],
           },
         ],
       },
@@ -118,7 +127,7 @@ test('fails closed when Personal Shopper purchase needs Human approval', async (
   );
 });
 
-test('executes approved Personal Shopper purchase and returns PoHR evidence', async () => {
+test('executes approved Personal Shopper purchase only after external evidence validation and returns PoHR evidence', async () => {
   const employeeRuntime = await createPersonalShopperAgent(options());
   const sdk = new H2A2HSDK(employeeRuntime.bindings());
   const result = await sdk.run({
@@ -136,7 +145,7 @@ test('executes approved Personal Shopper purchase and returns PoHR evidence', as
         {
           tool: 'commerce.purchase.request',
           input: { sku: 'sku-1', amount: 499 },
-          risk_triggers: ['purchase commitment'],
+          risk_triggers: [],
         },
       ],
     },
