@@ -32,9 +32,12 @@ export class AuditTrail {
   private readonly records: AuditRecord[] = [];
 
   append(input: AppendAuditInput): AuditRecord {
+    // Audit records are immutable values. Never retain nested references owned
+    // by runtime contexts, adapters or callers after the record is hashed.
+    const isolatedInput = structuredClone(input);
     const previous = this.records.at(-1);
     const partial = {
-      ...input,
+      ...isolatedInput,
       audit_id: `audit:${randomUUID()}`,
       ...(previous ? { previous_digest: previous.digest } : {}),
     };

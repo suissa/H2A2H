@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import type {
+  EmployeeAgentInput,
   EmployeeAgentRuntimeOptions,
   EmployeeToolExecutor,
 } from '../employee-agent.js';
@@ -22,6 +23,11 @@ const agent: EntityRef = {
   kind: 'Agent',
   canonical_label: PERSONAL_SHOPPER_CANONICAL_LABEL,
 };
+
+interface ResumeMetadata {
+  proposed_input?: EmployeeAgentInput;
+  proposed_input_digest?: string;
+}
 
 function employeeOptions(purchaseCounter: { count: number }): EmployeeAgentRuntimeOptions {
   const executors: Record<string, EmployeeToolExecutor> = {
@@ -78,20 +84,26 @@ function employeeOptions(purchaseCounter: { count: number }): EmployeeAgentRunti
   };
 }
 
-test('Employee approval resumes EXECUTING only after core Human action validation and Employee evidence validation', async () => {
+test('Employee approval resumes canonical EXECUTING only after core action and Employee evidence validation', async () => {
   const purchaseCounter = { count: 0 };
   const employeeRuntime = await createPersonalShopperAgent(employeeOptions(purchaseCounter));
   const sdk = new H2A2HSDK({
     ...employeeRuntime.bindings(),
-    validateHumanAction: (_context, action, expected) => ({
-      valid:
-        action.actor.entity_id === human.entity_id
-        && action.actor.kind === 'Human'
-        && action.canonical_label === expected.canonical_label
-        && action.evidence.includes('human-action-proof:valid'),
-      evidence: action.evidence,
-      reason: 'human.resume.evidence_invalid',
-    }),
+    validateHumanAction: (_context, action, expected) => {
+      const resume = action.metadata?.h2a2h_resume as ResumeMetadata | undefined;
+      return {
+        valid:
+          action.actor.entity_id === human.entity_id
+          && action.actor.kind === 'Human'
+          && action.canonical_label === expected.canonical_label
+          && action.evidence.includes('human-action-proof:valid')
+          && resume?.proposed_input?.human_approval?.evidence_ref === 'approval:resume'
+          && typeof resume.proposed_input_digest === 'string'
+          && resume.proposed_input_digest.length > 0,
+        evidence: action.evidence,
+        reason: 'human.resume.evidence_invalid',
+      };
+    },
   });
 
   const request = {
@@ -116,17 +128,25 @@ test('Employee approval resumes EXECUTING only after core Human action validatio
   assert.equal(escalated.human_escalation?.human_action.canonical_label, 'Human.Approval.Provide');
   assert.equal(purchaseCounter.count, 0);
 
-  const invalidCoreEvidence = await sdk.resume(escalated, {
+  const invalidCoreEvidence = await sdk.resume(escalated.interaction_id, {
     human_action: {
       canonical_label: 'Human.Approval.Provide',
       actor: human,
       evidence: ['human-action-proof:forged'],
     },
+    input: {
+      ...request.input,
+      human_approval: {
+        granted: true,
+        approved_by: human.entity_id,
+        evidence_ref: 'approval:resume',
+      },
+    },
   });
   assert.equal(invalidCoreEvidence.state, 'HUMAN_ESCALATION_REQUIRED');
   assert.equal(purchaseCounter.count, 0);
 
-  const resumed = await sdk.resume(invalidCoreEvidence, {
+  const resumed = await sdk.resume(escalated.interaction_id, {
     human_action: {
       canonical_label: 'Human.Approval.Provide',
       actor: human,

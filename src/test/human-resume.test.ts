@@ -25,6 +25,16 @@ const agent: EntityRef = {
   canonical_label: 'Agent.ResumeWorker',
 };
 
+interface ResumeMetadata {
+  proposed_input?: ResumeInput;
+  proposed_input_digest?: string;
+  proposed_input_supplied?: boolean;
+}
+
+function resumeMetadata(action: { metadata?: Record<string, unknown> }): ResumeMetadata | undefined {
+  return action.metadata?.h2a2h_resume as ResumeMetadata | undefined;
+}
+
 function bindings(options: {
   acknowledgementRequired?: boolean;
   executeCounter?: { count: number };
@@ -62,14 +72,24 @@ function bindings(options: {
       };
     },
     ...(options.includeHumanValidator === false ? {} : {
-      validateHumanAction: (_context, action, expected) => ({
-        valid:
-          action.actor.entity_id === human.entity_id
-          && action.canonical_label === expected.canonical_label
-          && action.evidence.includes('human-proof:valid'),
-        evidence: action.evidence,
-        reason: 'human.resume.evidence_invalid',
-      }),
+      validateHumanAction: (_context, action, expected) => {
+        const metadata = resumeMetadata(action);
+        const delegationInputValid = expected.canonical_label !== 'Human.Delegation.Provide'
+          || (
+            metadata?.proposed_input?.delegation_ref === 'delegation:valid'
+            && typeof metadata.proposed_input_digest === 'string'
+            && metadata.proposed_input_digest.length > 0
+          );
+        return {
+          valid:
+            action.actor.entity_id === human.entity_id
+            && action.canonical_label === expected.canonical_label
+            && action.evidence.includes('human-proof:valid')
+            && delegationInputValid,
+          evidence: action.evidence,
+          reason: 'human.resume.evidence_invalid',
+        };
+      },
     }),
   };
 }
@@ -84,7 +104,7 @@ function initialRequest(input: ResumeInput) {
   };
 }
 
-test('invalid Human action and invalid evidence remain escalated and never execute downstream behavior', async () => {
+test('invalid Human action and invalid evidence remain persisted as escalated and never execute downstream behavior', async () => {
   const executeCounter = { count: 0 };
   const sdk = new H2A2HSDK(bindings({ executeCounter }));
   const escalated = await sdk.run(initialRequest({ payload: 'resume me' }));
@@ -93,7 +113,7 @@ test('invalid Human action and invalid evidence remain escalated and never execu
   assert.equal(escalated.human_escalation?.human_action.canonical_label, 'Human.Delegation.Provide');
   assert.equal(executeCounter.count, 0);
 
-  const wrongAction = await sdk.resume(escalated, {
+  const wrongAction = await sdk.resume(escalated.interaction_id, {
     human_action: {
       canonical_label: 'Human.Approval.Provide',
       actor: human,
@@ -104,26 +124,59 @@ test('invalid Human action and invalid evidence remain escalated and never execu
   assert.equal(wrongAction.transitions.at(-1)?.event, 'h2a2h.human.resume_rejected');
   assert.equal(executeCounter.count, 0);
 
-  const invalidEvidence = await sdk.resume(wrongAction, {
+  const invalidEvidence = await sdk.resume(escalated.interaction_id, {
     human_action: {
       canonical_label: 'Human.Delegation.Provide',
       actor: human,
       evidence: ['human-proof:forged'],
     },
+    input: {
+      delegation_ref: 'delegation:valid',
+      payload: 'forged resume',
+    },
   });
   assert.equal(invalidEvidence.state, 'HUMAN_ESCALATION_REQUIRED');
   assert.equal(invalidEvidence.transitions.at(-1)?.event, 'h2a2h.human.resume.evidence_invalid');
   assert.equal(executeCounter.count, 0);
+
+  const stored = await sdk.getInteraction(escalated.interaction_id);
+  assert.equal(stored?.transitions.at(-1)?.event, 'h2a2h.human.resume.evidence_invalid');
   assert.equal(sdk.verifyAudit().valid, true);
 });
 
-test('delegation HumanRequired resumes the same interaction from INTENT_CAPTURED and completes once', async () => {
+test('SDK ignores caller-mutated context and resumes from the canonical stored checkpoint', async () => {
   const executeCounter = { count: 0 };
   const sdk = new H2A2HSDK(bindings({ executeCounter }));
   const escalated = await sdk.run(initialRequest({ payload: 'resume me' }));
   const transitionCount = escalated.transitions.length;
 
-  const resumed = await sdk.resume(escalated, {
+  escalated.intent.ref.canonical_label = 'Forged.Intent';
+  if (!escalated.human_escalation) throw new Error('Expected Human escalation');
+  escalated.human_escalation.resume_state = 'EXECUTING';
+  escalated.human_escalation.human_action.canonical_label = 'Human.Approval.Provide';
+  escalated.correlation_id = 'correlation:forged';
+  escalated.transitions.push({
+    interaction_id: escalated.interaction_id,
+    from: 'HUMAN_ESCALATION_REQUIRED',
+    to: 'EXECUTING',
+    event: 'forged.transition',
+    correlation_id: escalated.correlation_id,
+    timestamp: new Date().toISOString(),
+    evidence: [],
+  });
+
+  const canonicalBefore = await sdk.getInteraction('interaction:resume-1');
+  assert.equal(canonicalBefore?.intent.ref.canonical_label, 'Resume.Example');
+  assert.equal(canonicalBefore?.correlation_id, 'correlation:resume-1');
+  assert.equal(canonicalBefore?.human_escalation?.resume_state, 'INTENT_CAPTURED');
+  assert.equal(canonicalBefore?.human_escalation?.human_action.canonical_label, 'Human.Delegation.Provide');
+  assert.equal(canonicalBefore?.transitions.some((transition) => transition.event === 'forged.transition'), false);
+
+  if (canonicalBefore) canonicalBefore.correlation_id = 'correlation:mutated-read-copy';
+  const canonicalAgain = await sdk.getInteraction('interaction:resume-1');
+  assert.equal(canonicalAgain?.correlation_id, 'correlation:resume-1');
+
+  const resumed = await sdk.resume('interaction:resume-1', {
     human_action: {
       canonical_label: 'Human.Delegation.Provide',
       actor: human,
@@ -138,6 +191,7 @@ test('delegation HumanRequired resumes the same interaction from INTENT_CAPTURED
   assert.equal(resumed.state, 'CLOSED');
   assert.equal(resumed.interaction_id, 'interaction:resume-1');
   assert.equal(resumed.correlation_id, 'correlation:resume-1');
+  assert.equal(resumed.intent.ref.canonical_label, 'Resume.Example');
   assert.equal(resumed.result?.accepted, 'resumed payload');
   assert.equal(executeCounter.count, 1);
   assert.equal(resumed.transitions.filter((transition) => transition.to === 'CREATED').length, 1);
@@ -148,7 +202,7 @@ test('delegation HumanRequired resumes the same interaction from INTENT_CAPTURED
   assert.equal(sdk.verifyAudit().valid, true);
 
   await assert.rejects(
-    () => sdk.resume(resumed, {
+    () => sdk.resume(resumed.interaction_id, {
       human_action: {
         canonical_label: 'Human.Delegation.Provide',
         actor: human,
@@ -160,7 +214,7 @@ test('delegation HumanRequired resumes the same interaction from INTENT_CAPTURED
   );
 });
 
-test('acknowledgement resume closes the same interaction without presenting a second PoHR', async () => {
+test('acknowledgement resume closes stored interaction without presenting a second PoHR', async () => {
   const returnCounter = { count: 0 };
   const sdk = new H2A2HSDK(bindings({
     acknowledgementRequired: true,
@@ -178,7 +232,7 @@ test('acknowledgement resume closes the same interaction without presenting a se
   assert.equal(returnCounter.count, 1);
   const proofRef = escalated.human_return?.proof_ref;
 
-  const resumed = await sdk.resume(escalated, {
+  const resumed = await sdk.resume(escalated.interaction_id, {
     human_action: {
       canonical_label: 'Human.Acknowledgement.Provide',
       actor: human,
@@ -196,12 +250,24 @@ test('acknowledgement resume closes the same interaction without presenting a se
   assert.equal(sdk.verifyAudit().valid, true);
 });
 
-test('resume fails closed when Human action validation is not configured', async () => {
+test('resume fails closed for unknown interactions and when Human action validation is not configured', async () => {
   const sdk = new H2A2HSDK(bindings({ includeHumanValidator: false }));
   const escalated = await sdk.run(initialRequest({ payload: 'validator required' }));
 
   await assert.rejects(
-    () => sdk.resume(escalated, {
+    () => sdk.resume('interaction:does-not-exist', {
+      human_action: {
+        canonical_label: 'Human.Delegation.Provide',
+        actor: human,
+        evidence: ['human-proof:valid'],
+      },
+    }),
+    (error: unknown) =>
+      error instanceof H2A2HRuntimeError && error.code === 'interaction.checkpoint_not_found',
+  );
+
+  await assert.rejects(
+    () => sdk.resume(escalated.interaction_id, {
       human_action: {
         canonical_label: 'Human.Delegation.Provide',
         actor: human,

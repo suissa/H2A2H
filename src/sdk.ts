@@ -1,6 +1,10 @@
 import { randomUUID } from 'node:crypto';
 import { AuditTrail } from './audit.js';
-import { H2A2HRuntime } from './runtime.js';
+import {
+  InMemoryInteractionCheckpointStore,
+  type InteractionCheckpointStore,
+} from './interaction-checkpoint.js';
+import { H2A2HRuntime, H2A2HRuntimeError } from './runtime.js';
 import { sha256 } from './security.js';
 import { ProtocolRegistry } from './registry.js';
 import type {
@@ -13,10 +17,11 @@ import type {
   RuntimeBindings,
 } from './types.js';
 
-export interface SDKOptions {
+export interface SDKOptions<TInput = unknown, TResult = unknown> {
   protocol_version?: string;
   registry?: ProtocolRegistry;
   audit?: AuditTrail;
+  checkpoint_store?: InteractionCheckpointStore<TInput, TResult>;
 }
 
 export interface CreateEnvelopeInput<T> {
@@ -55,12 +60,17 @@ export class H2A2HSDK<TInput = unknown, TResult = unknown> {
   readonly protocolVersion: string;
   readonly registry: ProtocolRegistry;
   readonly audit: AuditTrail;
+  readonly checkpoints: InteractionCheckpointStore<TInput, TResult>;
   readonly runtime: H2A2HRuntime<TInput, TResult>;
 
-  constructor(bindings: RuntimeBindings<TInput, TResult>, options: SDKOptions = {}) {
+  constructor(
+    bindings: RuntimeBindings<TInput, TResult>,
+    options: SDKOptions<TInput, TResult> = {},
+  ) {
     this.protocolVersion = options.protocol_version ?? '1.0.0';
     this.registry = options.registry ?? new ProtocolRegistry();
     this.audit = options.audit ?? new AuditTrail();
+    this.checkpoints = options.checkpoint_store ?? new InMemoryInteractionCheckpointStore<TInput, TResult>();
 
     const wrapped: RuntimeBindings<TInput, TResult> = {
       ...bindings,
@@ -71,6 +81,7 @@ export class H2A2HSDK<TInput = unknown, TResult = unknown> {
           ...(context.channel?.profile ? { channel_profile: context.channel.profile } : {}),
           ...(context.human_return?.proof_ref ? { proof_refs: [context.human_return.proof_ref] } : {}),
         });
+        await this.checkpoints.save(context);
         await bindings.onTransition?.(transition, context);
       },
     };
@@ -81,11 +92,46 @@ export class H2A2HSDK<TInput = unknown, TResult = unknown> {
     return this.runtime.run(request);
   }
 
-  resume(
-    context: InteractionContext<TInput, TResult>,
+  async resume(
+    interactionId: string,
     request: ResumeRequest<TInput>,
   ): Promise<InteractionContext<TInput, TResult>> {
-    return this.runtime.resume(context, request);
+    const context = await this.checkpoints.load(interactionId);
+    if (!context) {
+      throw new H2A2HRuntimeError(
+        'interaction.checkpoint_not_found',
+        `No canonical H2A2H checkpoint exists for ${interactionId}`,
+        interactionId,
+      );
+    }
+
+    const hasReplacementInput = Object.prototype.hasOwnProperty.call(request, 'input');
+    const resumeMetadata = hasReplacementInput
+      ? {
+          proposed_input: request.input,
+          proposed_input_digest: sha256(request.input),
+        }
+      : {
+          proposed_input_supplied: false,
+        };
+    const humanAction = {
+      ...request.human_action,
+      metadata: {
+        ...(request.human_action.metadata ?? {}),
+        h2a2h_resume: resumeMetadata,
+      },
+    };
+    const canonicalRequest: ResumeRequest<TInput> = hasReplacementInput
+      ? { human_action: humanAction, input: request.input as TInput }
+      : { human_action: humanAction };
+
+    return this.runtime.resume(context, canonicalRequest);
+  }
+
+  async getInteraction(
+    interactionId: string,
+  ): Promise<InteractionContext<TInput, TResult> | undefined> {
+    return this.checkpoints.load(interactionId);
   }
 
   createEnvelope<T>(input: CreateEnvelopeInput<T>): H2A2HEnvelope<T> {
