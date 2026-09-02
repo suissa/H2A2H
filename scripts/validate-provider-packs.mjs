@@ -100,6 +100,18 @@ export function validateProviderManifestSemantics(manifest, capabilityIndex) {
   }
 }
 
+export function assertCompleteProviderCoverage(capabilityIndex, providersByCapability) {
+  const uncovered = [...capabilityIndex.values()]
+    .filter((capability) => capability.provider_required)
+    .filter((capability) => (providersByCapability.get(capability.canonical_label)?.size ?? 0) === 0)
+    .map((capability) => capability.canonical_label)
+    .sort();
+  if (uncovered.length > 0) {
+    fail(`provider-required capabilities without a Provider Pack: ${uncovered.join(', ')}`);
+  }
+  return uncovered;
+}
+
 export async function validateAllProviderPacks({ providersDir = PROVIDERS_DIR, schemaPath = SCHEMA_PATH, catalogPath = CATALOG_PATH } = {}) {
   const [schema, catalog, paths] = await Promise.all([
     readJson(schemaPath),
@@ -113,6 +125,7 @@ export async function validateAllProviderPacks({ providersDir = PROVIDERS_DIR, s
   const validateSchema = ajv.compile(schema);
   const capabilityIndex = buildCapabilityIndex(catalog);
   const identities = new Map();
+  const providersByCapability = new Map();
   let capabilityBindings = 0;
 
   for (const path of paths) {
@@ -130,14 +143,37 @@ export async function validateAllProviderPacks({ providersDir = PROVIDERS_DIR, s
     identities.set(manifest.canonical_label, path);
     validateProviderManifestSemantics(manifest, capabilityIndex);
     capabilityBindings += manifest.capabilities.length;
+    for (const capability of manifest.capabilities) {
+      const providers = providersByCapability.get(capability) ?? new Set();
+      providers.add(manifest.canonical_label);
+      providersByCapability.set(capability, providers);
+    }
   }
 
-  return { packs: paths.length, capabilityBindings, paths };
+  const uncovered = assertCompleteProviderCoverage(capabilityIndex, providersByCapability);
+  const providerRequired = [...capabilityIndex.values()].filter((entry) => entry.provider_required).length;
+  const alternatives = [...providersByCapability.values()].filter((providers) => providers.size > 1).length;
+
+  return {
+    departments: Object.keys(catalog.departments ?? {}).length,
+    packs: paths.length,
+    providerRequired,
+    uniqueCoveredCapabilities: providersByCapability.size,
+    capabilityBindings,
+    alternatives,
+    uncovered: uncovered.length,
+    paths,
+  };
 }
 
 async function main() {
   const result = await validateAllProviderPacks();
-  console.log(`Provider Pack catalog valid: ${result.packs} packs, ${result.capabilityBindings} declared capability bindings.`);
+  console.log(
+    `Provider Pack catalog valid: ${result.departments} departments, ${result.packs} packs, ` +
+    `${result.uniqueCoveredCapabilities}/${result.providerRequired} provider-required capabilities covered, ` +
+    `${result.capabilityBindings} total bindings, ${result.alternatives} capabilities with alternative providers, ` +
+    `${result.uncovered} uncovered.`,
+  );
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
