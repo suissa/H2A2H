@@ -31,15 +31,11 @@ jobs:
           node -e "JSON.parse(require('node:fs').readFileSync('schemas/employee-tool-capability.schema.json','utf8')); console.log('Employee Tool capability schema JSON valid')"
           node -e "JSON.parse(require('node:fs').readFileSync('schemas/employee-provider-pack.schema.json','utf8')); console.log('Employee Provider Pack schema JSON valid')"
           node -e "JSON.parse(require('node:fs').readFileSync('capabilities/employee-tools/catalog.json','utf8')); console.log('Employee Tool catalog JSON valid')"
-          node -e "JSON.parse(require('node:fs').readFileSync('providers/reference-commerce/manifest.json','utf8')); console.log('Reference Provider Pack manifest JSON valid')"
-          node -e "JSON.parse(require('node:fs').readFileSync('providers/finance-http-json/manifest.json','utf8')); console.log('Finance Provider Pack manifest JSON valid')"
-          node -e "JSON.parse(require('node:fs').readFileSync('providers/engineering-http-json/manifest.json','utf8')); console.log('Engineering Provider Pack manifest JSON valid')"
-          node -e "JSON.parse(require('node:fs').readFileSync('providers/hr-http-json/manifest.json','utf8')); console.log('HR Provider Pack manifest JSON valid')"
-          node -e "JSON.parse(require('node:fs').readFileSync('providers/sales-customer-http-json/manifest.json','utf8')); console.log('Sales/Customer Provider Pack manifest JSON valid')"
-          node -e "JSON.parse(require('node:fs').readFileSync('providers/marketing-communications-http-json/manifest.json','utf8')); console.log('Marketing/Communications Provider Pack manifest JSON valid')"
-          node -e "JSON.parse(require('node:fs').readFileSync('providers/product-design-http-json/manifest.json','utf8')); console.log('Product/Design Provider Pack manifest JSON valid')"
-          node -e "JSON.parse(require('node:fs').readFileSync('providers/legal-risk-compliance-http-json/manifest.json','utf8')); console.log('Legal/Risk/Compliance Provider Pack manifest JSON valid')"
-          node -e "JSON.parse(require('node:fs').readFileSync('providers/analytics-strategy-http-json/manifest.json','utf8')); console.log('Analytics/Strategy Provider Pack manifest JSON valid')"
+
+      - name: Validate Provider Pack catalog
+        run: |
+          node scripts/validate-provider-packs.mjs
+          node scripts/validate-provider-packs-self-test.mjs
 
       - name: Validate employee Agent catalog
         run: node scripts/validate-employee-agents.mjs
