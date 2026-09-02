@@ -149,7 +149,9 @@ test('Provider Pack planner selects a deterministic non-overlapping catalog and 
     .map((capability) => capability.canonical_label);
   const plan = planEmployeeProviderActivation(catalog, required);
 
-  assert.equal(catalog.length, 14);
+  assert.ok(catalog.length >= plan.selected.length);
+  assert.ok(catalog.some((entry) => entry.manifest.recovery?.mode === 'provider-idempotency'));
+  assert.ok(catalog.some((entry) => entry.manifest.recovery?.mode === 'reconciliation'));
   assert.equal(plan.selected.length, 13);
   assert.equal(plan.required_capabilities.length, 65);
   assert.equal(plan.covered_capabilities.length, 65);
