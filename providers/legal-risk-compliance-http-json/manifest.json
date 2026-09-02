@@ -1,0 +1,47 @@
+{
+  "canonical_label": "ProviderPack.LegalRiskCompliance.HttpJson",
+  "version": "0.1.0",
+  "domain": "legal-risk-compliance",
+  "capability_domains": ["legal", "risk"],
+  "provider_kind": "http-json",
+  "capabilities": [
+    "legal.clm.read",
+    "legal.clm.write",
+    "legal.policy.query",
+    "risk.register.read",
+    "legal.approval.request"
+  ],
+  "binding": {
+    "routes": {
+      "legal.clm.read": "/v1/legal/clm/read",
+      "legal.clm.write": "/v1/legal/clm/write",
+      "legal.policy.query": "/v1/legal/policy/query",
+      "risk.register.read": "/v1/risk/register/read",
+      "legal.approval.request": "/v1/legal/approval/request"
+    },
+    "authorization": {
+      "type": "bearer",
+      "secret": "access_token"
+    },
+    "config_headers": {
+      "organization_id": "x-h2a2h-organization-id"
+    }
+  },
+  "config_schema": {
+    "type": "object",
+    "required": ["base_url"],
+    "properties": {
+      "base_url": { "type": "string" },
+      "organization_id": { "type": "string" },
+      "timeout_ms": { "type": "number" }
+    },
+    "additionalProperties": false
+  },
+  "secrets": [
+    { "name": "access_token", "required": true }
+  ],
+  "runtime": {
+    "network": true,
+    "protocols": ["HTTP+JSON"]
+  }
+}
