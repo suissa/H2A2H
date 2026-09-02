@@ -141,7 +141,9 @@ test('Human approval evidence is bound to the exact runtime-derived Tool executi
         && binding.approved_by === human.entity_id
         && binding.operation_index === 0
         && binding.tool_canonical_label === 'commerce.purchase.request'
+        && typeof binding.execution_id === 'string'
         && binding.execution_id.startsWith('tool-execution:')
+        && typeof binding.idempotency_key === 'string'
         && binding.idempotency_key.startsWith('h2a2h:');
     },
   }));
