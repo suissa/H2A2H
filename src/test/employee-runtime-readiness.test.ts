@@ -181,8 +181,9 @@ test('all 105 Employee Agents are runtime-ready from shared Provider Packs with 
 
   const providerCalls: ProviderCall[] = [];
   const fakeFetch: typeof fetch = async (_input, init) => {
-    assert.equal(typeof init?.body, 'string');
-    const request = JSON.parse(init.body) as ProviderCall;
+    const body = init?.body;
+    assert.equal(typeof body, 'string');
+    const request = JSON.parse(body) as ProviderCall;
     providerCalls.push(request);
     return new Response(JSON.stringify({
       ok: true,
