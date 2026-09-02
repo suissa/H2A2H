@@ -112,6 +112,8 @@ implements InteractionCheckpointStore<TInput, TResult> {
   private readonly checkpoints = new Map<string, InteractionContext<TInput, TResult>>();
   private readonly startClaims = new Map<string, ActiveInteractionLease>();
   private readonly resumeLeases = new Map<string, ActiveInteractionLease>();
+  private readonly startFences = new Map<string, number>();
+  private readonly resumeFences = new Map<string, number>();
   private readonly leaseTtlMs: number;
   private readonly now: () => Date;
 
@@ -133,6 +135,12 @@ implements InteractionCheckpointStore<TInput, TResult> {
       expires_at: new Date(claimedAt.getTime() + this.leaseTtlMs).toISOString(),
       fence,
     };
+  }
+
+  private nextFence(counters: Map<string, number>, interactionId: string): number {
+    const fence = (counters.get(interactionId) ?? 0) + 1;
+    counters.set(interactionId, fence);
+    return fence;
   }
 
   private isExpired(lease: ActiveInteractionLease): boolean {
@@ -176,8 +184,8 @@ implements InteractionCheckpointStore<TInput, TResult> {
     const existing = this.startClaims.get(interactionId);
     if (existing && !this.isExpired(existing)) return { status: 'conflict' };
 
-    const fence = existing ? existing.fence + 1 : 1;
     const recovered = Boolean(existing);
+    const fence = this.nextFence(this.startFences, interactionId);
     const lease = this.createLease('start-claim', fence);
     this.startClaims.set(interactionId, lease);
     return {
@@ -206,8 +214,8 @@ implements InteractionCheckpointStore<TInput, TResult> {
     const existing = this.resumeLeases.get(interactionId);
     if (existing && !this.isExpired(existing)) return { status: 'conflict' };
 
-    const fence = existing ? existing.fence + 1 : 1;
     const recovered = Boolean(existing);
+    const fence = this.nextFence(this.resumeFences, interactionId);
     const lease = this.createLease('resume-lease', fence);
     this.resumeLeases.set(interactionId, lease);
     return {
@@ -235,10 +243,14 @@ implements InteractionCheckpointStore<TInput, TResult> {
       this.checkpoints.delete(interactionId);
       this.startClaims.delete(interactionId);
       this.resumeLeases.delete(interactionId);
+      this.startFences.delete(interactionId);
+      this.resumeFences.delete(interactionId);
       return;
     }
     this.checkpoints.clear();
     this.startClaims.clear();
     this.resumeLeases.clear();
+    this.startFences.clear();
+    this.resumeFences.clear();
   }
 }
