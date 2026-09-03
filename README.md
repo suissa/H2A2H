@@ -24,13 +24,25 @@ H2A2H v1.0 separates semantic intent, delegated authority, transport declaration
 - [Versioning and compatibility](./spec/versioning.md)
 - [Formal model](./formal/H2A2H.tla)
 
+## Agentic generalization profile
+
+The repository also contains a domain-independent generalization of reusable ACP/AP2 architectural patterns:
+
+- [H2A2H Agentic Generalization Profile](./spec/agentic-generalization-profile.md)
+- [Verifiable Action Authorization Layer (VAAL)](./spec/verifiable-action-authorization.md)
+- [Machine-readable Agentic Generalization schema](./schemas/h2a2h-agentic-generalization-v1.schema.json)
+
+The profile adds Entity Discovery, semantic Capability Negotiation, Semantic Extensions, Capability/Action Handlers, ActionCommitments, bounded ActionMandates, ALLOW/DENY/CHALLENGE authorization decisions, ActionReceipts, and Intent Transition Traces. The shared semantic identity across these artifacts is the Action/capability `canonical_label`.
+
+ACP/AP2 concepts are treated as prior art and compatibility inputs rather than renamed H2A2H inventions. H2A2H generalizes the patterns from commerce-specific participants and checkout/payment state to arbitrary Entities and consequential state transitions.
+
 ## Implementations
 
 The repository intentionally contains two implementations.
 
 ### Reference Implementation A
 
-The TypeScript implementation under [`src/`](./src) provides the canonical reference SDK/runtime, including lifecycle execution, delegation sessions, security primitives, Human-in-the-Healing-Loop, audit provenance, protocol registry, SDK facade and transport/channel forger.
+The TypeScript implementation under [`src/`](./src) provides the canonical reference SDK/runtime, including lifecycle execution, delegation sessions, security primitives, Human-in-the-Healing-Loop, audit provenance, protocol registry, SDK facade, transport/channel forger, semantic capability negotiation and VAAL authorization primitives.
 
 ### Independent Reference Implementation B
 
@@ -40,14 +52,16 @@ The interoperability suite exercises A→B and B→A over direct serialized H2A2
 
 ## Protocol composition
 
-A complete interaction composes four independent concerns:
+A complete interaction composes independent concerns:
 
 1. **OpenIntent** declares what is intended, its semantic identity, schemas, roles and communication requirements.
 2. **OpenDelegation** declares what authority was granted, by whom, to whom, for what scope and for how long.
 3. **OpenEntityChannels** declares how participating Entities can communicate. Agents do not choose transports procedurally inside domain behavior.
-4. **Proof-of-Human-Return (PoHR)** proves that the interaction reached the intended Human boundary and distinguishes transport delivery from Human presentation/acknowledgement.
+4. **Capability Negotiation** establishes the mutually supported, context-valid capability/security set and binds it with a deterministic negotiation hash.
+5. **VAAL** proves whether one exact consequential Action may cross the execution boundary and produces `ALLOW`, `DENY`, or `CHALLENGE`.
+6. **Proof-of-Human-Return (PoHR)** proves that the interaction reached the intended Human boundary and distinguishes transport delivery from Human presentation/acknowledgement.
 
-The H2A2H envelope carries correlation, causation, identity, delegation and responsibility references across those layers.
+The H2A2H envelope carries correlation, causation, identity, delegation and responsibility references across those layers. Consequential executions may additionally bind an `ActionCommitment`, `ActionMandate`, `ActionReceipt`, and semantic `IntentTrace` into the audit chain.
 
 ## Conformance
 
@@ -68,6 +82,8 @@ npm run release:gate
 - replay protection;
 - audit-chain verification;
 - channel behavior;
+- semantic capability negotiation;
+- VAAL ActionCommitment/ActionMandate verification and replay tests;
 - basic Human→Agent→Agent→Human E2E;
 - Organization, Service, Device and Government Entity scenarios;
 - protocol-version negotiation;
