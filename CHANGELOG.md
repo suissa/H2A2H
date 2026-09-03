@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+### Agentic generalization
+
+- Added Entity Discovery and deterministic semantic Capability Negotiation derived from reusable ACP architectural patterns.
+- Added negotiation hashes that can be bound into consequential ActionCommitments to prevent post-authorization capability/security downgrade.
+- Added Semantic Extensions and self-describing Capability/Action Handler resolution.
+- Added the Verifiable Action Authorization Layer (VAAL) with DelegationMandate, ActionCommitment, ActionMandate, `ALLOW`/`DENY`/`CHALLENGE` decisions and ActionReceipt.
+- Added deterministic constraint enforcement, temporal attenuation, audience binding, proof hooks and atomic replay-consumption requirements.
+- Added Human challenge binding over the exact ActionCommitment and semantic Intent Transition Traces.
+- Added machine-readable JSON Schema and executable conformance tests for the new primitives.
+- Documented ACP/AP2 concepts explicitly as prior art and compatibility inputs rather than H2A2H inventions.
+
 ## 1.0.0 — 2026-09-01
 
 First stable H2A2H protocol release.

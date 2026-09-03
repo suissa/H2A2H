@@ -3,6 +3,7 @@ import { access, readFile } from 'node:fs/promises';
 const requiredFiles = [
   'SPECIFICATION.md',
   'schemas/h2a2h-v1.schema.json',
+  'schemas/h2a2h-agentic-generalization-v1.schema.json',
   'spec/terminology.md',
   'spec/lifecycle.md',
   'spec/openintent-integration.md',
@@ -15,6 +16,8 @@ const requiredFiles = [
   'spec/audit-provenance.md',
   'spec/interop-mcp-a2a.md',
   'spec/versioning.md',
+  'spec/agentic-generalization-profile.md',
+  'spec/verifiable-action-authorization.md',
   'formal/H2A2H.tla',
   'independent/reference-b/index.mjs',
   'independent/reference-b/interop.test.mjs',
@@ -25,7 +28,10 @@ const requiredFiles = [
   'src/audit.ts',
   'src/security.ts',
   'src/healing.ts',
-  'src/delegation-session.ts'
+  'src/delegation-session.ts',
+  'src/capability-negotiation.ts',
+  'src/vaal.ts',
+  'src/intent-trace.ts'
 ];
 
 const failures = [];
@@ -53,9 +59,26 @@ if (schema.$id !== 'https://h2a2h.dev/schemas/h2a2h-v1.schema.json') {
   failures.push('normative v1 schema $id is incorrect');
 }
 
+const generalizationSchema = JSON.parse(
+  await readFile('schemas/h2a2h-agentic-generalization-v1.schema.json', 'utf8'),
+);
+if (generalizationSchema.$id !== 'https://h2a2h.dev/schemas/h2a2h-agentic-generalization-v1.schema.json') {
+  failures.push('agentic generalization schema $id is incorrect');
+}
+
 const specification = await readFile('SPECIFICATION.md', 'utf8');
 for (const concept of ['OpenIntent', 'OpenDelegation', 'OpenEntityChannels', 'Proof-of-Human-Return']) {
   if (!specification.includes(concept)) failures.push(`normative specification does not reference ${concept}`);
+}
+
+const generalizationSpec = await readFile('spec/agentic-generalization-profile.md', 'utf8');
+for (const concept of ['Capability Negotiation', 'Entity Discovery', 'ActionCommitment', 'Intent Transition Trace']) {
+  if (!generalizationSpec.includes(concept)) failures.push(`agentic generalization profile does not reference ${concept}`);
+}
+
+const vaalSpec = await readFile('spec/verifiable-action-authorization.md', 'utf8');
+for (const concept of ['DelegationMandate', 'ActionMandate', 'ActionReceipt', 'ALLOW', 'DENY', 'CHALLENGE']) {
+  if (!vaalSpec.includes(concept)) failures.push(`VAAL specification does not reference ${concept}`);
 }
 
 const readme = await readFile('README.md', 'utf8');
