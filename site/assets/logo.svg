@@ -1,0 +1,34 @@
+<svg width="420" height="112" viewBox="0 0 420 112" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">H2A2H</title>
+  <desc id="desc">H2A2H Human-to-Agent-to-Human wordmark</desc>
+  <defs>
+    <linearGradient id="left" x1="20" y1="20" x2="185" y2="92" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F7FBFF"/>
+      <stop offset="0.52" stop-color="#8EDCFF"/>
+      <stop offset="1" stop-color="#0AA7FF"/>
+    </linearGradient>
+    <linearGradient id="center" x1="174" y1="18" x2="250" y2="98" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="0.55" stop-color="#DCE5F1"/>
+      <stop offset="1" stop-color="#8FA3BD"/>
+    </linearGradient>
+    <linearGradient id="right" x1="240" y1="20" x2="402" y2="92" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8FAFF"/>
+      <stop offset="0.5" stop-color="#B989FF"/>
+      <stop offset="1" stop-color="#A33BFF"/>
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-70%" width="160%" height="240%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.15 0 0 0 0 0.68 0 0 0 0 1 0 0 0 .45 0" result="blueGlow"/>
+      <feMerge><feMergeNode in="blueGlow"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <g filter="url(#glow)">
+    <path d="M22 24H36V50H89V24H103V88H89V62H36V88H22V24Z" fill="url(#left)"/>
+    <path d="M118 37C118 28 124 23 135 23H165C178 23 184 29 184 40C184 49 180 55 170 61L139 79H186V90H118V82C118 77 120 73 126 69L161 49C167 45 170 42 170 39C170 35 168 34 163 34H138C133 34 131 36 131 40V44H118V37Z" fill="url(#left)"/>
+    <path d="M205 90L241 23H258L294 90H279L249.5 37.5L220 90H205Z" fill="url(#center)"/>
+    <path d="M301 37C301 28 307 23 318 23H348C361 23 367 29 367 40C367 49 363 55 353 61L322 79H369V90H301V82C301 77 303 73 309 69L344 49C350 45 353 42 353 39C353 35 351 34 346 34H321C316 34 314 36 314 40V44H301V37Z" fill="url(#right)"/>
+    <path d="M374 24H388V50H401V62H388V88H374V24Z" fill="url(#right)" opacity="0"/>
+  </g>
+  <path d="M375 24H389V50H404V24H418V88H404V62H389V88H375V24Z" fill="url(#right)"/>
+</svg>
