@@ -23,6 +23,7 @@ const requiredFiles = [
   'docs/specs/H2A2H-Crypto-Suite.md',
   'docs/specs/H2A2H-Crypto-Threat-Model.md',
   'docs/specs/H2A2H-Crypto-Implementation.md',
+  'docs/governance/tag-protection.md',
   'test-vectors/h2a2h-crypto-suite-v0.1.json',
   'formal/H2A2H.tla',
   'independent/reference-b/index.mjs',
@@ -38,7 +39,8 @@ const requiredFiles = [
   'src/delegation-session.ts',
   'src/capability-negotiation.ts',
   'src/vaal.ts',
-  'src/intent-trace.ts'
+  'src/intent-trace.ts',
+  'scripts/verify-tag-ruleset.mjs'
 ];
 
 const failures = [];
