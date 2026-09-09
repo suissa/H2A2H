@@ -108,6 +108,26 @@ export class H2A2HRuntime<TInput = unknown, TResult = unknown> {
     return this.continueFrom(context, 'INTENT_CAPTURED');
   }
 
+  async recover(
+    context: InteractionContext<TInput, TResult>,
+  ): Promise<InteractionContext<TInput, TResult>> {
+    if (TERMINAL.has(context.state)) {
+      throw new H2A2HRuntimeError(
+        'interaction.recover.terminal_state',
+        `Cannot recover terminal interaction from ${context.state}`,
+        context.interaction_id,
+      );
+    }
+    if (!RESUMABLE.has(context.state)) {
+      throw new H2A2HRuntimeError(
+        'interaction.recover.unsupported_checkpoint',
+        `Cannot recover H2A2H interaction from ${context.state}`,
+        context.interaction_id,
+      );
+    }
+    return this.continueFrom(context, context.state);
+  }
+
   async resume(
     context: InteractionContext<TInput, TResult>,
     request: ResumeRequest<TInput>,
