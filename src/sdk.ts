@@ -251,6 +251,61 @@ export class H2A2HSDK<TInput = unknown, TResult = unknown> {
     }
   }
 
+  async recover(
+    interactionId: string,
+  ): Promise<InteractionContext<TInput, TResult>> {
+    const claimResume = this.#checkpoints.claimResume;
+    const releaseResume = this.#checkpoints.releaseResume;
+    if (!claimResume || !releaseResume) {
+      throw new H2A2HRuntimeError(
+        'interaction.recovery_claim_unsupported',
+        'Checkpoint store must support atomic Interaction recovery claiming',
+        interactionId,
+      );
+    }
+    const claim = await claimResume.call(this.#checkpoints, interactionId);
+    if (claim.status === 'not_found') {
+      throw new H2A2HRuntimeError(
+        'interaction.checkpoint_not_found',
+        `No canonical H2A2H checkpoint exists for ${interactionId}`,
+        interactionId,
+      );
+    }
+    if (claim.status === 'conflict') {
+      throw new H2A2HRuntimeError(
+        'interaction.recovery_conflict',
+        `Interaction ${interactionId} already has an active recovery claim`,
+        interactionId,
+      );
+    }
+    const { lease_id: leaseId, context } = claim.lease;
+    const ownership: InteractionCheckpointOwnership = {
+      kind: 'resume',
+      lease_id: leaseId,
+      ...(claim.lease.fence !== undefined ? { fence: claim.lease.fence } : {}),
+    };
+    let primaryError: unknown;
+    try {
+      await this.reconcileAudit(context);
+      return await this.checkpointOwnership.run(
+        ownership,
+        () => this.#runtime.recover(context),
+      );
+    } catch (error) {
+      primaryError = error;
+      throw error;
+    } finally {
+      const released = await releaseResume.call(this.#checkpoints, interactionId, leaseId);
+      if (!released && primaryError === undefined) {
+        throw new H2A2HRuntimeError(
+          'interaction.recovery_release_failed',
+          `Atomic Interaction recovery lease could not be released for ${interactionId}`,
+          interactionId,
+        );
+      }
+    }
+  }
+
   async resume(
     interactionId: string,
     request: ResumeRequest<TInput>,
