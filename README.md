@@ -100,13 +100,16 @@ normative documents still marked as drafts.
 
 Normative protocol examples are under [`examples/`](./examples). Executable H2A2H scenarios are under [`src/examples/`](./src/examples).
 
-## v1.0 release criteria
+## v1 stable release criteria
 
-v1.0 is emitted only when no known work remains: all normative drafts are
-promoted, every checklist item is complete, no issue or pull request is open,
-the two implementations and interoperability profiles pass, and the
-reproducible release gate is green. See
+The first valid v1 stable release is emitted only when no known work remains:
+all normative drafts are promoted, every checklist item is complete, no issue
+or pull request is open, the two implementations and interoperability profiles
+pass, and the reproducible release gate is green. See
 [`release/v1.0.0.md`](./release/v1.0.0.md).
+
+The historical `v1.0.0` identity is withdrawn and will not be reused; the first
+valid stable release will be `v1.0.1` or later.
 
 ## License
 
