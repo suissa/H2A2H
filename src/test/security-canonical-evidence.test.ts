@@ -53,6 +53,18 @@ test('canonical JSON rejects sparse/decorated arrays, accessors and cyclic struc
   assert.throws(() => canonicalJson(cyclic), /security\.canonical\.cycle/);
 });
 
+test('canonical JSON rejects unpaired Unicode surrogates in values and keys', () => {
+  assert.throws(
+    () => canonicalJson({ value: '\ud800' }),
+    /security\.canonical\.invalid_unicode/,
+  );
+  assert.throws(
+    () => canonicalJson({ ['\udc00']: true }),
+    /security\.canonical\.invalid_unicode/,
+  );
+  assert.equal(canonicalJson({ value: '😀' }), '{"value":"😀"}');
+});
+
 test('valid Ed25519 evidence verifies and isolates payload from later caller mutation', () => {
   const { privateKey, publicKey } = generateKeyPairSync('ed25519');
   const payload = { b: 2, nested: { z: true, a: 'x' } };
@@ -79,7 +91,9 @@ test('Ed25519 verification rejects every authority-critical metadata mutation', 
     { ...evidence, profile: 'other.profile' },
     { ...evidence, algorithm: 'RSA' },
     { ...evidence, key_id: '' },
+    { ...evidence, key_id: 'key:other-valid-id' },
     { ...evidence, created_at: 'not-a-date' },
+    { ...evidence, created_at: '2026-09-02T20:00:01.000Z' },
     { ...evidence, payload_digest: { ...evidence.payload_digest, algorithm: 'sha-1' } },
     { ...evidence, payload_digest: { ...evidence.payload_digest, value: 'not-base64url' } },
     { ...evidence, signature: 'invalid' },

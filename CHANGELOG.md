@@ -4,6 +4,14 @@
 
 The project remains pre-1.0 while the normative specification is under review.
 
+- Added the versioned Crypto Suite v0.1 profile with fixed Argon2id root
+  derivation, HKDF-SHA-256 domain keys, BLAKE3 artifact/branch identities and
+  protected Ed25519 envelopes.
+- Added language-neutral deterministic vectors, a strict JSON Schema,
+  executable conformance tests, threat-model and implementation guidance.
+- Bound legacy Ed25519 evidence metadata into signatures and rejected unpaired
+  Unicode surrogates before canonicalization.
+
 ## 0.9.0 — 2026-09-09
 
 ### Release readiness
