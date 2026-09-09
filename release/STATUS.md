@@ -59,3 +59,8 @@ that GitHub has no open issues or pull requests at the release commit.
 It additionally inspects the active release-tag ruleset through the GitHub API.
 The required policy and emergency-governance procedure are documented in
 [`docs/governance/tag-protection.md`](../docs/governance/tag-protection.md).
+
+The independent v1 review boundary and evidence procedure are fixed in
+[`review/v1/README.md`](../review/v1/README.md). Stable automation requires the
+scoped digest, resolved critical/high findings and a live external GitHub PR
+approval; self-authored attestation cannot pass.

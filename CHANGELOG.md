@@ -13,6 +13,9 @@ The project remains pre-1.0 while the normative specification is under review.
   Unicode surrogates before canonicalization.
 - Added an executable, fail-closed stable-release check for the active
   `refs/tags/v*` update/deletion ruleset and documented emergency governance.
+- Added a reproducible independent-review scope, attestation schema and stable
+  release verifier bound to both the scoped digest and an external GitHub PR
+  approval.
 
 ## 0.9.0 — 2026-09-09
 

@@ -6,6 +6,7 @@ const requiredFiles = [
   'schemas/h2a2h-v1.schema.json',
   'schemas/h2a2h-agentic-generalization-v1.schema.json',
   'schemas/h2a2h-crypto-suite-v0.1.schema.json',
+  'schemas/h2a2h-v1-review-attestation.schema.json',
   'spec/terminology.md',
   'spec/lifecycle.md',
   'spec/openintent-integration.md',
@@ -24,6 +25,8 @@ const requiredFiles = [
   'docs/specs/H2A2H-Crypto-Threat-Model.md',
   'docs/specs/H2A2H-Crypto-Implementation.md',
   'docs/governance/tag-protection.md',
+  'review/v1/README.md',
+  'review/v1/scope.json',
   'test-vectors/h2a2h-crypto-suite-v0.1.json',
   'formal/H2A2H.tla',
   'independent/reference-b/index.mjs',
@@ -40,7 +43,8 @@ const requiredFiles = [
   'src/capability-negotiation.ts',
   'src/vaal.ts',
   'src/intent-trace.ts',
-  'scripts/verify-tag-ruleset.mjs'
+  'scripts/verify-tag-ruleset.mjs',
+  'scripts/verify-v1-independent-review.mjs'
 ];
 
 const failures = [];
@@ -125,6 +129,14 @@ if (stable) {
   const unchecked = checklist.match(/^- \[ \] .+$/gm) ?? [];
   if (unchecked.length > 0) {
     failures.push(`stable release has ${unchecked.length} unchecked promotion criteria`);
+  }
+  try {
+    const attestation = JSON.parse(await readFile('review/v1/attestation.json', 'utf8'));
+    const { validateLocalAttestation } = await import('./verify-v1-independent-review.mjs');
+    const review = await validateLocalAttestation(attestation, 'suissa');
+    if (!review.ok) failures.push(`independent review evidence failed: ${review.reason}`);
+  } catch (error) {
+    failures.push(`independent review evidence unavailable: ${error instanceof Error ? error.message : String(error)}`);
   }
   if (/pre-1\.0/i.test(readme)) failures.push('stable release README still declares pre-1.0 status');
 }

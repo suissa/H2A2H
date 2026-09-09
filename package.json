@@ -21,6 +21,8 @@
     "crypto:vectors": "npm run build && node scripts/generate-crypto-vectors.mjs",
     "release:tag-protection": "node scripts/verify-tag-ruleset.mjs",
     "release:tag-protection:self-test": "node scripts/verify-tag-ruleset-self-test.mjs",
+    "release:independent-review": "node scripts/verify-v1-independent-review.mjs",
+    "release:independent-review:self-test": "node scripts/verify-v1-independent-review-self-test.mjs",
     "release:gate": "node scripts/release-gate.mjs"
   },
   "engines": {

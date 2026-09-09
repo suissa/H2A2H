@@ -27,6 +27,7 @@ known release task is closed and the final readiness gate passes.
 - [MCP/A2A interoperability](./spec/interop-mcp-a2a.md)
 - [Versioning and compatibility](./spec/versioning.md)
 - [Formal model](./formal/H2A2H.tla)
+- [Independent v1 review packet](./review/v1/README.md)
 
 ## Agentic generalization profile
 
