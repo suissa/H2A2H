@@ -125,6 +125,17 @@ export class H2A2HRuntime<TInput = unknown, TResult = unknown> {
         context.interaction_id,
       );
     }
+    if (context.state === 'EXECUTING') {
+      const recoverExecution = this.bindings.recoverExecution;
+      if (!recoverExecution) {
+        throw new H2A2HRuntimeError(
+          'interaction.recover.execution_reconciliation_required',
+          'Recovering EXECUTING requires an explicit idempotent retry or reconciliation binding',
+          context.interaction_id,
+        );
+      }
+      return this.afterExecutionResult(context, await recoverExecution(context));
+    }
     return this.continueFrom(context, context.state);
   }
 
@@ -329,7 +340,13 @@ export class H2A2HRuntime<TInput = unknown, TResult = unknown> {
   private async afterExecuting(
     context: InteractionContext<TInput, TResult>,
   ): Promise<InteractionContext<TInput, TResult>> {
-    const execution = await this.bindings.execute(context);
+    return this.afterExecutionResult(context, await this.bindings.execute(context));
+  }
+
+  private async afterExecutionResult(
+    context: InteractionContext<TInput, TResult>,
+    execution: TResult | HumanEscalationRequired,
+  ): Promise<InteractionContext<TInput, TResult>> {
     if (isHumanEscalationRequired(execution)) {
       context.human_escalation = execution;
       await this.transition(

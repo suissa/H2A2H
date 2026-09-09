@@ -2,11 +2,12 @@
 
 **Human-to-Agent-to-Human** is a protocol model for digital interactions in which agents do not exist in isolation: every delegated action remains inside an explicit chain of authority, responsibility, provenance and eventual Human return.
 
-**Stable release:** [v1.0.0](https://github.com/suissa/H2A2H/releases/tag/v1.0.0) · [Release status and evidence](./release/STATUS.md)
+**Current status:** pre-1.0 (`0.9.x`) · [Readiness status and evidence](./release/STATUS.md)
 
-H2A2H v1.0 separates semantic intent, delegated authority, transport declaration and Human-return proof so an Agent can participate without embedding hidden transport or authorization logic in domain behavior.
+H2A2H is targeting v1.0. The normative documents remain drafts until every
+known release task is closed and the final readiness gate passes.
 
-## v1.0 normative artifacts
+## Draft v1.0 normative artifacts
 
 - [Normative Specification](./SPECIFICATION.md)
 - [Normative JSON Schema bundle](./schemas/h2a2h-v1.schema.json)
@@ -68,7 +69,7 @@ The H2A2H envelope carries correlation, causation, identity, delegation and resp
 Requirements: Node.js 22 or newer.
 
 ```sh
-npm install
+npm ci
 npm run typecheck
 npm run conformance
 npm run release:gate
@@ -89,7 +90,11 @@ npm run release:gate
 - protocol-version negotiation;
 - independent Reference A↔B interoperability.
 
-After the H2A2H Conformance CI succeeds on `main`, the release workflow checks whether the package version already has an immutable Git tag. For a new version it reruns the release gate, typecheck, build, conformance suite and dependency audit, creates `v<version>` at the validated commit, generates a machine-readable conformance report and publishes the GitHub Release with that report attached. If that version is already published at another commit, the workflow preserves the existing tag and does not overwrite its release evidence.
+After the H2A2H Conformance CI succeeds on `main`, the release workflow checks
+whether the package version already has an immutable Git tag. Pre-1.0 versions
+are published as prereleases. A stable version is additionally blocked while
+the repository has open issues or pull requests, unchecked release criteria, or
+normative documents still marked as drafts.
 
 ## Examples
 
@@ -97,7 +102,11 @@ Normative protocol examples are under [`examples/`](./examples). Executable H2A2
 
 ## v1.0 release criteria
 
-v1.0 requires a complete normative specification and schemas, passing reference and independent implementations, bidirectional interoperability, PoHR, responsibility-chain preservation, security/audit semantics, E2E scenarios and green CI/release gates. See [`release/v1.0.0.md`](./release/v1.0.0.md).
+v1.0 is emitted only when no known work remains: all normative drafts are
+promoted, every checklist item is complete, no issue or pull request is open,
+the two implementations and interoperability profiles pass, and the
+reproducible release gate is green. See
+[`release/v1.0.0.md`](./release/v1.0.0.md).
 
 ## License
 

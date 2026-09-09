@@ -1,6 +1,6 @@
 {
   "name": "h2a2h-reference-b",
-  "version": "1.0.0",
+  "version": "0.9.0",
   "implementation": "independent",
   "runtime": "node-esm",
   "shared_runtime_code": false,

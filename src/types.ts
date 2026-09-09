@@ -202,6 +202,14 @@ export interface RuntimeBindings<TInput = unknown, TResult = unknown> {
   resolveParticipants(context: InteractionContext<TInput, TResult>): MaybePromise<ParticipantResolution>;
   resolveChannel(context: InteractionContext<TInput, TResult>): MaybePromise<ChannelBinding>;
   execute(context: InteractionContext<TInput, TResult>): MaybePromise<TResult | HumanEscalationRequired>;
+  /**
+   * Reconciles or idempotently retries an execution interrupted after the
+   * canonical EXECUTING checkpoint. It MUST NOT duplicate an external effect.
+   * Recovery fails closed when this binding is absent.
+   */
+  recoverExecution?(
+    context: InteractionContext<TInput, TResult>,
+  ): MaybePromise<TResult | HumanEscalationRequired>;
   returnToHuman(context: InteractionContext<TInput, TResult>): MaybePromise<HumanReturnResult>;
   acknowledge?(context: InteractionContext<TInput, TResult>): MaybePromise<void>;
   validateHumanAction?(
