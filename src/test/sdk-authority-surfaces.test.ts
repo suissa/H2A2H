@@ -13,5 +13,5 @@ test('SDK does not expose mutable runtime authority surfaces', () => {
   assert.equal((sdk as unknown as { runtime?: unknown }).runtime, undefined);
   assert.equal((sdk as unknown as { registry?: unknown }).registry, undefined);
   assert.equal(registry.isSealed(), true);
-  assert.throws(() => registry.register('late', { protocol: 'h2a2h', version: '1.0.0' }), /registry sealed/i);
+  assert.throws(() => registry.register('late', { protocol: 'h2a2h', version: '1.0.0' }), /registry is sealed/i);
 });
