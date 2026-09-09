@@ -1,0 +1,49 @@
+name: Withdraw premature v1.0.0 release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/withdraw-premature-v1.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  withdraw:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Mark v1.0.0 as withdrawn prerelease
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const tag = 'v1.0.0';
+            const marker = '<!-- h2a2h-withdrawn-v1 -->';
+            const warning = `${marker}\n> [!WARNING]\n> **Withdrawn:** this release was published prematurely while normative artifacts were still drafts. It is retained only as historical evidence and is not a stable H2A2H release. The first valid stable release will use a later SemVer identity.\n`;
+
+            const { data: release } = await github.rest.repos.getReleaseByTag({
+              owner,
+              repo,
+              tag,
+            });
+
+            const originalBody = release.body ?? '';
+            const body = originalBody.includes(marker)
+              ? originalBody
+              : `${warning}\n${originalBody}`;
+
+            await github.rest.repos.updateRelease({
+              owner,
+              repo,
+              release_id: release.id,
+              name: 'H2A2H v1.0.0 (withdrawn)',
+              prerelease: true,
+              body,
+            });
+
+            core.notice(`Release ${tag} is marked withdrawn and prerelease; tag was not changed.`);

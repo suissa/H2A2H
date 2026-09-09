@@ -40,8 +40,15 @@ normative documents left draft status and before later authority/recovery
 hardening landed. They are retained as historical evidence and MUST NOT be
 described as the final stable H2A2H v1.0.
 
-No automation may move or overwrite that tag. Its deletion or replacement is a
-separate destructive governance decision requiring explicit owner approval.
+The approved disposition is to preserve the tag and evidence while marking the
+GitHub release **withdrawn** and **prerelease**. The `v1.0.0` identity is
+permanently consumed and MUST NOT be reused. The first valid stable package
+release will therefore use `v1.0.1` or a later SemVer identity after every
+promotion gate passes.
+
+No automation may move, overwrite or delete that tag. The dedicated withdrawal
+workflow only updates release metadata and leaves the original commit and
+conformance evidence intact.
 
 ## Remaining promotion work
 
