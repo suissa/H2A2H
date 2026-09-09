@@ -1,0 +1,1 @@
+const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in')}),{threshold:.12});document.querySelectorAll('article,.visual-card,.cta').forEach(el=>obs.observe(el));
