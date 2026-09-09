@@ -74,9 +74,9 @@ function isFencedOwnership(ownership: InteractionCheckpointOwnership | undefined
 
 export class H2A2HSDK<TInput = unknown, TResult = unknown> {
   readonly protocolVersion: string;
-  readonly registry: ProtocolRegistry;
-  readonly checkpoints: InteractionCheckpointStore<TInput, TResult>;
-  readonly runtime: H2A2HRuntime<TInput, TResult>;
+  #registry: ProtocolRegistry;
+  #checkpoints: InteractionCheckpointStore<TInput, TResult>;
+  #runtime: H2A2HRuntime<TInput, TResult>;
   private readonly auditTrail: AuditTrail;
   private readonly auditStore: AuditRecordStore;
   private readonly checkpointOwnership = new AsyncLocalStorage<InteractionCheckpointOwnership>();
@@ -86,17 +86,18 @@ export class H2A2HSDK<TInput = unknown, TResult = unknown> {
     options: SDKOptions<TInput, TResult> = {},
   ) {
     this.protocolVersion = options.protocol_version ?? '1.0.0';
-    this.registry = options.registry ?? new ProtocolRegistry();
+    this.#registry = options.registry ?? new ProtocolRegistry();
     this.auditTrail = options.audit ?? new AuditTrail();
     this.auditStore = options.audit_store ?? new InMemoryAuditRecordStore(this.auditTrail.export());
-    this.checkpoints = options.checkpoint_store ?? new InMemoryInteractionCheckpointStore<TInput, TResult>();
+    this.#checkpoints = options.checkpoint_store ?? new InMemoryInteractionCheckpointStore<TInput, TResult>();
+    this.#registry.seal();
 
     const wrapped: RuntimeBindings<TInput, TResult> = {
       ...bindings,
       onTransition: async (transition, context) => {
         const ownership = this.checkpointOwnership.getStore();
         if (isFencedOwnership(ownership)) {
-          const saveOwned = this.checkpoints.saveOwned;
+          const saveOwned = this.#checkpoints.saveOwned;
           if (!saveOwned) {
             throw new H2A2HRuntimeError(
               'interaction.checkpoint_fenced_save_unsupported',
@@ -104,7 +105,7 @@ export class H2A2HSDK<TInput = unknown, TResult = unknown> {
               context.interaction_id,
             );
           }
-          const saved = await saveOwned.call(this.checkpoints, context, ownership!);
+          const saved = await saveOwned.call(this.#checkpoints, context, ownership!);
           if (!saved) {
             throw new H2A2HRuntimeError(
               'interaction.checkpoint_fenced',
@@ -113,7 +114,7 @@ export class H2A2HSDK<TInput = unknown, TResult = unknown> {
             );
           }
         } else {
-          await this.checkpoints.save(context);
+          await this.#checkpoints.save(context);
         }
 
         // Checkpoint persistence is the canonical state gate. Only after it
@@ -132,7 +133,7 @@ export class H2A2HSDK<TInput = unknown, TResult = unknown> {
         await bindings.onTransition?.(transition, context);
       },
     };
-    this.runtime = new H2A2HRuntime(wrapped);
+    this.#runtime = new H2A2HRuntime(wrapped);
   }
 
   private async hydrateAudit(interactionId: string): Promise<void> {
@@ -187,8 +188,8 @@ export class H2A2HSDK<TInput = unknown, TResult = unknown> {
     const correlationId = request.correlation_id ?? `correlation:${randomUUID()}`;
     await this.hydrateAudit(interactionId);
 
-    const claimStart = this.checkpoints.claimStart;
-    const releaseStart = this.checkpoints.releaseStart;
+    const claimStart = this.#checkpoints.claimStart;
+    const releaseStart = this.#checkpoints.releaseStart;
     if (!claimStart || !releaseStart) {
       throw new H2A2HRuntimeError(
         'interaction.start_claim_unsupported',
@@ -197,7 +198,7 @@ export class H2A2HSDK<TInput = unknown, TResult = unknown> {
       );
     }
 
-    const claim = await claimStart.call(this.checkpoints, interactionId);
+    const claim = await claimStart.call(this.#checkpoints, interactionId);
     if (claim.status === 'exists') {
       throw new H2A2HRuntimeError(
         'interaction.already_exists',
@@ -229,7 +230,7 @@ export class H2A2HSDK<TInput = unknown, TResult = unknown> {
       }
       return await this.checkpointOwnership.run(
         ownership,
-        () => this.runtime.run({
+        () => this.#runtime.run({
           ...request,
           interaction_id: interactionId,
           correlation_id: correlationId,
@@ -239,7 +240,7 @@ export class H2A2HSDK<TInput = unknown, TResult = unknown> {
       primaryError = error;
       throw error;
     } finally {
-      const released = await releaseStart.call(this.checkpoints, interactionId, claimId);
+      const released = await releaseStart.call(this.#checkpoints, interactionId, claimId);
       if (!released && primaryError === undefined) {
         throw new H2A2HRuntimeError(
           'interaction.start_release_failed',
@@ -254,8 +255,8 @@ export class H2A2HSDK<TInput = unknown, TResult = unknown> {
     interactionId: string,
     request: ResumeRequest<TInput>,
   ): Promise<InteractionContext<TInput, TResult>> {
-    const claimResume = this.checkpoints.claimResume;
-    const releaseResume = this.checkpoints.releaseResume;
+    const claimResume = this.#checkpoints.claimResume;
+    const releaseResume = this.#checkpoints.releaseResume;
     if (!claimResume || !releaseResume) {
       throw new H2A2HRuntimeError(
         'interaction.resume_claim_unsupported',
@@ -264,7 +265,7 @@ export class H2A2HSDK<TInput = unknown, TResult = unknown> {
       );
     }
 
-    const claim = await claimResume.call(this.checkpoints, interactionId);
+    const claim = await claimResume.call(this.#checkpoints, interactionId);
     if (claim.status === 'not_found') {
       throw new H2A2HRuntimeError(
         'interaction.checkpoint_not_found',
@@ -314,13 +315,13 @@ export class H2A2HSDK<TInput = unknown, TResult = unknown> {
           ? { human_action: humanAction, input: request.input as TInput }
           : { human_action: humanAction };
 
-        return this.runtime.resume(context, canonicalRequest);
+        return this.#runtime.resume(context, canonicalRequest);
       });
     } catch (error) {
       primaryError = error;
       throw error;
     } finally {
-      const released = await releaseResume.call(this.checkpoints, interactionId, leaseId);
+      const released = await releaseResume.call(this.#checkpoints, interactionId, leaseId);
       if (!released && primaryError === undefined) {
         throw new H2A2HRuntimeError(
           'interaction.resume_release_failed',
@@ -334,7 +335,7 @@ export class H2A2HSDK<TInput = unknown, TResult = unknown> {
   async getInteraction(
     interactionId: string,
   ): Promise<InteractionContext<TInput, TResult> | undefined> {
-    return this.checkpoints.load(interactionId);
+    return this.#checkpoints.load(interactionId);
   }
 
   async loadAudit(interactionId: string) {
