@@ -2,9 +2,15 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { H2A2HSDK } from '../sdk.js';
 
+let delegationAttempts = 0;
+
 const bindings = {
   resolveIntent: async () => ({ canonical_label: 'Test.Intent', version: '1.0.0' }),
-  validateDelegation: async () => { throw new Error('simulated worker crash'); },
+  validateDelegation: async () => {
+    delegationAttempts += 1;
+    if (delegationAttempts === 1) throw new Error('simulated worker crash');
+    return { valid: true, evidence: [] };
+  },
   resolveParticipants: async () => ({ participants: [] }),
   resolveChannel: async () => ({ profile: 'test' }),
   execute: async () => ({ ok: true }),
