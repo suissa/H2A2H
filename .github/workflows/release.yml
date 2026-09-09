@@ -29,7 +29,7 @@ jobs:
           node-version: '22'
 
       - name: Install dependencies
-        run: npm install --no-fund --no-audit
+        run: npm ci --no-fund --no-audit
 
       - name: Release artifact gate
         run: npm run release:gate
@@ -42,6 +42,21 @@ jobs:
 
       - name: Dependency audit
         run: npm audit --audit-level=high
+
+      - name: Require an empty repository backlog for stable releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          MAJOR="${VERSION%%.*}"
+          if [ "$MAJOR" -ge 1 ]; then
+            OPEN_ISSUES="$(gh api "repos/$GITHUB_REPOSITORY/issues?state=open&per_page=100" --paginate --slurp --jq '[.[][] | select(.pull_request == null)] | length')"
+            OPEN_PULLS="$(gh api "repos/$GITHUB_REPOSITORY/pulls?state=open&per_page=100" --paginate --slurp --jq '[.[][]] | length')"
+            if [ "$OPEN_ISSUES" -ne 0 ] || [ "$OPEN_PULLS" -ne 0 ]; then
+              echo "Stable release blocked: $OPEN_ISSUES open issues and $OPEN_PULLS open pull requests"
+              exit 1
+            fi
+          fi
 
       - name: Resolve immutable release identity
         id: release_meta
@@ -93,7 +108,16 @@ jobs:
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" conformance-report.json --clobber
           else
-            gh release create "$TAG" conformance-report.json \
-              --generate-notes \
-              --title "H2A2H $TAG"
+            MAJOR="${TAG#v}"
+            MAJOR="${MAJOR%%.*}"
+            if [ "$MAJOR" -eq 0 ]; then
+              gh release create "$TAG" conformance-report.json \
+                --generate-notes \
+                --prerelease \
+                --title "H2A2H $TAG"
+            else
+              gh release create "$TAG" conformance-report.json \
+                --generate-notes \
+                --title "H2A2H $TAG"
+            fi
           fi

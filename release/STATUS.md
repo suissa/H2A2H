@@ -1,22 +1,21 @@
 # H2A2H Release Status
 
-## Stable protocol
+## Current protocol status
 
 | Field | Value |
 | --- | --- |
-| Stable release | `v1.0.0` |
-| Protocol specification | `1.0.0` |
-| Reference Implementation A | `1.0.0` |
-| Independent Reference Implementation B | `1.0.0` |
-| Release tag | `v1.0.0` |
-| Tagged commit | `6aaa84a1bd2efd7683e362ad20e3acd9c9693510` |
-| Conformance | Passed |
-| Dependency audit | Passed — 0 vulnerabilities at release time |
-| Release date | 2026-09-01 |
+| Stable release | Not yet declared |
+| Current implementation line | `0.9.x` |
+| Target protocol specification | `1.0.0` draft |
+| Reference Implementation A | `0.9.0` |
+| Independent Reference Implementation B | `0.9.0` |
+| Conformance | Passing on `main` |
+| Final readiness | Blocked by unchecked promotion gates |
 
 ## Definition of Done evidence
 
-H2A2H v1.0 satisfies the roadmap Definition of Done with two implementations that do not share runtime implementation code.
+The implementation already demonstrates the following candidate-v1
+capabilities with two implementations that do not share runtime code:
 
 The release evidence demonstrates:
 
@@ -33,14 +32,19 @@ The release evidence demonstrates:
 - protocol-version compatibility rules and formal lifecycle/delegation invariants;
 - successful release gate, typecheck, build, conformance suite and dependency audit.
 
-## Immutable release evidence
+## Premature historical release
 
-Release: https://github.com/suissa/H2A2H/releases/tag/v1.0.0
+The GitHub release and tag `v1.0.0`, created on 2026-09-01 at
+`6aaa84a1bd2efd7683e362ad20e3acd9c9693510`, were published before the
+normative documents left draft status and before later authority/recovery
+hardening landed. They are retained as historical evidence and MUST NOT be
+described as the final stable H2A2H v1.0.
 
-Conformance report: https://github.com/suissa/H2A2H/releases/download/v1.0.0/conformance-report.json
+No automation may move or overwrite that tag. Its deletion or replacement is a
+separate destructive governance decision requiring explicit owner approval.
 
-The `v1.0.0` tag is treated as immutable. Later commits on `main` do not move an already published version tag; a new protocol/reference version requires a new version and tag.
+## Remaining promotion work
 
-## Roadmap state
-
-Issues #2 through #27 are complete. Issue #1 closes the v1.0 implementation roadmap after this status record is merged and its CI passes.
+The authoritative remaining work is the unchecked section in
+[`release/v1.0.0.md`](./v1.0.0.md). Stable release automation also verifies
+that GitHub has no open issues or pull requests at the release commit.

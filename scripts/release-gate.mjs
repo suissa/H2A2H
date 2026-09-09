@@ -1,6 +1,7 @@
 import { access, readFile } from 'node:fs/promises';
 
 const requiredFiles = [
+  'package-lock.json',
   'SPECIFICATION.md',
   'schemas/h2a2h-v1.schema.json',
   'schemas/h2a2h-agentic-generalization-v1.schema.json',
@@ -45,10 +46,20 @@ for (const path of requiredFiles) {
 }
 
 const pkg = JSON.parse(await readFile('package.json', 'utf8'));
-if (pkg.version !== '1.0.0') failures.push(`package version must be 1.0.0, found ${pkg.version}`);
+const versionMatch = /^(\d+)\.(\d+)\.(\d+)(?:-[0-9A-Za-z.-]+)?$/.exec(pkg.version);
+if (!versionMatch) failures.push(`package version is not semantic: ${pkg.version}`);
+const stable = versionMatch ? Number(versionMatch[1]) >= 1 : false;
+
+const lock = JSON.parse(await readFile('package-lock.json', 'utf8'));
+if (lock.lockfileVersion !== 3) failures.push('package-lock.json must use lockfileVersion 3');
+if (lock.version !== pkg.version || lock.packages?.['']?.version !== pkg.version) {
+  failures.push('package-lock.json root version must match package.json');
+}
 
 const independent = JSON.parse(await readFile('independent/reference-b/manifest.json', 'utf8'));
-if (independent.version !== '1.0.0') failures.push('Reference B must declare version 1.0.0');
+if (independent.version !== pkg.version) failures.push('Reference B version must match package version');
+const independentVersion = (await readFile('independent/reference-b/VERSION', 'utf8')).trim();
+if (independentVersion !== pkg.version) failures.push('Reference B VERSION must match package version');
 if (independent.shared_runtime_code !== false) failures.push('Reference B must declare shared_runtime_code=false');
 if (!Array.isArray(independent.channels) || independent.channels.length < 2) {
   failures.push('Reference B must expose at least two interoperability channel profiles');
@@ -91,10 +102,29 @@ for (const link of [
   if (!readme.includes(link)) failures.push(`README is missing release entry-point link ${link}`);
 }
 
+if (stable) {
+  const normativeFiles = requiredFiles.filter((path) =>
+    path === 'SPECIFICATION.md' || path.startsWith('spec/'),
+  );
+  for (const path of normativeFiles) {
+    const content = await readFile(path, 'utf8');
+    if (/^Status:.*draft/im.test(content)) {
+      failures.push(`stable release cannot include normative draft: ${path}`);
+    }
+  }
+
+  const checklist = await readFile('release/v1.0.0.md', 'utf8');
+  const unchecked = checklist.match(/^- \[ \] .+$/gm) ?? [];
+  if (unchecked.length > 0) {
+    failures.push(`stable release has ${unchecked.length} unchecked promotion criteria`);
+  }
+  if (/pre-1\.0/i.test(readme)) failures.push('stable release README still declares pre-1.0 status');
+}
+
 if (failures.length > 0) {
-  console.error('H2A2H v1.0 release gate failed:');
+  console.error(`H2A2H ${pkg.version} release gate failed:`);
   for (const failure of failures) console.error(`- ${failure}`);
   process.exit(1);
 }
 
-console.log(`H2A2H v1.0 release gate passed (${requiredFiles.length} required artifacts verified).`);
+console.log(`H2A2H ${pkg.version} release gate passed (${requiredFiles.length} required artifacts verified).`);

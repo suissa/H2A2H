@@ -108,6 +108,12 @@ Each handoff MUST:
 - produce auditable provenance;
 - maintain idempotency semantics.
 
+Recovery from an `EXECUTING` checkpoint MUST fail closed unless the runtime
+has an explicit execution-recovery binding that either reconciles the external
+effect or retries it through a stable idempotency boundary. Merely invoking the
+ordinary execution binding again is not conformant because the previous owner
+may have committed the effect before crashing.
+
 An implementation MAY execute synchronously, asynchronously, through messages, actors, workflows, event choreography, services, devices, or combinations of these techniques.
 
 The protocol MUST NOT require a fixed internal orchestration architecture.

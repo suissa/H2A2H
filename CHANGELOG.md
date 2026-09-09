@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+The project remains pre-1.0 while the normative specification is under review.
+
+## 0.9.0 — 2026-09-09
+
+### Release readiness
+
+- Corrected the project status from prematurely stable to pre-1.0.
+- Added reproducible dependency locking and release gates that fail closed for
+  stable versions while normative drafts or unchecked criteria remain.
+- Added recovery coverage across every ordinary non-terminal checkpoint.
+- Required explicit reconciliation or idempotent retry for crash recovery from
+  `EXECUTING`.
+- Added strict untrusted MCP/A2A authority validation, private SDK authority
+  surfaces and fenced canonical checkpoint recovery.
+
 ### Agentic generalization
 
 - Added Entity Discovery and deterministic semantic Capability Negotiation derived from reusable ACP architectural patterns.
@@ -15,7 +30,9 @@
 
 ## 1.0.0 — 2026-09-01
 
-First stable H2A2H protocol release.
+Historical premature release. This tag predates completion of the normative
+draft review and later authority/recovery hardening and is not the final stable
+H2A2H v1.0.
 
 ### Protocol
 
