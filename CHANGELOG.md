@@ -11,6 +11,8 @@ The project remains pre-1.0 while the normative specification is under review.
   executable conformance tests, threat-model and implementation guidance.
 - Bound legacy Ed25519 evidence metadata into signatures and rejected unpaired
   Unicode surrogates before canonicalization.
+- Added an executable, fail-closed stable-release check for the active
+  `refs/tags/v*` update/deletion ruleset and documented emergency governance.
 
 ## 0.9.0 — 2026-09-09
 

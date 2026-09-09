@@ -44,6 +44,9 @@ jobs:
       - name: Release artifact gate
         run: npm run release:gate
 
+      - name: Validate tag ruleset verifier
+        run: npm run release:tag-protection:self-test
+
       - name: Typecheck
         run: npm run typecheck
 

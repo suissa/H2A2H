@@ -55,3 +55,7 @@ conformance evidence intact.
 The authoritative remaining work is the unchecked section in
 [`release/v1.0.0.md`](./v1.0.0.md). Stable release automation also verifies
 that GitHub has no open issues or pull requests at the release commit.
+
+It additionally inspects the active release-tag ruleset through the GitHub API.
+The required policy and emergency-governance procedure are documented in
+[`docs/governance/tag-protection.md`](../docs/governance/tag-protection.md).
