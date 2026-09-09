@@ -1,0 +1,32 @@
+{
+  "scope_id": "h2a2h-v1-independent-review",
+  "version": 1,
+  "artifacts": [
+    "SPECIFICATION.md",
+    "docs/specs/H2A2H-Crypto-Implementation.md",
+    "docs/specs/H2A2H-Crypto-Suite.md",
+    "docs/specs/H2A2H-Crypto-Threat-Model.md",
+    "formal/H2A2H.cfg",
+    "formal/H2A2H.tla",
+    "schemas/h2a2h-agentic-generalization-v1.schema.json",
+    "schemas/h2a2h-crypto-suite-v0.1.schema.json",
+    "schemas/h2a2h-v1.schema.json",
+    "spec/agentic-generalization-profile.md",
+    "spec/audit-provenance.md",
+    "spec/envelope.md",
+    "spec/extreme-zero-trust-profiles.md",
+    "spec/human-in-the-healing-loop.md",
+    "spec/identity-responsibility.md",
+    "spec/interop-mcp-a2a.md",
+    "spec/lifecycle.md",
+    "spec/opendelegation.md",
+    "spec/openentitychannels.md",
+    "spec/openintent-integration.md",
+    "spec/proof-of-human-return.md",
+    "spec/security.md",
+    "spec/terminology.md",
+    "spec/verifiable-action-authorization.md",
+    "spec/versioning.md",
+    "test-vectors/h2a2h-crypto-suite-v0.1.json"
+  ]
+}

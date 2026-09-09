@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://h2a2h.dev/schemas/h2a2h-v1-review-attestation.schema.json",
+  "title": "H2A2H v1 Independent Review Attestation",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "scope_id",
+    "scope_digest",
+    "reviewer",
+    "reviewed_at",
+    "review_pull_request",
+    "review_commit_sha",
+    "decision",
+    "findings"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "scope_id": { "const": "h2a2h-v1-independent-review" },
+    "scope_digest": { "type": "string", "pattern": "^sha256-[a-f0-9]{64}$" },
+    "reviewer": {
+      "type": "object",
+      "required": ["github_login", "independence_statement", "conflicts"],
+      "properties": {
+        "github_login": { "type": "string", "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$" },
+        "independence_statement": { "type": "string", "minLength": 20 },
+        "conflicts": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true }
+      },
+      "additionalProperties": false
+    },
+    "reviewed_at": { "type": "string", "format": "date-time" },
+    "review_pull_request": { "type": "integer", "minimum": 1 },
+    "review_commit_sha": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "decision": { "enum": ["approved", "rejected"] },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "severity", "status", "title", "evidence", "resolution", "conformance_tests"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^H2A2H-REV-[0-9]{3,}$" },
+          "severity": { "enum": ["critical", "high", "medium", "low", "info"] },
+          "status": { "enum": ["open", "resolved", "accepted"] },
+          "title": { "type": "string", "minLength": 1 },
+          "evidence": { "type": "string", "minLength": 1 },
+          "resolution": { "type": "string" },
+          "conformance_tests": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 },
+            "uniqueItems": true
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

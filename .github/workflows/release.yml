@@ -68,6 +68,16 @@ jobs:
             npm run release:tag-protection
           fi
 
+      - name: Require independent v1 review evidence for stable releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          MAJOR="${VERSION%%.*}"
+          if [ "$MAJOR" -ge 1 ]; then
+            npm run release:independent-review
+          fi
+
       - name: Resolve immutable release identity
         id: release_meta
         env:
