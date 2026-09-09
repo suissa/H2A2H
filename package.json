@@ -18,10 +18,14 @@
     "test:interop": "node --test independent/reference-b/interop.test.mjs",
     "test": "npm run test:reference && npm run test:interop",
     "conformance": "npm run build && npm test",
+    "crypto:vectors": "npm run build && node scripts/generate-crypto-vectors.mjs",
     "release:gate": "node scripts/release-gate.mjs"
   },
   "engines": {
     "node": ">=22"
+  },
+  "dependencies": {
+    "@noble/hashes": "2.4.0"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

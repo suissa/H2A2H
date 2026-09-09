@@ -1,0 +1,90 @@
+{
+  "suite": "h2a2h.crypto-suite.v0.1",
+  "encoding": "base64url-no-padding",
+  "warning": "TEST MATERIAL ONLY. Never use these secrets or keys in production.",
+  "root_identity": {
+    "secret": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+    "salt": "oKGio6SlpqeoqaqrrK2urw",
+    "parameters": {
+      "algorithm": "Argon2id",
+      "version": 19,
+      "memory_kib": 65536,
+      "iterations": 3,
+      "parallelism": 4,
+      "output_bytes": 32
+    },
+    "output": "B7okLl8gOXY10Q1vfipIYldnsnw7GUhJkXg-AX7omq8"
+  },
+  "domain_key": {
+    "root_seed": "B7okLl8gOXY10Q1vfipIYldnsnw7GUhJkXg-AX7omq8",
+    "salt": "sLGys7S1tre4ubq7vL2-vw",
+    "purpose": "signing",
+    "context": "agent:personal-shopper:key:1",
+    "length": 32,
+    "output": "YCLwZ70GxivzAJuRXWb4D--InwKpqHTxR1fOC4sgdG8"
+  },
+  "artifact": {
+    "input": {
+      "action": "approve",
+      "amount": 1250,
+      "currency": "BRL",
+      "intent": "Commerce.PurchaseProducts"
+    },
+    "id": "h2a2h:artifact:blake3-256:G0zvYel8qYNbPNoDCfnGCWOaJWO2Zvao78EtN7YRt6g"
+  },
+  "branch": {
+    "input": {
+      "parent_id": "h2a2h:artifact:blake3-256:G0zvYel8qYNbPNoDCfnGCWOaJWO2Zvao78EtN7YRt6g",
+      "canonical_label": "Commerce.PurchaseProducts.Approved",
+      "ordinal": 1,
+      "state": {
+        "approved": true,
+        "amount": 1250
+      }
+    },
+    "id": "h2a2h:branch:blake3-256:VS6b6vN5mwY2qO9_2TgbyH7_sNnvrtxXh3RQE8CwDRY"
+  },
+  "envelope": {
+    "private_key_seed": "AQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHyA",
+    "public_key_spki": "MCowBQYDK2VwAyEAebVWLo_mVPlAeLES6KmLp5AfhTrmlb7X4OORC60ElmQ",
+    "payload": {
+      "action": "approve",
+      "amount": 1250,
+      "currency": "BRL",
+      "intent": "Commerce.PurchaseProducts"
+    },
+    "options": {
+      "key_id": "key:test-ed25519:1",
+      "issuer": "entity:test-human",
+      "artifact_id": "h2a2h:artifact:blake3-256:G0zvYel8qYNbPNoDCfnGCWOaJWO2Zvao78EtN7YRt6g",
+      "purpose": "h2a2h.test-vector",
+      "created_at": "2026-09-09T12:00:00.000Z",
+      "expires_at": "2026-09-10T12:00:00.000Z"
+    },
+    "output": {
+      "protected": {
+        "suite": "h2a2h.crypto-suite.v0.1",
+        "serialization": "h2a2h.canonical-json.v1",
+        "digest_algorithm": "sha-256",
+        "signature_algorithm": "Ed25519",
+        "key_id": "key:test-ed25519:1",
+        "issuer": "entity:test-human",
+        "artifact_id": "h2a2h:artifact:blake3-256:G0zvYel8qYNbPNoDCfnGCWOaJWO2Zvao78EtN7YRt6g",
+        "purpose": "h2a2h.test-vector",
+        "created_at": "2026-09-09T12:00:00.000Z",
+        "expires_at": "2026-09-10T12:00:00.000Z"
+      },
+      "payload_digest": {
+        "algorithm": "sha-256",
+        "value": "vgBJInuINuTR-CVageTn9rynGeqV8DfMblBjkMHTPoc"
+      },
+      "signature": "EN3gz_pJuTKjcD4mBRdIUfYf9O8xWfwxRtP55hk69_Tc4b2LZeN1rnai75RJQfYmkV-_kJy3hEWFDRUaVdijBg",
+      "payload": {
+        "action": "approve",
+        "amount": 1250,
+        "currency": "BRL",
+        "intent": "Commerce.PurchaseProducts"
+      }
+    }
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://h2a2h.dev/schemas/h2a2h-crypto-suite-v0.1.schema.json",
+  "title": "H2A2H Crypto Suite v0.1 Envelope",
+  "type": "object",
+  "required": ["protected", "payload_digest", "signature", "payload"],
+  "properties": {
+    "protected": {
+      "type": "object",
+      "required": [
+        "suite",
+        "serialization",
+        "digest_algorithm",
+        "signature_algorithm",
+        "key_id",
+        "issuer",
+        "artifact_id",
+        "purpose",
+        "created_at",
+        "expires_at"
+      ],
+      "properties": {
+        "suite": { "const": "h2a2h.crypto-suite.v0.1" },
+        "serialization": { "const": "h2a2h.canonical-json.v1" },
+        "digest_algorithm": { "const": "sha-256" },
+        "signature_algorithm": { "const": "Ed25519" },
+        "key_id": { "type": "string", "minLength": 1 },
+        "issuer": { "type": "string", "minLength": 1 },
+        "artifact_id": {
+          "type": "string",
+          "pattern": "^h2a2h:artifact:blake3-256:[A-Za-z0-9_-]{43}$"
+        },
+        "purpose": { "type": "string", "minLength": 1 },
+        "created_at": { "type": "string", "format": "date-time" },
+        "expires_at": {
+          "oneOf": [
+            { "type": "string", "format": "date-time" },
+            { "type": "null" }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "payload_digest": {
+      "type": "object",
+      "required": ["algorithm", "value"],
+      "properties": {
+        "algorithm": { "const": "sha-256" },
+        "value": { "type": "string", "pattern": "^[A-Za-z0-9_-]{43}$" }
+      },
+      "additionalProperties": false
+    },
+    "signature": { "type": "string", "pattern": "^[A-Za-z0-9_-]{86}$" },
+    "payload": true
+  },
+  "additionalProperties": false
+}

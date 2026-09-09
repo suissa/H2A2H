@@ -11,6 +11,12 @@ H2A2H separates four questions:
 
 Satisfying one question MUST NOT be treated as satisfying the others.
 
+The algorithm and byte-level interoperability profile is defined by the
+[H2A2H Crypto Suite v0.1](../docs/specs/H2A2H-Crypto-Suite.md). Its crypto
+envelope protects suite/key/issuer/purpose/time/artifact metadata together with
+the canonical payload digest; signature validity never replaces trust,
+delegation, authorization or replay validation.
+
 ## Baseline requirements
 
 All non-local-untrusted profiles MUST provide:

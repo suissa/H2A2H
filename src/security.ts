@@ -31,13 +31,36 @@ function isPlainObject(value: object): value is Record<string, unknown> {
   return prototype === Object.prototype || prototype === null;
 }
 
+function requireValidUnicode(value: string, path: string): string {
+  for (let index = 0; index < value.length; index += 1) {
+    const codeUnit = value.charCodeAt(index);
+    if (codeUnit >= 0xd800 && codeUnit <= 0xdbff) {
+      const next = value.charCodeAt(index + 1);
+      if (!(next >= 0xdc00 && next <= 0xdfff)) {
+        throw new SecurityCanonicalizationError(
+          'security.canonical.invalid_unicode',
+          `Unpaired high surrogate at ${path}`,
+        );
+      }
+      index += 1;
+    } else if (codeUnit >= 0xdc00 && codeUnit <= 0xdfff) {
+      throw new SecurityCanonicalizationError(
+        'security.canonical.invalid_unicode',
+        `Unpaired low surrogate at ${path}`,
+      );
+    }
+  }
+  return value;
+}
+
 function canonicalizeValue(value: unknown, stack: WeakSet<object>, path: string): CanonicalJsonValue {
   if (value === null) return null;
 
   switch (typeof value) {
     case 'boolean':
-    case 'string':
       return value;
+    case 'string':
+      return requireValidUnicode(value, path);
     case 'number':
       if (!Number.isFinite(value)) {
         throw new SecurityCanonicalizationError(
@@ -111,6 +134,7 @@ function canonicalizeValue(value: unknown, stack: WeakSet<object>, path: string)
 
     const result: Record<string, CanonicalJsonValue> = {};
     for (const key of enumerableKeys.sort()) {
+      requireValidUnicode(key, `${path} key`);
       const descriptor = Object.getOwnPropertyDescriptor(object, key);
       if (!descriptor || !('value' in descriptor) || !descriptor.enumerable) {
         throw new SecurityCanonicalizationError(
@@ -171,17 +195,17 @@ export function signEd25519<T>(
 
   const serialized = canonicalJson(payload);
   const digest = createHash('sha256').update(serialized).digest('base64url');
-  const signature = sign(null, Buffer.from(serialized), options.private_key).toString('base64url');
   const isolatedPayload = JSON.parse(serialized) as T;
-  return {
+  const unsigned = {
     profile: 'h2a2h.security.signed-ed25519.v1',
     key_id: options.key_id,
     algorithm: 'Ed25519',
     created_at: createdAt.toISOString(),
     payload_digest: { algorithm: 'sha-256', value: digest },
-    signature,
     payload: isolatedPayload,
-  };
+  } as const;
+  const signature = sign(null, Buffer.from(canonicalJson(unsigned)), options.private_key).toString('base64url');
+  return { ...unsigned, signature };
 }
 
 export function verifyEd25519<T>(evidence: unknown, publicKey: KeyLike): evidence is SignedEvidence<T> {
@@ -213,9 +237,17 @@ export function verifyEd25519<T>(evidence: unknown, publicKey: KeyLike): evidenc
     const serialized = canonicalJson(candidate['payload']);
     const recomputed = createHash('sha256').update(serialized).digest('base64url');
     if (recomputed !== digest['value']) return false;
+    const signingInput = {
+      profile: candidate['profile'],
+      key_id: candidate['key_id'],
+      algorithm: candidate['algorithm'],
+      created_at: candidate['created_at'],
+      payload_digest: digest,
+      payload: candidate['payload'],
+    };
     return verify(
       null,
-      Buffer.from(serialized),
+      Buffer.from(canonicalJson(signingInput)),
       publicKey,
       Buffer.from(candidate['signature'] as string, 'base64url'),
     );
