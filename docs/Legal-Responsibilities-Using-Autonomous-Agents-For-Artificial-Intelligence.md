@@ -158,6 +158,8 @@ VAAL             -> whether this exact consequential Action may happen now
 
 This separation is the protocol equivalent of the paper's autonomy principle.
 
+Provider authority ancestry is represented by `provider_capability_id` and `provider_delegation_id`. These fields identify which Capability or Delegation provided the current authority. They are not causal parents and do not imply command hierarchy.
+
 ## 10. External Agents: standard API boundary
 
 H2A2H defines a standard external Agent boundary in `spec/external-agent-api.md`.
