@@ -1,0 +1,170 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://h2a2h.space/schemas/h2a2h-external-agent-api-v1.schema.json",
+  "title": "H2A2H External Agent API v1",
+  "type": "object",
+  "$defs": {
+    "entityRef": {
+      "type": "object",
+      "required": ["entity_id", "kind"],
+      "properties": {
+        "entity_id": { "type": "string", "minLength": 1 },
+        "kind": { "type": "string", "minLength": 1 },
+        "canonical_label": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    },
+    "intentRef": {
+      "type": "object",
+      "required": ["canonical_label", "version"],
+      "properties": {
+        "intent_id": { "type": "string", "minLength": 1 },
+        "canonical_label": { "type": "string", "minLength": 1 },
+        "version": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "causalEventRef": {
+      "type": "object",
+      "required": ["event_id", "intent"],
+      "properties": {
+        "event_id": { "type": "string", "minLength": 1 },
+        "intent": { "$ref": "#/$defs/intentRef" },
+        "relation": {
+          "type": "string",
+          "enum": ["evidence", "decision", "result", "constraint", "correction", "compensation", "other"]
+        },
+        "digest": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "capabilityRef": {
+      "type": "object",
+      "required": ["capability_id"],
+      "properties": {
+        "capability_id": { "type": "string", "minLength": 1 },
+        "digest": { "type": "string", "minLength": 1 },
+        "parent_capability_id": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "capability": {
+      "type": "object",
+      "required": ["capability_id", "issuer", "subject", "audience", "issued_at", "expires_at", "scope", "proof"],
+      "properties": {
+        "capability_id": { "type": "string", "minLength": 1 },
+        "parent_capability_id": { "type": "string", "minLength": 1 },
+        "issuer": { "$ref": "#/$defs/entityRef" },
+        "subject": { "$ref": "#/$defs/entityRef" },
+        "audience": { "$ref": "#/$defs/entityRef" },
+        "issued_at": { "type": "string", "format": "date-time" },
+        "not_before": { "type": "string", "format": "date-time" },
+        "expires_at": { "type": "string", "format": "date-time" },
+        "scope": {
+          "type": "object",
+          "properties": {
+            "intents": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+            "resources": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+            "effects": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+            "max_risk": { "type": "string" }
+          },
+          "additionalProperties": true
+        },
+        "constraints": { "type": "object", "additionalProperties": true },
+        "proof": { "type": "object", "required": ["profile", "value"], "additionalProperties": true }
+      },
+      "additionalProperties": false
+    },
+    "intentProposal": {
+      "type": "object",
+      "required": ["protocol", "version", "kind", "message_id", "interaction_id", "correlation_id", "sender", "receiver", "intent", "capability", "payload", "timestamp"],
+      "properties": {
+        "protocol": { "const": "h2a2h" },
+        "version": { "type": "string" },
+        "kind": { "const": "intent_proposal" },
+        "message_id": { "type": "string", "minLength": 1 },
+        "interaction_id": { "type": "string", "minLength": 1 },
+        "correlation_id": { "type": "string", "minLength": 1 },
+        "root_intent_id": { "type": "string", "minLength": 1 },
+        "sender": { "$ref": "#/$defs/entityRef" },
+        "receiver": { "$ref": "#/$defs/entityRef" },
+        "intent": { "$ref": "#/$defs/intentRef" },
+        "capability": { "$ref": "#/$defs/capabilityRef" },
+        "causal_events": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/causalEventRef" },
+          "uniqueItems": true
+        },
+        "payload": {
+          "type": "object",
+          "required": ["schema"],
+          "properties": {
+            "schema": { "type": "string", "minLength": 1 },
+            "media_type": { "type": "string" },
+            "value": {},
+            "ref": { "type": "string" },
+            "digest": { "type": "string" }
+          },
+          "additionalProperties": false
+        },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "expires_at": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": true
+    },
+    "intentDecision": {
+      "type": "object",
+      "required": ["kind", "interaction_id", "proposal_message_id", "decision", "receiver", "intent", "timestamp"],
+      "properties": {
+        "kind": { "const": "intent_decision" },
+        "interaction_id": { "type": "string", "minLength": 1 },
+        "proposal_message_id": { "type": "string", "minLength": 1 },
+        "decision": {
+          "type": "string",
+          "enum": ["ACCEPT", "REJECT", "DEFER", "PARTIAL", "CHALLENGE"]
+        },
+        "receiver": { "$ref": "#/$defs/entityRef" },
+        "intent": { "$ref": "#/$defs/intentRef" },
+        "policy": {
+          "type": "object",
+          "properties": {
+            "policy_id": { "type": "string" },
+            "policy_hash": { "type": "string" }
+          },
+          "additionalProperties": false
+        },
+        "reason_code": { "type": "string" },
+        "accepted_scope": { "type": "object", "additionalProperties": true },
+        "attestation_ref": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": true
+    },
+    "responsibilityEnvelope": {
+      "type": "object",
+      "required": ["event_id", "root_intent_id", "subject", "intent", "decision", "timestamp"],
+      "properties": {
+        "event_id": { "type": "string", "minLength": 1 },
+        "root_intent_id": { "type": "string", "minLength": 1 },
+        "causal_events": { "type": "array", "items": { "$ref": "#/$defs/causalEventRef" } },
+        "subject": { "$ref": "#/$defs/entityRef" },
+        "agent_id": { "type": "string" },
+        "actor_id": { "type": "string" },
+        "action_id": { "type": "string" },
+        "intent": { "$ref": "#/$defs/intentRef" },
+        "authority": { "type": "object", "additionalProperties": true },
+        "identity_evidence": { "type": "object", "additionalProperties": true },
+        "decision": { "type": "object", "required": ["kind"], "additionalProperties": true },
+        "evidence": { "type": "object", "additionalProperties": true },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "oneOf": [
+    { "$ref": "#/$defs/intentProposal" },
+    { "$ref": "#/$defs/intentDecision" },
+    { "$ref": "#/$defs/capability" },
+    { "$ref": "#/$defs/responsibilityEnvelope" }
+  ]
+}
