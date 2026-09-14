@@ -26,7 +26,7 @@ Individual core artifacts are addressable by fragment, including:
 - semantic `causal_events[]` references;
 - `ResponsibilityEnvelope`.
 
-The extension schema intentionally separates semantic causal references from Capability/delegation ancestry.
+The extension schema intentionally separates semantic causal references from Capability/delegation provider ancestry.
 
 Schema evolution follows the protocol compatibility rules. A breaking semantic or validation change requires a major schema/protocol transition. Optional backwards-compatible fields may be introduced only where the schema and specification explicitly permit extension.
 
