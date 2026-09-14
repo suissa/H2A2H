@@ -92,17 +92,19 @@ Capability scope MUST be positively enumerated and fail closed.
 
 A Capability MAY be derived from OpenDelegation. When both exist, the effective authority is the intersection of all applicable constraints.
 
-## 4. Capability attenuation
+## 4. Capability provider ancestry
 
-A child Capability MUST NOT widen the authority of its parent:
+A derived Capability MUST NOT widen the authority provided by the Capability it references:
 
 ```text
-EffectiveScope(child) subset-or-equal EffectiveScope(parent)
+EffectiveScope(derived) subset-or-equal EffectiveScope(provider)
 ```
 
-Authority ancestry uses `parent_capability_id`.
+Authority ancestry uses `provider_capability_id`.
 
-`parent_capability_id` MUST NOT be used as causal provenance. Causality is represented by `causal_events`.
+`provider_capability_id` identifies the Capability that provided or issued the authority being attenuated. It MUST NOT be interpreted as a causal parent, object parent, process parent, or command hierarchy.
+
+`provider_capability_id` MUST NOT be used as causal provenance. Causality is represented by `causal_events`.
 
 ## 5. Proof of possession
 
@@ -366,6 +368,6 @@ Trust MAY reduce provider-selection uncertainty or increase/decrease scrutiny. T
 5. Receiver-local acceptance is mandatory for autonomous execution.
 6. HTTP status success does not imply Intent acceptance or H2A2H lifecycle completion.
 7. Consequential effects require VAAL authorization.
-8. `causal_events` remains distinct from Capability/delegation ancestry.
+8. `causal_events` remains distinct from Capability/delegation provider ancestry.
 9. Every accepted/effected transition is auditable.
 10. Transport bindings do not redefine the semantic protocol.
