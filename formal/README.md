@@ -8,7 +8,7 @@ H2A2H maintains separate machine-checkable projections for lifecycle/delegation 
 
 | Formal invariant | Normative concept |
 | --- | --- |
-| `DelegationScopeMonotonicity` | Child authority MUST be a subset of parent/effective authority. |
+| `DelegationScopeMonotonicity` | Derived authority MUST be a subset of provider/effective authority. |
 | `DelegationDepthBounded` | Delegation maximum depth. |
 | `ResponsibilityPreserved` | Initiating accountability boundary remains represented. |
 | `NoExecutionWithoutAuthority` | Expired/revoked authority cannot authorize execution. |
