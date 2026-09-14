@@ -107,10 +107,10 @@ OpenDelegation expresses explicit bounded authority across delegation relationsh
 
 Authentication MUST NOT be treated as delegation or Capability.
 
-For a child authority derived from a parent:
+For a child authority derived from a provider authority:
 
 ```text
-effective_scope(child) subset-or-equal effective_scope(parent)
+effective_scope(child) subset-or-equal effective_scope(provider)
 ```
 
 Child authority MUST NOT widen Intent, Action, resource, temporal, monetary, geographic, security, or depth constraints.
@@ -134,7 +134,7 @@ Network address MUST NOT be canonical Entity identity.
 
 The canonical responsibility model is an append-only DAG of events, decisions, handoffs, and effects. A linear responsibility chain is a compatibility/projection view only when it does not misrepresent concurrent causality.
 
-Delegation/Capability ancestry and causal provenance MUST remain separate relationships.
+Delegation/Capability provider ancestry and causal provenance MUST remain separate relationships.
 
 See `spec/identity-responsibility.md` and `spec/responsibility-causal-provenance.md`.
 
@@ -153,7 +153,7 @@ A compact semantic view may be:
 causal_events = [inventory.intent, financial.intent, marketing.intent]
 ```
 
-This MUST NOT be confused with `parent_capability_id` or `parent_delegation_id`, which represent authority ancestry.
+This MUST NOT be confused with `provider_capability_id` or `provider_delegation_id`, which represent provider authority ancestry.
 
 ## 9. OpenEntityChannels
 
