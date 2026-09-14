@@ -169,14 +169,17 @@ Financials.AssessCashFlow --------+--> Business.OptimizeProfitability
 Marketing.AssessDemand -----------/
 ```
 
-### 4.3 Delegation ancestry is separate
+### 4.3 Authority provider ancestry is separate
 
-`parent_capability_id` or `parent_delegation_id` represents attenuation/delegation ancestry only. It MUST NOT be interpreted as causal ancestry.
+`provider_capability_id` or `provider_delegation_id` represents authority provider lineage only. It MUST NOT be interpreted as causal ancestry.
+
+The prefix `provider` is intentional: the referenced artifact provided, issued, or projected the current authority. It is not the parent of the event, not a command source, and not a structural parent in the causal DAG.
 
 ```text
-causal_events[]         -> which semantic events/Intents contributed to this event
-parent_capability_id    -> where this authority was derived from
-root_intent_id          -> which originating desired outcome started the causal context
+causal_events[]          -> which semantic events/Intents contributed to this event
+provider_capability_id   -> which Capability provided/issued the current authority
+provider_delegation_id   -> which Delegation provided/issued the current authority
+root_intent_id           -> which originating desired outcome started the causal context
 ```
 
 ## 5. ResponsibilityEnvelope
@@ -209,7 +212,9 @@ responsibility:
 
   authority:
     capability_id: capability:...
+    provider_capability_id: capability:provider:...
     delegation_id: delegation:...
+    provider_delegation_id: delegation:provider:...
     policy_hash: sha256:...
 
   identity_evidence:
@@ -387,7 +392,7 @@ A conforming implementation/projection SHOULD preserve:
 2. **LocalAcceptanceRequired** — a downstream autonomous effect requires a local acceptance/authorization decision.
 3. **CapabilityDoesNotForceAcceptance** — valid Capability never forces execution.
 4. **AuthenticationDoesNotGrantAuthority** — authenticated channel/identity never widens Capability/delegation scope.
-5. **CausalEventsAndDelegationParentsDistinct** — `causal_events` and authority ancestry are separate relations.
+5. **CausalEventsAndProviderAuthorityDistinct** — `causal_events` and provider authority ancestry are separate relations.
 6. **CausalEventsAreSemanticAndUnique** — persisted causal references preserve concrete `event_id` plus Intent semantics when available.
 7. **AccountableEffectsHaveProvenance** — every accountable effect has a valid causal path or is classified `UnaccountedEffect`.
 8. **ActionAuthorizationBeforeEffect** — consequential Action authorization precedes the effect.
