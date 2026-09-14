@@ -89,6 +89,8 @@ A valid high-assurance path may require evidence of:
 - concrete ActionReceipt;
 - required Human acceptance/return boundaries.
 
+Capability/delegation provider ancestry MAY be part of authority verification, but it is not semantic causality and MUST NOT be represented as `causal_events` unless an actual authority event materially contributed to the decision.
+
 ## Cross-transport tracing
 
 Transport-specific trace identifiers MAY be mapped into `trace` metadata, but H2A2H correlation and semantic causal references MUST survive transport changes.
@@ -143,7 +145,8 @@ Private chain-of-thought MUST NOT be required to validate H2A2H accountability.
 2. Historical failures, rejections, challenges, or escalations cannot be erased by later success.
 3. Correlation survives transport changes.
 4. `causal_events` preserves semantic multi-causality when relevant.
-5. Redaction preserves event truth/provenance.
-6. A completed interaction can be reconstructed without Agent internals.
-7. Tamper-evident profiles detect mutation/reordering/removal.
-8. An accountable effect has a valid causal provenance path or is explicitly `UnaccountedEffect`.
+5. Causal provenance remains distinct from Capability/delegation provider ancestry.
+6. Redaction preserves event truth/provenance.
+7. A completed interaction can be reconstructed without Agent internals.
+8. Tamper-evident profiles detect mutation/reordering/removal.
+9. An accountable effect has a valid causal provenance path or is explicitly `UnaccountedEffect`.
