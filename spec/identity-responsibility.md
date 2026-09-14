@@ -96,7 +96,20 @@ causal_events = [inventory.intent, financial.intent, marketing.intent]
 
 MAY be used for reasoning/query presentation, but persisted accountability evidence SHOULD retain the unique event occurrence as well as the Intent semantics.
 
-`causal_events` MUST NOT be confused with `parent_capability_id` or `parent_delegation_id`; the latter represent authority ancestry, not causality.
+`causal_events` MUST NOT be confused with `provider_capability_id` or `provider_delegation_id`; the latter identify the provider/emitter authority lineage, not causality.
+
+## Authority provider ancestry
+
+Authority ancestry is represented with provider-oriented fields such as:
+
+```text
+provider_capability_id
+provider_delegation_id
+```
+
+These fields identify the Capability or Delegation that provided the authority being attenuated or projected into the current artifact.
+
+They MUST NOT be interpreted as causal parents, process parents, ownership parents, object containment, command hierarchy, or DAG ancestry for events.
 
 ## Linear responsibility chain compatibility
 
@@ -173,7 +186,7 @@ A runtime resolving a participant MUST output:
 3. Network address MUST NOT be canonical Entity identity.
 4. Responsibility changes MUST be append-only and auditable.
 5. Delegation/Capability and responsibility MUST remain distinct relationships.
-6. Causal provenance and authority ancestry MUST remain distinct relationships.
+6. Causal provenance and provider authority ancestry MUST remain distinct relationships.
 7. An H2A2H interaction MUST be traceable to an accountable Human or Organization boundary under the selected governance profile.
 8. Privacy-preserving identity MUST support independent claim validation.
 9. Identity/key rotation MUST preserve continuity evidence.
