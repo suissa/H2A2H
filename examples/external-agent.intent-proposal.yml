@@ -1,0 +1,55 @@
+protocol: h2a2h
+version: 1.0.0
+kind: intent_proposal
+message_id: msg:external-optimization:01J
+interaction_id: interaction:optimization:01J
+correlation_id: corr:optimization:01J
+root_intent_id: intent:root:optimize-company:01J
+
+sender:
+  entity_id: agent:external-strategy:019
+  kind: Agent
+  canonical_label: Strategy.ExternalOptimizationAgent
+receiver:
+  entity_id: agent:company-optimizer:019
+  kind: Agent
+  canonical_label: Business.CompanyOptimizer
+
+intent:
+  intent_id: intent:optimization:01J
+  canonical_label: Business.OptimizeProfitability
+  version: 1.0.0
+
+capability:
+  capability_id: capability:optimization:01J
+  digest: sha256:capability-digest
+
+causal_events:
+  - event_id: event:inventory:01J
+    intent:
+      intent_id: intent:inventory:01J
+      canonical_label: Inventory.AssessAvailability
+      version: 1.0.0
+    relation: evidence
+  - event_id: event:financial:01J
+    intent:
+      intent_id: intent:financial:01J
+      canonical_label: Financials.AssessCashFlow
+      version: 1.0.0
+    relation: evidence
+  - event_id: event:marketing:01J
+    intent:
+      intent_id: intent:marketing:01J
+      canonical_label: Marketing.AssessDemand
+      version: 1.0.0
+    relation: evidence
+
+payload:
+  schema: schema://business/optimize-profitability/input/1
+  media_type: application/json
+  value:
+    company_id: company:123
+    objective: reduce-costs-and-increase-profit
+
+timestamp: 2026-09-14T08:30:00Z
+expires_at: 2026-09-14T08:35:00Z

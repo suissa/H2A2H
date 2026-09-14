@@ -2,7 +2,7 @@
 
 Status: Normative draft.
 
-H2A2H means **Human-to-Agent-to-Human**. It specifies a transport-independent responsibility, delegation, interaction, proof, and interoperability model for digital actions that originate from Human intent, may cross one or more machine/entity boundaries, and ultimately return to a Human endpoint.
+H2A2H means **Human-to-Agent-to-Human**. It specifies a transport-independent identity, responsibility, delegation/Capability, Intent, interaction, proof, causal-provenance, and interoperability model for digital actions that originate from Human or authorized Entity intent, may cross autonomous machine/entity boundaries, and ultimately preserve the required Human responsibility/return boundary.
 
 The key words **MUST**, **MUST NOT**, **SHOULD**, **SHOULD NOT**, and **MAY** are normative requirements.
 
@@ -11,15 +11,19 @@ The key words **MUST**, **MUST NOT**, **SHOULD**, **SHOULD NOT**, and **MAY** ar
 H2A2H standardizes:
 
 - semantic participant/Entity identity;
-- Human responsibility and accountability boundaries;
+- Human/Organization responsibility boundaries;
 - Intent references through OpenIntent Protocol;
-- bounded machine-verifiable delegation through OpenDelegation Protocol;
+- bounded machine-verifiable delegation and Capability semantics;
 - declarative communication through OpenEntityChannels;
-- a transport-neutral H2A2H message envelope;
+- transport-neutral H2A2H envelopes;
+- autonomous receiver-local acceptance;
+- causal responsibility/provenance through `causal_events[]`;
 - the canonical interaction lifecycle;
 - Human-in-the-Healing-Loop escalation/resume;
+- Verifiable Action Authorization Layer (VAAL);
 - Proof-of-Human-Return (PoHR);
 - security profile requirements;
+- external-Agent API semantics;
 - provenance/audit semantics;
 - MCP/A2A bridge rules;
 - version negotiation/evolution;
@@ -33,9 +37,11 @@ H2A2H is not:
 
 - a universal replacement for MCP, A2A, HTTP, gRPC, NATS, QUIC, WebSocket, or other transports/protocols;
 - an Agent reasoning algorithm;
-- an authorization system that treats authentication credentials as delegated authority;
+- a system that treats authentication credentials as delegated authority;
 - a requirement that every participant be an Agent;
-- a requirement that a Human synchronously approve every machine action.
+- a requirement that a Human synchronously approve every machine action;
+- a mechanism that automatically determines legal liability or guilt;
+- a requirement to expose private LLM chain-of-thought.
 
 ## 3. Entities and terminology
 
@@ -45,17 +51,37 @@ An Agent MUST be treated as one Entity kind, not as the universal type of all pa
 
 Normative terminology and identity distinctions are defined in `spec/terminology.md` and `spec/identity-responsibility.md`.
 
-## 4. Core architecture
+## 4. Core autonomy architecture
 
-An H2A2H interaction is modeled as:
+H2A2H treats autonomous participants as local decision makers.
 
-`Human intent -> delegated execution -> one or more Entity handoffs -> result -> Human return -> optional Human acknowledgement`
+For autonomous-Agent profiles:
 
-The runtime implementation MAY use workflows, actors, event choreography, services, devices, queues, RPC, streaming, or combinations thereof. The external protocol semantics MUST remain stable.
+```text
+Event != Command
+Observation != Obligation
+Capability != Acceptance
+Authentication != Authorization
+Authorization != Execution
+```
 
-Every effect requiring delegated authority MUST occur only after effective authority has been validated.
+A sender can propose an Intent, advertise a Capability/promise, or emit a semantic event. The receiving autonomous Agent independently evaluates whether to accept or reject participation.
 
-Every accountability-boundary crossing MUST be auditable.
+Normal autonomous Agent-to-Agent interaction SHOULD use semantic event choreography rather than implicit command authority.
+
+An H2A2H interaction may be represented as:
+
+```text
+Human/Entity Intent
+-> authenticated bounded participation
+-> one or more receiver-local acceptance decisions
+-> authorized Actions/effects
+-> auditable causal provenance
+-> result
+-> required Human return/acknowledgement
+```
+
+See `spec/responsibility-causal-provenance.md`.
 
 ## 5. Intent semantics
 
@@ -75,21 +101,23 @@ An H2A2H-resolvable Intent MUST have:
 
 Transport selection MUST NOT be hard-coded in domain Agent behavior. See `spec/openintent-integration.md`.
 
-## 6. Delegated authority
+## 6. Authority: Delegation and Capability
 
-OpenDelegation Protocol expresses explicit bounded authority.
+OpenDelegation expresses explicit bounded authority across delegation relationships. External-Agent profiles MAY use a Capability artifact as a bounded, sender/audience-scoped authorization projection.
 
-Authentication MUST NOT be treated as delegation. A credential proves identity/access under a security profile; delegation proves permitted action scope.
+Authentication MUST NOT be treated as delegation or Capability.
 
-For a child delegation derived from a parent:
+For a child authority derived from a provider authority:
 
-`effective_scope(child) ⊆ effective_scope(parent)`
+```text
+effective_scope(child) subset-or-equal effective_scope(provider)
+```
 
-Child delegation MUST NOT widen Intent, action, resource, temporal, monetary, geographic, security, or depth constraints.
+Child authority MUST NOT widen Intent, Action, resource, temporal, monetary, geographic, security, or depth constraints.
 
-Sessions derived from Human delegation MUST NOT outlive their backing delegation and MUST NOT silently renew. Revocation MUST prevent new effects without requiring Agent restart.
+Sessions derived from Human delegation MUST NOT outlive their backing authority and MUST NOT silently renew. Revocation MUST prevent new effects without requiring Agent restart.
 
-See `spec/opendelegation.md`.
+See `spec/opendelegation.md` and `spec/external-agent-api.md`.
 
 ## 7. Entity identity and responsibility
 
@@ -104,15 +132,42 @@ A canonical Entity reference separates:
 
 Network address MUST NOT be canonical Entity identity.
 
-The responsibility chain is append-only provenance of accountable boundaries across an interaction. Delegation and responsibility MUST remain separate relationships.
+The canonical responsibility model is an append-only DAG of events, decisions, handoffs, and effects. A linear responsibility chain is a compatibility/projection view only when it does not misrepresent concurrent causality.
 
-## 8. OpenEntityChannels
+Delegation/Capability provider ancestry and causal provenance MUST remain separate relationships.
+
+See `spec/identity-responsibility.md` and `spec/responsibility-causal-provenance.md`.
+
+## 8. Causal events
+
+Semantic multi-causality is represented by `causal_events[]`.
+
+Each persisted causal reference SHOULD preserve both:
+
+- concrete `event_id`; and
+- the Intent reference (`intent_id`, `canonical_label`, `version`) giving the event semantic meaning.
+
+A compact semantic view may be:
+
+```text
+causal_events = [inventory.intent, financial.intent, marketing.intent]
+```
+
+This MUST NOT be confused with `provider_capability_id` or `provider_delegation_id`, which represent provider authority ancestry.
+
+## 9. OpenEntityChannels
 
 Entities MAY declare multiple communication channels. Intents MAY declare communication requirements.
 
 A runtime resolves:
 
-`Intent requirements ∩ sender channels ∩ receiver channels ∩ security policy ∩ runtime constraints`.
+```text
+Intent requirements
+intersect sender channels
+intersect receiver channels
+intersect security policy
+intersect runtime constraints
+```
 
 Fallback MUST NOT weaken required security, authority, reliability, ordering, or acknowledgement semantics.
 
@@ -120,40 +175,91 @@ Reference profiles include in-memory, HTTP/HTTPS, WebSocket, SSE, gRPC, QUIC, NA
 
 See `spec/openentitychannels.md`.
 
-## 9. Canonical message envelope
+## 10. Canonical message envelope
 
-All H2A2H semantic messages use the transport-neutral envelope defined by `spec/envelope.md` and `schemas/h2a2h-v1.schema.json#/$defs/envelope`.
+All H2A2H semantic messages use the transport-neutral envelope defined by `spec/envelope.md`.
 
 At minimum an envelope identifies:
 
 - H2A2H protocol/version;
 - message, interaction, and correlation identity;
-- causation when applicable;
+- direct protocol `causation_id` when applicable;
+- semantic `causal_events[]` when applicable;
 - message kind;
 - Intent reference;
 - sender and receiver Entity references;
 - timestamp;
 - payload semantics.
 
-When required, delegation, responsibility, proof, idempotency, trace, channel, and extension metadata are carried or referenced explicitly.
+`causation_id` identifies direct protocol-message causation. `causal_events[]` identifies semantic multi-event/Intent causality. They MUST NOT be treated as synonyms.
 
-A transport response MUST NOT be interpreted as H2A2H lifecycle completion unless all required lifecycle conditions have been satisfied.
+When required, Capability/delegation, responsibility, proof, idempotency, trace, channel, and extension metadata are carried or referenced explicitly.
 
-## 10. Canonical lifecycle
+A transport response MUST NOT be interpreted as autonomous acceptance or H2A2H lifecycle completion unless the semantic lifecycle conditions have been satisfied.
+
+## 11. Receiver-local acceptance
+
+For an autonomous receiver, valid identity and authority permit an Intent to be considered; they do not force acceptance.
+
+A receiver SHOULD expose one of:
+
+```text
+ACCEPT
+REJECT
+DEFER
+PARTIAL
+CHALLENGE
+```
+
+A material `PARTIAL` transformation MUST be explicit and auditable.
+
+See `spec/external-agent-api.md` and `spec/responsibility-causal-provenance.md`.
+
+## 12. Canonical lifecycle
 
 The success path is:
 
-`CREATED -> INTENT_CAPTURED -> AUTHORITY_VALIDATED -> PARTICIPANTS_RESOLVED -> CHANNEL_BOUND -> EXECUTING -> RETURN_PENDING -> HUMAN_RETURNED -> ACKNOWLEDGED? -> CLOSED`
+```text
+CREATED
+-> INTENT_CAPTURED
+-> AUTHORITY_VALIDATED
+-> PARTICIPANTS_RESOLVED
+-> CHANNEL_BOUND
+-> EXECUTING
+-> RETURN_PENDING
+-> HUMAN_RETURNED
+-> ACKNOWLEDGED?
+-> CLOSED
+```
 
 Recoverable protocol states include `HEALING_REQUIRED`, `HUMAN_ESCALATION_REQUIRED`, and `SUSPENDED`.
 
 Terminal non-success states include `CANCELLED`, `EXPIRED`, `REJECTED`, and `FAILED_TERMINAL`.
 
-Invalid state transitions MUST be rejected deterministically. Synchronous and asynchronous implementations MUST preserve the same semantic lifecycle.
+VAAL and external-Agent acceptance stages MAY be represented as auditable sub-states/events until a future lifecycle major version exposes them directly.
 
 See `spec/lifecycle.md`.
 
-## 11. Human-in-the-Healing-Loop
+## 13. Verifiable Action Authorization Layer
+
+Acceptance of an Intent does not authorize arbitrary consequential effects.
+
+VAAL separates:
+
+```text
+Delegation/Capability
+-> ActionCommitment
+-> ActionMandate
+-> ALLOW | DENY | CHALLENGE
+-> Effect
+-> ActionReceipt
+```
+
+Only `ALLOW` may cross the consequential execution boundary.
+
+See `spec/verifiable-action-authorization.md`.
+
+## 14. Human-in-the-Healing-Loop
 
 Automated healing MAY apply declared deterministic transformations/normalizations during validation/recovery.
 
@@ -168,7 +274,7 @@ When Human knowledge, authority, or choice is required, the interaction enters H
 
 See `spec/human-in-the-healing-loop.md`.
 
-## 12. Proof-of-Human-Return
+## 15. Proof-of-Human-Return
 
 H2A2H distinguishes:
 
@@ -177,21 +283,22 @@ H2A2H distinguishes:
 - Human presentation;
 - explicit Human acknowledgement.
 
-PoHR MUST bind the interaction, intended Human (or authorized representative), exact result/digest, return state, channel, time, and proof profile.
+PoHR MUST bind the interaction, intended Human or authorized representative, exact result/digest, return state, channel, time, and proof profile.
 
 Transport delivery alone MUST NOT be labeled Human return.
 
-PoHR profiles include presentation, acknowledgement, representative, and privacy-preserving modes. Failed Human return remains correlated and auditable.
+Pre-effect Human acceptance and post-effect Proof-of-Human-Return are separate causal events.
 
 See `spec/proof-of-human-return.md`.
 
-## 13. Security
+## 16. Security
 
 Security is decomposed into:
 
 - identity authentication;
 - transport protection;
-- delegated authorization;
+- bounded/delegated authorization;
+- proof-of-possession when required;
 - proof validation.
 
 These concerns MUST NOT be collapsed into one another.
@@ -202,33 +309,64 @@ Remote profiles MUST provide replay/freshness defense. Security fallback MUST NO
 
 See `spec/security.md`.
 
-## 14. Audit and provenance
+## 17. External Agent API
 
-A completed or failed interaction MUST be reconstructible from protocol/audit records without inspecting private Agent internals.
+The standard external-Agent boundary is defined by `spec/external-agent-api.md` and `schemas/h2a2h-external-agent-api-v1.schema.json`.
 
-Audit MUST preserve lifecycle transitions, participant/responsibility changes, Intent version, delegation provenance, selected channels, proofs, Human interventions, timestamps, and terminal status.
+Reference gate order:
+
+```text
+mTLS
+-> Agent identity binding
+-> Capability validation
+-> Proof-of-Possession
+-> Intent validation
+-> receiver-local policy
+-> ACCEPT | REJECT | DEFER | PARTIAL | CHALLENGE
+-> VAAL when consequential
+-> effect
+-> receipt/attestation
+-> causal provenance append
+```
+
+HTTP is a reference transport binding only. HTTP `POST` MUST NOT be interpreted as command authority.
+
+## 18. Audit and provenance
+
+A completed, failed, rejected, or externally effected interaction MUST be reconstructible from protocol/audit records without inspecting private Agent internals.
+
+Audit MUST preserve lifecycle transitions, participant/responsibility changes, Intent version, `causal_events`, authority provenance, selected channels, local acceptance, proofs, Action receipts, Human interventions, timestamps, and terminal status.
 
 History is append-only. Redaction MAY hide sensitive values while preserving semantic truth, digest/reference, and provenance.
 
-Tamper-evident digest chaining is defined by the reference implementation.
-
 See `spec/audit-provenance.md`.
 
-## 15. MCP and A2A interoperability
+## 19. Accounted effects
+
+For policy-defined accountable effects, a high-assurance implementation SHOULD reconstruct a valid causal path from a recognized Intent to the effect:
+
+```text
+forall e in Effects_accountable:
+    exists P: Intent ~> causal_events* ~> e
+```
+
+If the required path/evidence cannot be reconstructed, the effect is classifiable as `UnaccountedEffect` even when the external operation technically succeeded.
+
+A deployment MAY distinguish `technical_success`, `semantic_success`, `authorized_success`, and `accounted_success`.
+
+## 20. MCP and A2A interoperability
 
 MCP and A2A MAY be bridge targets or communication profiles when their semantics are compatible.
 
-A bridge MUST preserve namespaced H2A2H metadata necessary for interaction/correlation, Intent, delegation, responsibility, proof, and idempotency.
+A bridge MUST preserve namespaced H2A2H metadata necessary for interaction/correlation, Intent, Capability/delegation, responsibility, causal events, proof, and idempotency.
 
 Target-protocol authentication/capability discovery MUST NOT widen H2A2H authority.
 
-A2A task completion or MCP tool completion does not by itself satisfy PoHR.
-
-Lossy bridges MUST declare unsupported/lossy semantics instead of claiming native H2A2H equivalence.
+A2A task completion or MCP tool completion does not by itself satisfy PoHR or H2A2H accounted-success requirements.
 
 See `spec/interop-mcp-a2a.md`.
 
-## 16. Versioning and extensions
+## 21. Versioning and extensions
 
 Normative artifacts use semantic versions.
 
@@ -238,39 +376,40 @@ Extensions MUST be namespaced and classified optional or critical. Unknown optio
 
 See `spec/versioning.md`.
 
-## 17. Normative schemas
+## 22. Normative schemas
 
-`schemas/h2a2h-v1.schema.json` is the JSON Schema 2020-12 normative artifact bundle.
+`schemas/h2a2h-v1.schema.json` remains the normative JSON Schema 2020-12 bundle for the original H2A2H v1 core artifact set.
 
-It contains schemas for:
+`schemas/h2a2h-external-agent-api-v1.schema.json` defines the external-Agent/causal-responsibility extension artifacts, including:
 
-- Entity references;
-- responsibility chains;
-- envelopes;
-- OpenIntent integration artifacts;
-- OpenDelegation;
-- OpenEntityChannels;
-- Proof-of-Human-Return;
-- audit records;
-- escalation records.
+- Capability;
+- `IntentProposal`;
+- `IntentDecision`;
+- `causal_events` references;
+- `ResponsibilityEnvelope`.
 
-Normative examples MUST validate against the appropriate `$defs` fragment.
+The legacy `responsibilityChain` schema fragment is a linear compatibility projection and MUST NOT be used to claim complete causality for a concurrent DAG.
 
-## 18. Formal invariants
+## 23. Formal invariants
 
-`formal/H2A2H.tla` is the formal state/invariant projection of the protocol core. It models:
+`formal/H2A2H.tla` models lifecycle/delegation invariants.
 
-- allowed lifecycle transitions;
-- authority expiry/revocation;
-- delegation scope monotonicity/depth;
-- responsibility preservation;
-- Human-return-before-close;
-- acknowledgement implication;
-- terminal-state stability.
+`formal/H2A2H-Responsibility.tla` models the external-Agent/accountability boundary, including:
+
+- authentication before accounted effect;
+- Capability before accounted effect;
+- proof-of-possession before accounted effect;
+- validated Intent before accounted effect;
+- local acceptance before accounted effect;
+- exact Action authorization before accounted effect;
+- semantic causal evidence before accounted effect;
+- required Human boundary preservation;
+- explicit classification of unaccounted effects;
+- trust changes that do not manufacture authority.
 
 Formal artifacts, schemas, specification clauses, and executable conformance tests SHOULD remain mutually traceable.
 
-## 19. Conformance
+## 24. Conformance
 
 A conforming implementation MUST pass the applicable H2A2H conformance suite.
 
@@ -278,53 +417,44 @@ Conformance categories include:
 
 - normative schema validation;
 - lifecycle transitions;
-- delegation expiration/revocation/scope;
+- authority expiration/revocation/scope;
 - identity/responsibility integrity;
+- external-Agent mTLS/PoP/Capability gating when applicable;
+- autonomous receiver-local acceptance;
+- semantic causal-event integrity;
 - idempotency/replay behavior;
 - channel resolution/negotiation;
-- proof validation;
+- VAAL proof validation;
 - escalation/resume;
 - Human return;
 - version/extension compatibility.
 
-A protocol-level v1.0 interoperability claim requires at least two implementations with independent internal code paths to complete a compatible bidirectional H2A2H interaction using the normative specification rather than shared runtime internals.
+A protocol-level v1.0 interoperability claim requires at least two implementations with independent internal code paths to complete compatible bidirectional H2A2H interactions using normative specification artifacts rather than shared runtime internals.
 
-## 20. Reference implementation
+## 25. Reference implementation
 
 The TypeScript implementation in `src/` is a reference projection of the protocol, not the definition of the protocol itself.
 
-It includes:
-
-- canonical runtime lifecycle;
-- delegation sessions;
-- security/proof primitives;
-- healing/escalation coordinator;
-- tamper-evident audit trail;
-- SDK and artifact registry;
-- channel adapters/forger;
-- MCP/A2A bridge projections;
-- version negotiation;
-- E2E examples/tests.
-
 Implementation-specific behavior MUST NOT override the normative specification.
 
-## 21. Normative examples
+The external-Agent causal-responsibility profile may be implemented incrementally, but an implementation MUST NOT claim conformance to that profile until its applicable schema, security, authority, acceptance, provenance, and Action-authorization requirements are enforced.
 
-At minimum the repository contains:
+## 26. Theoretical basis and legal boundary
 
-- an OpenIntent example;
-- a bounded OpenDelegation example;
-- executable Human→Agent→Agent→Human flow;
-- executable Human→Agent→Organization/Service/Device/Government→Agent→Human flows;
-- valid and invalid conformance fixtures.
+The causal-responsibility model is informed by Mark Burgess, *Legal Responsibilities Using Autonomous Agents For Artificial Intelligence: Promise Theory Considerations*, arXiv:2608.08022 (2026), particularly the autonomy axiom and Downstream Principle.
 
-## 22. v1.0 interoperability condition
+H2A2H does not claim that technical causal evidence automatically determines legal liability. The protocol supplies verifiable technical evidence for later governance, audit, contractual, regulatory, judicial, or arbitral assessment.
+
+See `docs/Legal-Responsibilities-Using-Autonomous-Agents-For-Artificial-Intelligence.md`.
+
+## 27. v1.0 interoperability condition
 
 H2A2H v1.0 is considered protocol-complete when:
 
-1. this specification and schemas are versioned and internally consistent;
-2. reference runtime/SDK passes conformance tests;
-3. the reference E2E scenarios close with valid PoHR/audit;
-4. a second independent implementation passes conformance and interoperates bidirectionally;
-5. CI/release automation produces a reproducible conformance report;
-6. no unresolved normative blocker remains.
+1. specifications and schemas are versioned and internally consistent;
+2. reference runtime/SDK passes applicable conformance tests;
+3. reference E2E scenarios close with valid PoHR/audit;
+4. the external-Agent profile, when claimed, passes its Capability/PoP/acceptance/causal-accounting tests;
+5. a second independent implementation passes conformance and interoperates bidirectionally;
+6. CI/release automation produces a reproducible conformance report;
+7. no unresolved normative blocker remains.
