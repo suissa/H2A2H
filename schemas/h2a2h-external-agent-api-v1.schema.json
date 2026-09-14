@@ -44,7 +44,7 @@
       "properties": {
         "capability_id": { "type": "string", "minLength": 1 },
         "digest": { "type": "string", "minLength": 1 },
-        "parent_capability_id": { "type": "string", "minLength": 1 }
+        "provider_capability_id": { "type": "string", "minLength": 1 }
       },
       "additionalProperties": false
     },
@@ -53,7 +53,7 @@
       "required": ["capability_id", "issuer", "subject", "audience", "issued_at", "expires_at", "scope", "proof"],
       "properties": {
         "capability_id": { "type": "string", "minLength": 1 },
-        "parent_capability_id": { "type": "string", "minLength": 1 },
+        "provider_capability_id": { "type": "string", "minLength": 1 },
         "issuer": { "$ref": "#/$defs/entityRef" },
         "subject": { "$ref": "#/$defs/entityRef" },
         "audience": { "$ref": "#/$defs/entityRef" },
