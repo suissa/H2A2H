@@ -13,7 +13,7 @@ message_id: msg:...
 interaction_id: interaction:...
 correlation_id: corr:...
 causation_id: msg:previous-or-null
-kind: request|response|event|acknowledgement|escalation|proof
+kind: request|response|event|acknowledgement|escalation|proof|intent_proposal|intent_decision
 intent:
   canonical_label: Commerce.PurchaseProducts
   version: 1.0.0
@@ -37,11 +37,47 @@ Identifies the H2A2H lifecycle instance. It is stable from creation through clos
 
 ## `correlation_id`
 
-Groups causally related messages. A child/fork interaction MAY have a distinct `interaction_id` while retaining a parent correlation reference.
+Groups causally related protocol activity. A child/fork interaction MAY have a distinct `interaction_id` while retaining a parent correlation reference.
 
 ## `causation_id`
 
-References the message/event that directly caused this message. Initial messages MAY use null/absence.
+References the single protocol message/event that directly caused this protocol message when such a direct relationship exists. Initial messages MAY use null/absence.
+
+`causation_id` is intentionally not the complete semantic causal graph.
+
+## `causal_events[]`
+
+When a semantic decision/effect depends on one or more prior events/Intents, an envelope MAY carry or reference `causal_events[]`:
+
+```yaml
+causal_events:
+  - event_id: event:inventory:01J...
+    intent:
+      intent_id: intent:inventory:01J...
+      canonical_label: Inventory.AssessAvailability
+      version: 1.0.0
+    relation: evidence
+  - event_id: event:financial:01J...
+    intent:
+      canonical_label: Financials.AssessCashFlow
+      version: 1.0.0
+    relation: evidence
+```
+
+The semantic shorthand MAY be presented as:
+
+```text
+causal_events = [inventory.intent, financial.intent, marketing.intent]
+```
+
+Persisted audit evidence SHOULD retain the concrete `event_id` plus Intent semantics.
+
+The distinction is:
+
+```text
+causation_id  -> direct protocol-message causation
+causal_events -> semantic multi-event/Intent causality
+```
 
 ## `idempotency_key`
 
@@ -49,30 +85,44 @@ Required when the Intent declares idempotency as required or derived. Processing
 
 ## Message kinds
 
-- `request`: asks a participant to perform/continue an Intent;
+- `request`: asks a participant to consider/continue an Intent under the applicable profile;
 - `response`: returns the immediate result of a request, not necessarily lifecycle completion;
 - `event`: records/announces a semantic occurrence;
+- `intent_proposal`: external/autonomous participant proposes an Intent for receiver-local evaluation;
+- `intent_decision`: receiver records `ACCEPT|REJECT|DEFER|PARTIAL|CHALLENGE`;
 - `acknowledgement`: acknowledges a protocol condition or Human receipt where profile rules allow;
 - `escalation`: requests Human or policy intervention;
 - `proof`: carries or references proof material.
+
+No message kind grants undeclared command authority over an autonomous receiver.
 
 ## Sender/receiver
 
 Sender and receiver use Entity/participant references. Network addresses MUST NOT replace Entity identity.
 
-## Delegation
+## Capability / Delegation
 
-When delegated authority is required, the envelope MUST contain a `delegation` reference or enough verifiable material to resolve the effective delegation chain.
+When delegated/bounded authority is required, the envelope MUST contain a Capability/OpenDelegation reference or enough verifiable material to resolve the effective authority chain.
 
 ```yaml
+capability:
+  capability_id: capability:...
+  provider_capability_id: capability:provider:...
+  digest: sha256:...
+
 delegation:
   delegation_id: delegation:...
-  chain_digest: "..."
+  provider_delegation_id: delegation:provider:...
+  chain_digest: sha256:...
 ```
 
-## Responsibility chain
+Capability/delegation provider ancestry MUST NOT be inferred from `causal_events`.
 
-The envelope MUST either carry the active responsibility chain/reference or provide a verifiable immutable reference to it.
+## Responsibility
+
+The envelope MUST either carry the active `ResponsibilityEnvelope`, a responsibility graph reference, or a verifiable immutable reference sufficient for the selected governance profile.
+
+A legacy linear `responsibility_chain` MAY be used only as a projection when it does not misrepresent concurrent causality.
 
 ## Payload
 
@@ -93,8 +143,10 @@ Proofs MAY be inline when small or referenced:
 
 ```yaml
 proofs:
-  - type: delegation
+  - type: capability
     ref: proof:...
+  - type: action_authorization
+    ref: mandate:...
   - type: human_return
     ref: pohr:...
 ```
@@ -132,9 +184,11 @@ When envelopes are signed/hashed, the selected security profile MUST define cano
 
 1. Envelope semantics remain identical across transports.
 2. Sender/receiver identity is not a network address.
-3. Correlation and causation survive handoffs.
-4. Required delegation and responsibility references survive handoffs.
-5. Unknown optional extensions do not mutate core semantics.
-6. Trace metadata does not imply authority.
-7. Response receipt does not imply lifecycle closure.
-8. Idempotency is enforced according to the Intent declaration.
+3. Correlation survives handoffs.
+4. `causation_id` and `causal_events` have distinct semantics.
+5. Required Capability/delegation/responsibility references survive handoffs.
+6. Unknown optional extensions do not mutate core semantics.
+7. Trace metadata does not imply authority.
+8. Transport response receipt does not imply autonomous acceptance or lifecycle closure.
+9. Idempotency is enforced according to the Intent declaration.
+10. Event/Intent delivery does not imply command authority.

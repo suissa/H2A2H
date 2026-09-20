@@ -1,8 +1,8 @@
-# Entity Identity and Responsibility Chain
+# Entity Identity and Responsibility Graph
 
 Status: Normative draft for H2A2H v1.0.
 
-H2A2H separates semantic identity, Entity identity, runtime participant identity, and responsibility. Network location or process identity MUST NOT substitute for these concepts.
+H2A2H separates semantic identity, stable Entity identity, runtime participant identity, authority, causal provenance, and responsibility. Network location or process identity MUST NOT substitute for these concepts.
 
 ## Entity reference
 
@@ -23,7 +23,8 @@ A participant is a concrete Entity participation in an interaction. A participan
 - `runtime_instance_id`;
 - `session_id`;
 - role within the Intent;
-- current responsibility/delegation references.
+- current Capability/delegation references;
+- current responsibility/provenance references.
 
 A restarted process MAY have a new runtime identity while preserving Entity identity.
 
@@ -41,7 +42,7 @@ The selected profile MUST still allow the claims required by delegation, respons
 
 ## Responsible-owner relationships
 
-An Agent, Service, or Device MAY declare one or more responsibility relationships such as:
+An Agent, Service, or Device MAY declare one or more accountability relationships such as:
 
 - `owned_by`;
 - `operated_by`;
@@ -49,59 +50,116 @@ An Agent, Service, or Device MAY declare one or more responsibility relationship
 - `responsible_human`;
 - `supervised_by`.
 
-These relationships do not automatically grant execution authority. They establish accountability/provenance relationships.
+These relationships do not automatically grant execution authority. They establish ownership/accountability provenance only.
 
-## Responsibility chain
+## Responsibility graph
 
-A responsibility chain is an ordered append-only sequence of segments. Each segment contains:
+The canonical H2A2H responsibility representation is an append-only directed acyclic graph of semantic events, decisions, handoffs, and effects.
 
-- `segment_id`;
+A responsibility node SHOULD contain:
+
+- `event_id`;
 - accountable Entity reference;
 - optionally accountable Human reference;
-- participant that performed or handed off work;
-- Intent/action scope for the segment;
-- `entered_at` and `exited_at` where known;
-- predecessor segment;
-- delegation reference when authority derives from delegation;
-- proof/audit evidence references.
+- participant that made the decision or produced the evidence/effect;
+- `root_intent_id`;
+- current Intent reference;
+- `causal_events[]`;
+- Capability/delegation reference when authority derives from one;
+- Actor/Action references when applicable;
+- policy hash/version when a policy decision was material;
+- proof/audit evidence references;
+- timestamp.
 
-When accountability crosses a boundary, a new segment MUST be appended before or atomically with the handoff.
+When accountability crosses a boundary, a new node MUST be appended before or atomically with the downstream acceptance/effect boundary.
+
+## `causal_events[]`
+
+`causal_events[]` is the semantic multi-causality relation.
+
+Each entry SHOULD preserve:
+
+```yaml
+- event_id: event:inventory:01J...
+  intent:
+    intent_id: intent:inventory:01J...
+    canonical_label: Inventory.AssessAvailability
+    version: 1.0.0
+  relation: evidence
+```
+
+The semantic shorthand:
+
+```text
+causal_events = [inventory.intent, financial.intent, marketing.intent]
+```
+
+MAY be used for reasoning/query presentation, but persisted accountability evidence SHOULD retain the unique event occurrence as well as the Intent semantics.
+
+`causal_events` MUST NOT be confused with `provider_capability_id` or `provider_delegation_id`; the latter identify the provider/emitter authority lineage, not causality.
+
+## Authority provider ancestry
+
+Authority ancestry is represented with provider-oriented fields such as:
+
+```text
+provider_capability_id
+provider_delegation_id
+```
+
+These fields identify the Capability or Delegation that provided the authority being attenuated or projected into the current artifact.
+
+They MUST NOT be interpreted as causal parents, process parents, ownership parents, object containment, command hierarchy, or DAG ancestry for events.
+
+## Linear responsibility chain compatibility
+
+A linear `responsibility_chain` MAY be emitted as a compatibility/projection view when an interaction is truly sequential or when a consumer cannot process a DAG.
+
+A linear chain MUST NOT be represented as complete causal truth when multiple concurrent `causal_events` contributed to a decision.
+
+Where older H2A2H documents use the term “responsibility chain”, implementations SHOULD interpret it as an ordered projection of the canonical responsibility graph unless the context explicitly requires a sequential structure.
 
 ## Example
 
 ```yaml
-responsibility_chain:
-  chain_id: responsibility:01J...
-  segments:
-    - segment_id: r0
-      accountable_entity:
-        entity_id: human:alice
-        kind: Human
+responsibility:
+  graph_id: responsibility:01J...
+  root_intent_id: intent:company-optimization:01J...
+  nodes:
+    - event_id: event:inventory:01J...
       participant:
-        entity_id: human:alice
-        kind: Human
-      role: initiating_human
-      intent: Commerce.PurchaseProducts
-    - segment_id: r1
-      predecessor: r0
-      accountable_entity:
-        entity_id: org:alice-company
-        kind: Organization
-      accountable_human:
-        entity_id: human:alice
-        kind: Human
-      participant:
-        entity_id: agent:alice-commerce
+        entity_id: agent:inventory
         kind: Agent
-      delegation_id: delegation:alice-commerce-session
-      intent: Commerce.PurchaseProducts
+      intent:
+        canonical_label: Inventory.AssessAvailability
+        version: 1.0.0
+      decision: ACCEPT
+
+    - event_id: event:optimization:01J...
+      participant:
+        entity_id: agent:optimizer
+        kind: Agent
+      intent:
+        canonical_label: Business.OptimizeProfitability
+        version: 1.0.0
+      causal_events:
+        - event_id: event:inventory:01J...
+          intent:
+            canonical_label: Inventory.AssessAvailability
+            version: 1.0.0
+          relation: evidence
+        - event_id: event:financial:01J...
+          intent:
+            canonical_label: Financials.AssessCashFlow
+            version: 1.0.0
+          relation: evidence
 ```
 
 ## Pseudonymous identity
 
 A privacy profile MAY replace direct Human identity with a pseudonymous reference. The protocol MUST retain enough proof to validate required claims without forcing disclosure of unrelated identity attributes.
 
-Pseudonym rotation MUST NOT silently break an active responsibility chain. Rotation events MUST be causally linked and verifiable under the selected identity profile.
+Pseudonym rotation MUST NOT silently break an active responsibility graph. Rotation events MUST be causally linked and verifiable under the selected identity profile.
 
 ## Identity rotation
 
@@ -127,8 +185,10 @@ A runtime resolving a participant MUST output:
 2. Runtime/process identity MUST NOT replace stable Entity identity.
 3. Network address MUST NOT be canonical Entity identity.
 4. Responsibility changes MUST be append-only and auditable.
-5. Delegation and responsibility MUST remain distinct relationships.
-6. An H2A2H interaction MUST be traceable to an accountable Human or Organization boundary under the selected governance profile.
-7. Privacy-preserving identity MUST support independent claim validation.
-8. Identity/key rotation MUST preserve continuity evidence.
-9. Entity kinds MUST be extensible without redesigning the envelope or lifecycle.
+5. Delegation/Capability and responsibility MUST remain distinct relationships.
+6. Causal provenance and provider authority ancestry MUST remain distinct relationships.
+7. An H2A2H interaction MUST be traceable to an accountable Human or Organization boundary under the selected governance profile.
+8. Privacy-preserving identity MUST support independent claim validation.
+9. Identity/key rotation MUST preserve continuity evidence.
+10. Entity kinds MUST be extensible without redesigning the envelope or lifecycle.
+11. Concurrent causality MUST NOT be flattened into a misleading single-parent chain.
