@@ -152,7 +152,7 @@ capability:
   capability_id: capability:01J...
   digest: sha256:...
 
-  claimed_causal_events:
+claimed_causal_events:
   - event_id: event:inventory:01J...
     intent:
       intent_id: intent:inventory:01J...
@@ -405,4 +405,4 @@ Trust MAY reduce provider-selection uncertainty or increase/decrease scrutiny. T
 8. Sender-claimed causal references do not become canonical causal edges before receiver verification.
 9. `causal_events` remains distinct from Capability/delegation provider ancestry.
 10. Every accepted/effected transition is auditable.
-10. Transport bindings do not redefine the semantic protocol.
+11. Transport bindings do not redefine the semantic protocol.
