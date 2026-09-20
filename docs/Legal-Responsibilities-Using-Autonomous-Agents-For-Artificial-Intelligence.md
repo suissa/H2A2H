@@ -350,8 +350,8 @@ If the system cannot reconstruct a valid path containing the required identity, 
 
 The TLA+ projection is defined in:
 
-- `formal/H2A2H-Responsibility.tla`
-- `formal/H2A2H-Responsibility.cfg`
+- `formal/H2A2H_Responsibility.tla`
+- `formal/H2A2H_Responsibility.cfg`
 
 ## 19. Resulting architecture
 

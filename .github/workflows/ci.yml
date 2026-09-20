@@ -21,6 +21,12 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Setup Java for TLA+ model checking
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
       - name: Install dependencies
         run: npm ci --no-fund --no-audit
 
@@ -28,6 +34,7 @@ jobs:
         run: |
           node -e "JSON.parse(require('node:fs').readFileSync('schemas/h2a2h-v1.schema.json','utf8')); console.log('H2A2H schema JSON valid')"
           node -e "JSON.parse(require('node:fs').readFileSync('schemas/h2a2h-agentic-generalization-v1.schema.json','utf8')); console.log('Agentic generalization schema JSON valid')"
+          node -e "JSON.parse(require('node:fs').readFileSync('schemas/h2a2h-external-agent-api-v1.schema.json','utf8')); console.log('External Agent API schema JSON valid')"
           node -e "JSON.parse(require('node:fs').readFileSync('schemas/employee-agent-runtime.schema.json','utf8')); console.log('Employee Agent runtime schema JSON valid')"
           node -e "JSON.parse(require('node:fs').readFileSync('schemas/employee-tool-capability.schema.json','utf8')); console.log('Employee Tool capability schema JSON valid')"
           node -e "JSON.parse(require('node:fs').readFileSync('schemas/employee-provider-pack.schema.json','utf8')); console.log('Employee Provider Pack schema JSON valid')"
@@ -58,6 +65,13 @@ jobs:
 
       - name: Conformance suite
         run: npm test
+
+      - name: Model-check causal responsibility invariants
+        run: |
+          curl -fsSL --retry 2 -o "$RUNNER_TEMP/tla2tools.jar" \
+            https://github.com/tlaplus/tlaplus/releases/download/v1.8.0/tla2tools.jar
+          java -cp "$RUNNER_TEMP/tla2tools.jar" tlc2.TLC -deadlock \
+            -config formal/H2A2H_Responsibility.cfg formal/H2A2H_Responsibility.tla
 
       - name: Dependency audit
         run: npm audit --audit-level=high

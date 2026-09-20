@@ -394,7 +394,7 @@ The legacy `responsibilityChain` schema fragment is a linear compatibility proje
 
 `formal/H2A2H.tla` models lifecycle/delegation invariants.
 
-`formal/H2A2H-Responsibility.tla` models the external-Agent/accountability boundary, including:
+`formal/H2A2H_Responsibility.tla` models the external-Agent/accountability boundary, including:
 
 - authentication before accounted effect;
 - Capability before accounted effect;

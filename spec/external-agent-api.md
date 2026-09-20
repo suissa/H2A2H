@@ -152,7 +152,7 @@ capability:
   capability_id: capability:01J...
   digest: sha256:...
 
-causal_events:
+  claimed_causal_events:
   - event_id: event:inventory:01J...
     intent:
       intent_id: intent:inventory:01J...
@@ -186,7 +186,9 @@ The semantic shorthand for the causal set is:
 causal_events = [inventory.intent, financial.intent, marketing.intent]
 ```
 
-Persisted records SHOULD preserve the concrete `event_id` as well as the Intent reference.
+`claimed_causal_events` are assertions by the external sender, not canonical causal edges. Before an asserted reference can enter a ResponsibilityEnvelope, the receiver MUST verify that it is resolvable under policy, that its digest matches the referenced immutable event, and that the sender is permitted to disclose it. The resulting decision records the accepted and rejected references separately.
+
+Persisted accepted references MUST preserve the concrete `event_id` as well as the Intent reference. An implementation MUST reject duplicate `event_id` values within one claimed or accepted causal set.
 
 ## 7. Receiver-local acceptance
 
@@ -196,13 +198,24 @@ The canonical response is `IntentDecision`:
 
 ```yaml
 kind: intent_decision
+protocol: h2a2h
+version: 1.0.0
+message_id: msg:decision:01J...
 interaction_id: interaction:01J...
+correlation_id: corr:01J...
+causation_id: msg:01J...
 proposal_message_id: msg:01J...
 decision: ACCEPT
-receiver:
+sender:
   entity_id: agent:financial-optimizer
+  kind: Agent
+receiver:
+  entity_id: agent:external-019
+  kind: Agent
 intent:
   intent_id: intent:optimize:01J...
+  canonical_label: Business.OptimizeProfitability
+  version: 1.0.0
 policy:
   policy_id: policy:financial-optimizer:v7
   policy_hash: sha256:...
@@ -210,6 +223,14 @@ reason_code: policy.allowed
 accepted_scope:
   intents:
     - Business.OptimizeProfitability
+accepted_causal_events:
+  - event_id: event:inventory:01J...
+    intent:
+      intent_id: intent:inventory:01J...
+      canonical_label: Inventory.AssessAvailability
+      version: 1.0.0
+    relation: evidence
+    digest: sha256:...
 attestation_ref: proof:decision:01J...
 timestamp: 2026-09-14T00:00:01Z
 ```
@@ -221,6 +242,8 @@ Decision semantics:
 - `DEFER` — receiver cannot decide yet; no partial authority is created.
 - `PARTIAL` — receiver accepts a strict semantic subset; the subset MUST be explicit and auditable.
 - `CHALLENGE` — additional proof, state, credential, or Human evidence is required.
+
+`IntentDecision` is itself a canonical H2A2H envelope. Its `sender` is the local deciding Entity, its `receiver` is the proposal sender, and `causation_id` MUST equal `proposal_message_id`. A response without these fields is not a portable decision artifact and MUST NOT be treated as acceptance evidence.
 
 ## 8. Consequential Actions
 
@@ -264,7 +287,18 @@ The request MUST use mTLS for profiles requiring mutual authentication.
 
 The body is the canonical H2A2H `IntentProposal`.
 
-A successful HTTP transport response means only that the protocol artifact was processed. It MUST NOT be interpreted as `ACCEPT` unless the body contains a valid `IntentDecision` with that decision.
+A successful HTTP transport response means only that the protocol artifact was received and processed at the stated protocol stage. It MUST NOT be interpreted as `ACCEPT` unless the body contains a valid, authenticated `IntentDecision` with that decision.
+
+The binding MUST preserve this distinction:
+
+| Condition | HTTP result | H2A2H result |
+| --- | --- | --- |
+| mTLS/transport failure | no H2A2H response artifact | transport/authentication failure |
+| malformed or invalid proposal | `4xx` | deterministic validation rejection |
+| proposal recorded for evaluation | `202` or `200` with receipt | no acceptance implied |
+| `IntentDecision(REJECT)` | `200` or `202` with decision | proposal rejected |
+| `IntentDecision(ACCEPT)` | `200` or `202` with decision | local acceptance only; no effect implied |
+| consequential effect | receipt artifact | requires VAAL and ResponsibilityEnvelope |
 
 ### 9.3 Interaction state
 
@@ -317,7 +351,7 @@ Errors MUST distinguish transport/authentication failure from semantic rejection
 
 ## 11. Causal provenance at the API boundary
 
-Every accepted proposal SHOULD append a causal decision event containing:
+Every accepted proposal MUST append a causal decision event containing:
 
 - proposal `message_id`;
 - sender Agent identity;
@@ -325,7 +359,7 @@ Every accepted proposal SHOULD append a causal decision event containing:
 - Intent reference;
 - receiver policy hash;
 - local decision;
-- `causal_events`;
+- accepted and rejected causal-reference results;
 - proof/attestation reference.
 
 Every consequential effect MUST append or reference its `ActionReceipt` and ResponsibilityEnvelope.
@@ -368,6 +402,7 @@ Trust MAY reduce provider-selection uncertainty or increase/decrease scrutiny. T
 5. Receiver-local acceptance is mandatory for autonomous execution.
 6. HTTP status success does not imply Intent acceptance or H2A2H lifecycle completion.
 7. Consequential effects require VAAL authorization.
-8. `causal_events` remains distinct from Capability/delegation provider ancestry.
-9. Every accepted/effected transition is auditable.
+8. Sender-claimed causal references do not become canonical causal edges before receiver verification.
+9. `causal_events` remains distinct from Capability/delegation provider ancestry.
+10. Every accepted/effected transition is auditable.
 10. Transport bindings do not redefine the semantic protocol.

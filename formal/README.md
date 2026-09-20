@@ -24,7 +24,7 @@ java -cp tla2tools.jar tlc2.TLC -config formal/H2A2H.cfg formal/H2A2H.tla
 
 ## Causal responsibility model
 
-`H2A2H-Responsibility.tla` projects the autonomous external-Agent boundary described by:
+`H2A2H_Responsibility.tla` projects the autonomous external-Agent boundary described by:
 
 - `spec/responsibility-causal-provenance.md`
 - `spec/external-agent-api.md`
@@ -41,15 +41,20 @@ The model intentionally distinguishes technical effects from accounted effects. 
 | `AccountedEffectRequiresActionAuthorization` | Consequential Action authorization precedes accounted effect. |
 | `AccountedEffectRequiresCausalEvents` | Accounted effects retain at least one semantic causal event in this finite model. |
 | `HumanBoundaryPreserved` | Policy-required Human acceptance cannot be bypassed. |
+| `HumanReturnBeforeClose` | A required PoHR cannot be bypassed before closure. |
+| `ActionAuthorizationCurrent` | An effect uses authorization from the still-current authority epoch. |
 | `EffectAccountedOrClassified` | Every observed effect is either accounted or explicitly unaccounted. |
 | `UnaccountedIsNotAccounted` | Protocol cannot claim accountability for an unaccounted effect. |
+| `UnaccountedClassificationIsStable` | Reconciliation cannot rewrite an unaccounted effect as originally accounted. |
 
-`RaiseTrust` deliberately leaves `authorityEpoch` and `capabilityValid` unchanged, projecting the rule that trust history does not manufacture or widen authority.
+`RaiseTrust` deliberately leaves `authorityEpoch` and `capabilityValid` unchanged, projecting the rule that trust history does not manufacture or widen authority. `ReconcileUnaccountedEffect` records a later reconciliation without erasing the original unaccounted classification.
+
+The TLC configuration intentionally bounds trust and authority-epoch exploration to a small finite state space; the bounded model verifies safety invariants rather than claiming an unbounded liveness proof. CI executes this model check.
 
 Run with:
 
 ```text
-java -cp tla2tools.jar tlc2.TLC -config formal/H2A2H-Responsibility.cfg formal/H2A2H-Responsibility.tla
+java -cp tla2tools.jar tlc2.TLC -config formal/H2A2H_Responsibility.cfg formal/H2A2H_Responsibility.tla
 ```
 
 ## Relationship to runtime
